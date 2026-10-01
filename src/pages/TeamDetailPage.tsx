@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CopyButton, Empty, Field, TeamName, WeaponTag } from '../components/ui';
+import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag } from '../components/ui';
 import { WeaponPicker } from '../components/WeaponPicker';
 import { teamText } from '../lib/announce';
 import { roundName, type MatchView } from '../lib/bracket';
@@ -15,7 +15,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
   const [picking, setPicking] = useState<Picking>(null);
   if (!team) {
     return (
-      <Empty>
+      <Empty icon="groups">
         チームが見つかりません。<a href="#/teams">チーム一覧へ戻る</a>
       </Empty>
     );
@@ -52,189 +52,190 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
   const pickingPlayer = picking?.kind === 'mains' ? team.players.find((p) => p.id === picking.playerId) : null;
 
   return (
-    <div className="stack">
-      <div className="page-head">
-        <a href="#/teams" className="btn ghost">
-          ← チーム一覧
-        </a>
+    <div className="page">
+      <div className="page-header row">
+        <IconButton icon="arrow_back" label="チーム一覧へ戻る" onClick={() => navigate('teams')} />
+        <h1 className="headline">
+          <TeamName name={team.name || '(チーム名未入力)'} color={team.color} big />
+        </h1>
         <span className="spacer" />
-        <CopyButton text={teamText(t, team, rounds)} label="紹介文をコピー" />
-        <button className="btn danger" onClick={remove}>
+        <CopyButton text={teamText(t, team, rounds)} label="紹介文をコピー" variant="tonal" />
+        <button className="btn text danger" onClick={remove}>
+          <Icon name="delete" />
           削除
         </button>
       </div>
 
-      <section className="card team-hero" style={{ borderColor: team.color }}>
-        <div className="form-row">
-          <Field label="チーム名">
-            <input className="input" value={team.name} onChange={(e) => edit((x) => void (x.name = e.target.value))} />
-          </Field>
-          <Field label="カラー">
-            <input
-              type="color"
-              className="color-input"
-              value={team.color}
-              onChange={(e) => edit((x) => void (x.color = e.target.value))}
-            />
-          </Field>
-        </div>
-        <Field label="チーム紹介・意気込み">
-          <textarea
-            className="input"
-            rows={3}
-            value={team.comment}
-            onChange={(e) => edit((x) => void (x.comment = e.target.value))}
-          />
-        </Field>
-      </section>
-
-      <section className="card">
-        <div className="section-head">
-          <h2>
-            候補ブキ ({team.pool.length}
-            {t.rules.poolMax > 0 && ` / ${t.rules.poolMax}`})
-          </h2>
-          <button className="btn" onClick={() => setPicking({ kind: 'pool' })}>
-            候補ブキを編集
-          </button>
-        </div>
-        <div className="tags">
-          {status.map((s) => {
-            const dup = others.get(s.weaponId);
-            return (
-              <WeaponTag
-                key={s.weaponId}
-                id={s.weaponId}
-                state={!s.available ? 'out' : dup && !t.rules.allowDuplicate ? 'warn' : s.used ? 'used' : undefined}
-                note={[s.used ? `${s.used}回使用` : '', dup ? `${dup}と重複` : ''].filter(Boolean).join(' / ') || undefined}
-                onRemove={() => edit((x) => void (x.pool = x.pool.filter((w) => w !== s.weaponId)))}
+      <div className="detail-layout">
+        <div className="detail-side">
+          <section className="card" style={{ borderTop: `4px solid ${team.color}` }}>
+            <h2 className="card-title">チーム情報</h2>
+            <div className="form-row">
+              <Field label="チーム名">
+                <input className="input" value={team.name} onChange={(e) => edit((x) => void (x.name = e.target.value))} />
+              </Field>
+              <label className="color-field" title="チームカラー">
+                <input
+                  type="color"
+                  className="color-input"
+                  value={team.color}
+                  onChange={(e) => edit((x) => void (x.color = e.target.value))}
+                  aria-label="チームカラー"
+                />
+              </label>
+            </div>
+            <Field label="チーム紹介・意気込み">
+              <textarea
+                className="input"
+                rows={3}
+                value={team.comment}
+                onChange={(e) => edit((x) => void (x.comment = e.target.value))}
               />
-            );
-          })}
-          {team.pool.length === 0 && <span className="muted">まだ登録されていません</span>}
-        </div>
-      </section>
+            </Field>
+          </section>
 
-      <section className="card">
-        <div className="section-head">
-          <h2>
-            メンバー ({team.players.length} / 規定 {t.rules.teamSize} 人)
-          </h2>
-          <button className="btn" onClick={() => edit((x) => void x.players.push(newPlayer()))}>
-            ＋ メンバーを追加
-          </button>
+          <section className="card">
+            <div className="card-head">
+              <h2 className="card-title">
+                候補ブキ（{team.pool.length}
+                {t.rules.poolMax > 0 && ` / ${t.rules.poolMax}`}）
+              </h2>
+              <button className="btn tonal" onClick={() => setPicking({ kind: 'pool' })}>
+                <Icon name="edit" />
+                編集
+              </button>
+            </div>
+            <div className="tags tags-lg">
+              {status.map((s) => {
+                const dup = others.get(s.weaponId);
+                return (
+                  <WeaponTag
+                    key={s.weaponId}
+                    id={s.weaponId}
+                    state={!s.available ? 'out' : dup && !t.rules.allowDuplicate ? 'warn' : s.used ? 'used' : undefined}
+                    note={[s.used ? `${s.used}回使用` : '', dup ? `${dup}と重複` : ''].filter(Boolean).join(' / ') || undefined}
+                    onRemove={() => edit((x) => void (x.pool = x.pool.filter((w) => w !== s.weaponId)))}
+                  />
+                );
+              })}
+              {team.pool.length === 0 && <span className="muted">まだ登録されていません</span>}
+            </div>
+          </section>
+
+          <section className="card">
+            <h2 className="card-title">使用ブキの記録</h2>
+            {uses.length === 0 ? (
+              <Empty>トーナメントで記録された試合はまだありません</Empty>
+            ) : (
+              <ul className="list">
+                {uses.map((u) => {
+                  const opp = t.teams.find((x) => x.id === u.opponentId);
+                  const [r, i] = u.matchKey.split('-').map(Number);
+                  return (
+                    <li key={`${u.matchKey}-${u.gameIndex}`} className="list-row">
+                      <span className="overline">
+                        {roundName(r, rounds.length)} #{i + 1}・{u.gameIndex + 1}戦目
+                      </span>
+                      <WeaponTag id={u.weaponId} />
+                      <span>vs {opp ? <TeamName name={opp.name} color={opp.color} /> : '?'}</span>
+                      <span className={u.won ? 'win' : u.won === false ? 'lose' : 'muted'}>
+                        {u.won ? 'WIN' : u.won === false ? 'LOSE' : '-'}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
         </div>
-        {team.players.length === 0 && <Empty>メンバーを追加してください</Empty>}
-        <div className="players">
-          {team.players.map((p, i) => (
-            <div key={p.id} className={`player-edit ${p.featured ? 'featured' : ''}`}>
-              <div className="form-row">
-                <Field label={`選手${i + 1}`}>
-                  <input
+
+        <section className="detail-main">
+          <div className="section-head">
+            <h2 className="section-title">
+              メンバー（{team.players.length} / 規定 {t.rules.teamSize} 人）
+            </h2>
+            <button className="btn filled" onClick={() => edit((x) => void x.players.push(newPlayer()))}>
+              <Icon name="person_add" />
+              メンバーを追加
+            </button>
+          </div>
+          {team.players.length === 0 && <Empty icon="person_add">メンバーを追加してください</Empty>}
+          <div className="players">
+            {team.players.map((p, i) => (
+              <div key={p.id} className={`card player-edit ${p.featured ? 'featured' : ''}`}>
+                <div className="player-edit-head">
+                  <span className="overline">選手 {i + 1}</span>
+                  {p.featured && <Icon name="star" filled className="star" />}
+                  {p.leader && <Icon name="workspace_premium" filled className="leader" />}
+                  <span className="spacer" />
+                  <IconButton
+                    icon="arrow_upward"
+                    label="上へ"
+                    disabled={i === 0}
+                    onClick={() => edit((x) => void ([x.players[i - 1], x.players[i]] = [x.players[i], x.players[i - 1]]))}
+                  />
+                  <IconButton
+                    icon="delete"
+                    label="削除"
+                    danger
+                    onClick={() =>
+                      confirm(`${p.name || 'この選手'}を削除しますか？`) &&
+                      edit((x) => void (x.players = x.players.filter((y) => y.id !== p.id)))
+                    }
+                  />
+                </div>
+                <div className="form-row">
+                  <Field label="名前">
+                    <input
+                      className="input"
+                      value={p.name}
+                      onChange={(e) => editPlayer(p.id, (y) => void (y.name = e.target.value))}
+                    />
+                  </Field>
+                  <Field label="XP・ウデマエなど">
+                    <input
+                      className="input"
+                      placeholder="例: XP2500 / S+10"
+                      value={p.rank}
+                      onChange={(e) => editPlayer(p.id, (y) => void (y.rank = e.target.value))}
+                    />
+                  </Field>
+                </div>
+                <div className="tags">
+                  <span className="label">得意ブキ</span>
+                  {p.mains.map((w) => (
+                    <WeaponTag
+                      key={w}
+                      id={w}
+                      onRemove={() => editPlayer(p.id, (y) => void (y.mains = y.mains.filter((m) => m !== w)))}
+                    />
+                  ))}
+                  <button className="btn text small" onClick={() => setPicking({ kind: 'mains', playerId: p.id })}>
+                    <Icon name="add" />
+                    選ぶ
+                  </button>
+                </div>
+                <Field label={p.featured ? '注目ポイント・紹介文' : 'ひとこと'}>
+                  <textarea
                     className="input"
-                    placeholder="名前"
-                    value={p.name}
-                    onChange={(e) => editPlayer(p.id, (y) => void (y.name = e.target.value))}
+                    rows={2}
+                    value={p.comment}
+                    onChange={(e) => editPlayer(p.id, (y) => void (y.comment = e.target.value))}
                   />
                 </Field>
-                <Field label="XP・ウデマエなど">
-                  <input
-                    className="input"
-                    placeholder="例: XP2500 / S+10"
-                    value={p.rank}
-                    onChange={(e) => editPlayer(p.id, (y) => void (y.rank = e.target.value))}
+                <div className="switches">
+                  <Switch
+                    label="注目選手"
+                    checked={p.featured}
+                    onChange={(v) => editPlayer(p.id, (y) => void (y.featured = v))}
                   />
-                </Field>
-                <div className="checks">
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      checked={p.featured}
-                      onChange={(e) => editPlayer(p.id, (y) => void (y.featured = e.target.checked))}
-                    />
-                    ⭐ 注目
-                  </label>
-                  <label className="check">
-                    <input
-                      type="checkbox"
-                      checked={p.leader}
-                      onChange={(e) => editPlayer(p.id, (y) => void (y.leader = e.target.checked))}
-                    />
-                    👑 リーダー
-                  </label>
+                  <Switch label="リーダー" checked={p.leader} onChange={(v) => editPlayer(p.id, (y) => void (y.leader = v))} />
                 </div>
               </div>
-              <div className="tags">
-                <span className="muted small">得意ブキ:</span>
-                {p.mains.map((w) => (
-                  <WeaponTag
-                    key={w}
-                    id={w}
-                    onRemove={() => editPlayer(p.id, (y) => void (y.mains = y.mains.filter((m) => m !== w)))}
-                  />
-                ))}
-                <button className="btn ghost small" onClick={() => setPicking({ kind: 'mains', playerId: p.id })}>
-                  ＋ 選ぶ
-                </button>
-              </div>
-              <Field label={p.featured ? '注目ポイント・紹介文' : 'ひとこと'}>
-                <textarea
-                  className="input"
-                  rows={2}
-                  value={p.comment}
-                  onChange={(e) => editPlayer(p.id, (y) => void (y.comment = e.target.value))}
-                />
-              </Field>
-              <div className="player-actions">
-                <button
-                  className="btn ghost small"
-                  disabled={i === 0}
-                  onClick={() =>
-                    edit((x) => void ([x.players[i - 1], x.players[i]] = [x.players[i], x.players[i - 1]]))
-                  }
-                >
-                  ▲
-                </button>
-                <button
-                  className="btn ghost small danger-text"
-                  onClick={() =>
-                    confirm(`${p.name || 'この選手'}を削除しますか？`) &&
-                    edit((x) => void (x.players = x.players.filter((y) => y.id !== p.id)))
-                  }
-                >
-                  削除
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="card">
-        <h2>使用ブキの記録</h2>
-        {uses.length === 0 ? (
-          <Empty>トーナメントで記録された試合はまだありません</Empty>
-        ) : (
-          <ul className="list">
-            {uses.map((u) => {
-              const opp = t.teams.find((x) => x.id === u.opponentId);
-              const [r, i] = u.matchKey.split('-').map(Number);
-              return (
-                <li key={`${u.matchKey}-${u.gameIndex}`} className="list-row">
-                  <span className="muted">
-                    {roundName(r, rounds.length)} #{i + 1} - {u.gameIndex + 1}戦目
-                  </span>
-                  <WeaponTag id={u.weaponId} />
-                  <span>vs {opp ? <TeamName name={opp.name} color={opp.color} /> : '?'}</span>
-                  <span className={u.won ? 'win' : u.won === false ? 'lose' : 'muted'}>
-                    {u.won ? 'WIN' : u.won === false ? 'LOSE' : '-'}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+            ))}
+          </div>
+        </section>
+      </div>
 
       {picking?.kind === 'pool' && (
         <WeaponPicker

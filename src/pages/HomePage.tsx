@@ -1,6 +1,6 @@
-import { WeaponTag, TeamName, Empty } from '../components/ui';
-import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
+import { Empty, Icon, TeamName, WeaponTag } from '../components/ui';
 import { rulesText } from '../lib/announce';
+import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
 import { navigate } from '../router';
 import type { Tournament } from '../types';
 
@@ -20,14 +20,14 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
   ];
 
   return (
-    <div className="stack">
-      <section className="hero">
-        <h1>{t.name}</h1>
-        {t.date && <p className="hero-date">📅 {t.date}</p>}
-        {t.description && <p className="pre">{t.description}</p>}
+    <div className="page">
+      <section className="hero card">
+        <h1 className="display">{t.name}</h1>
+        {t.date && <p className="hero-date">{t.date}</p>}
+        {t.description && <p className="pre body-l">{t.description}</p>}
         {champ && (
           <p className="champion">
-            🏆 優勝 <TeamName name={champ.name} color={champ.color} big />
+            <Icon name="emoji_events" filled /> 優勝 <TeamName name={champ.name} color={champ.color} big />
           </p>
         )}
         <div className="stats">
@@ -48,53 +48,69 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
 
       {steps.some((s) => !s.done) && (
         <section className="card">
-          <h2>はじめかた</h2>
+          <h2 className="card-title">はじめかた</h2>
           <ol className="steps">
-            {steps.map((s) => (
+            {steps.map((s, i) => (
               <li key={s.label} className={s.done ? 'done' : ''}>
-                <a href={`#/${s.to}`}>{s.label}</a>
+                <a href={`#/${s.to}`} className="step">
+                  <span className="step-no">{s.done ? <Icon name="check" /> : i + 1}</span>
+                  {s.label}
+                </a>
               </li>
             ))}
           </ol>
         </section>
       )}
 
-      <section className="card">
-        <h2>次の試合</h2>
-        {upcoming.length === 0 ? (
-          <Empty>対戦カードが確定している未消化の試合はありません</Empty>
-        ) : (
-          <ul className="list">
-            {upcoming.map((m) => {
-              const a = team(sideId(m.a))!;
-              const b = team(sideId(m.b))!;
-              return (
-                <li key={m.key} className="list-row clickable" onClick={() => navigate('bracket', m.key)}>
-                  <span className="muted">
-                    {roundName(m.round, rounds.length)} #{m.index + 1}
-                  </span>
-                  <TeamName name={a.name} color={a.color} />
-                  <span className="vs">
-                    {m.winsA} - {m.winsB}
-                  </span>
-                  <TeamName name={b.name} color={b.color} />
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+      <div className="cols-2">
+        <section className="card">
+          <h2 className="card-title">次の試合</h2>
+          {upcoming.length === 0 ? (
+            <Empty icon="account_tree">対戦カードが確定している未消化の試合はありません</Empty>
+          ) : (
+            <ul className="list">
+              {upcoming.map((m) => {
+                const a = team(sideId(m.a))!;
+                const b = team(sideId(m.b))!;
+                return (
+                  <li key={m.key}>
+                    <button className="list-item" onClick={() => navigate('bracket', m.key)}>
+                      <span className="overline">
+                        {roundName(m.round, rounds.length)} #{m.index + 1}
+                      </span>
+                      <span className="match-line">
+                        <TeamName name={a.name} color={a.color} />
+                        <span className="vs">
+                          {m.winsA} - {m.winsB}
+                        </span>
+                        <TeamName name={b.name} color={b.color} />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
 
-      <section className="card">
-        <h2>注目選手</h2>
+        <section className="card">
+          <h2 className="card-title">ルール</h2>
+          <p className="pre">{rulesText(t)}</p>
+        </section>
+      </div>
+
+      <section>
+        <h2 className="section-title">注目選手</h2>
         {featured.length === 0 ? (
-          <Empty>チーム編集画面で「注目」にチェックを入れた選手がここに表示されます</Empty>
+          <Empty icon="star">チーム編集画面で「注目」をオンにした選手がここに表示されます</Empty>
         ) : (
           <div className="grid">
             {featured.map(({ p, tm }) => (
-              <a key={p.id} className="player-card" href={`#/teams/${tm.id}`} style={{ borderColor: tm.color }}>
+              <a key={p.id} className="card player-card" href={`#/teams/${tm.id}`} style={{ borderLeftColor: tm.color }}>
                 <div className="player-card-head">
-                  <b>⭐ {p.name || '(名前未入力)'}</b>
+                  <span className="title-m">
+                    <Icon name="star" filled className="star" /> {p.name || '(名前未入力)'}
+                  </span>
                   <TeamName name={tm.name} color={tm.color} />
                 </div>
                 {p.rank && <div className="muted">{p.rank}</div>}
@@ -103,16 +119,11 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
                     <WeaponTag key={w} id={w} />
                   ))}
                 </div>
-                {p.comment && <p className="pre small">{p.comment}</p>}
+                {p.comment && <p className="pre body-s">{p.comment}</p>}
               </a>
             ))}
           </div>
         )}
-      </section>
-
-      <section className="card">
-        <h2>ルール</h2>
-        <p className="pre">{rulesText(t)}</p>
       </section>
     </div>
   );

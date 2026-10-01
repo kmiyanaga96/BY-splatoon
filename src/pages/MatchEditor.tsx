@@ -1,4 +1,4 @@
-import { CopyButton, Field, Modal, TeamName, WeaponTag } from '../components/ui';
+import { CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponTag } from '../components/ui';
 import { CATEGORIES, WEAPONS, weaponName } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
@@ -64,10 +64,17 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
       title={
         <>
           {roundName(m.round, rounds.length)} 第{m.index + 1}試合
-          <span className="muted small">
-            {' '}
+          <span className="dialog-subtitle">
             BO{m.bestOf}（{winsNeeded(m.bestOf)}勝先取）
           </span>
+        </>
+      }
+      actions={
+        <>
+          <button className="btn text" onClick={onClose}>
+            閉じる
+          </button>
+          <CopyButton text={matchCardText(t, rounds, m)} label="対戦カード告知をコピー" />
         </>
       }
     >
@@ -78,14 +85,14 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
         </span>
         <TeamName name={b.name} color={b.color} big />
       </div>
-      {winner && <p className="result-banner">🏆 {winner.name} の勝ち抜け{m.record?.override ? '（勝者を直接指定）' : ''}</p>}
+      {winner && <p className="result-banner"><Icon name="emoji_events" filled /> {winner.name} の勝ち抜け{m.record?.override ? '（勝者を直接指定）' : ''}</p>}
 
       <div className="two-col">
         <PoolSummary t={t} rounds={rounds} team={a} />
         <PoolSummary t={t} rounds={rounds} team={b} />
       </div>
 
-      <h3>ゲーム記録</h3>
+      <h3 className="title-m">ゲーム記録</h3>
       <div className="games">
         {games.map((g, i) => (
           <div key={i} className="game-row">
@@ -118,8 +125,10 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
               />
               <button
                 className={`btn win-btn ${g.winner === 'A' ? 'on' : ''}`}
+                aria-pressed={g.winner === 'A'}
                 onClick={() => editGame(i, (x) => void (x.winner = x.winner === 'A' ? null : 'A'))}
               >
+                {g.winner === 'A' && <Icon name="check" />}
                 {a.name} 勝ち
               </button>
             </div>
@@ -132,18 +141,14 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
               />
               <button
                 className={`btn win-btn ${g.winner === 'B' ? 'on' : ''}`}
+                aria-pressed={g.winner === 'B'}
                 onClick={() => editGame(i, (x) => void (x.winner = x.winner === 'B' ? null : 'B'))}
               >
+                {g.winner === 'B' && <Icon name="check" />}
                 {b.name} 勝ち
               </button>
             </div>
-            <button
-              className="btn ghost small"
-              onClick={() => edit((rec) => void rec.games.splice(i, 1))}
-              aria-label={`${i + 1}戦目を削除`}
-            >
-              ✕
-            </button>
+            <IconButton icon="delete" label={`${i + 1}戦目を削除`} onClick={() => edit((rec) => void rec.games.splice(i, 1))} />
           </div>
         ))}
         <datalist id="stage-list">
@@ -152,8 +157,9 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
           ))}
         </datalist>
         {!decided && games.length < m.bestOf && (
-          <button className="btn" onClick={addGame}>
-            ＋ {games.length + 1}戦目を追加
+          <button className="btn tonal" onClick={addGame}>
+            <Icon name="add" />
+            {games.length + 1}戦目を追加
           </button>
         )}
       </div>
@@ -179,12 +185,6 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
           onChange={(e) => edit((rec) => void (rec.note = e.target.value))}
         />
       </Field>
-      <div className="modal-foot">
-        <CopyButton text={matchCardText(t, rounds, m)} label="対戦カード告知をコピー" />
-        <button className="btn" onClick={onClose}>
-          閉じる
-        </button>
-      </div>
     </Modal>
   );
 }
@@ -192,7 +192,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
 function PoolSummary({ t, rounds, team }: { t: Tournament; rounds: MatchView[][]; team: Team }) {
   return (
     <div className="pool-summary" style={{ borderColor: team.color }}>
-      <b>{team.name} の候補ブキ</b>
+      <span className="label">{team.name} の候補ブキ</span>
       <div className="tags">
         {poolStatus(t, rounds, team.id).map((s) => (
           <WeaponTag
@@ -202,7 +202,7 @@ function PoolSummary({ t, rounds, team }: { t: Tournament; rounds: MatchView[][]
             note={s.used ? `${s.used}回` : undefined}
           />
         ))}
-        {team.pool.length === 0 && <span className="muted small">未登録</span>}
+        {team.pool.length === 0 && <span className="muted body-s">未登録</span>}
       </div>
     </div>
   );

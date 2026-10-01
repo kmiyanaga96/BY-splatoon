@@ -27,6 +27,21 @@ Discord サーバー「バックヤード（BY）」の内輪大会向け、ス�
 - 他チームと同じ候補ブキの登録を許可するか
 - 1 チームの人数、通常試合 / 決勝の BO 数
 
+### 画面共有モード
+
+右上の画面共有ボタンをオンにすると、全体の文字とレイアウトが大きくなります（Discord の画面共有で読みやすくするため）。
+この設定は端末ごとに保存されます。
+
+## デザイン・フォント
+
+- UI は [Material Design 3](https://m3.material.io/) に沿っています。配色はシード色 `#5b3cf0` から
+  [material-color-utilities](https://github.com/material-foundation/material-color-utilities) で生成したものです（`src/styles.css` 冒頭）。
+- 見出し: [Dela Gothic One](https://fonts.google.com/specimen/Dela+Gothic+One)（SIL Open Font License）
+- 本文: [Noto Sans JP](https://fonts.google.com/noto/specimen/Noto+Sans+JP)、アイコン: [Material Symbols](https://fonts.google.com/icons)
+- いずれも Google Fonts から読み込みます。新しいアイコンを使うときは `index.html` の `icon_names`（アルファベット順）に名前を追加してください。
+- スプラトゥーン風フォントについて: 有志の「イカモドキ」は作者により配布が終了しており、現在出回っているファイルは無断再配布のため使っていません。
+  「Splatfont 2」などはゲーム内フォントそのもの（任天堂の著作物）なので使っていません。
+
 ## 使い方（開発・ローカル実行）
 
 Node.js 20.19 以降（22 推奨）が必要です。
