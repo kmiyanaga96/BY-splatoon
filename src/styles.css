@@ -1839,3 +1839,142 @@ textarea.input {
   font-weight: 400;
   font-size: inherit;
 }
+
+/* ---------- Xパワーバッジ・アイコン ---------- */
+
+.xbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  vertical-align: middle;
+}
+.xbadge img {
+  width: 1.25rem;
+  height: auto;
+  display: block;
+}
+.xp-value {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  border: 3px solid;
+  overflow: hidden;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font-family: var(--font-display);
+  line-height: 1;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 2rem;
+}
+.avatar-input:focus-visible,
+.avatar-input:focus-within {
+  outline: 2px dashed var(--md-sys-color-primary);
+}
+.avatar-input.busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.avatar-button {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.avatar-actions {
+  display: flex;
+}
+.player-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.player-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---------- 表彰 ---------- */
+
+.award-layout {
+  display: grid;
+  grid-template-columns: 20rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.award-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.avatar-cell-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
+}
+.award-side .segmented {
+  display: flex;
+}
+.award-side .segment {
+  flex: 1;
+  justify-content: center;
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+.award-side .nav-list-item {
+  height: auto;
+  min-height: 3rem;
+}
+.award-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.award-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-low);
+}
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.avatar-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--md-sys-color-surface-container-low);
+}
+@media (max-width: 1100px) {
+  .award-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

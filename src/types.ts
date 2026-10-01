@@ -5,8 +5,12 @@ export interface Player {
   name: string;
   /** 得意ブキ (Weapon.id) */
   mains: string[];
-  /** XP・ウデマエなど自由記述 */
+  /** ウデマエなど自由記述のメモ */
   rank: string;
+  /** Xパワー (バッジ表示に使う)。未入力は null */
+  xp: number | null;
+  /** アイコン画像 (縮小済みの data URL)。未設定は空文字 */
+  avatar: string;
   comment: string;
   /** 注目選手 */
   featured: boolean;

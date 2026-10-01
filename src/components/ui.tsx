@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { categoryOf, getWeapon, weaponName } from '../data/weapons';
+import { xBadgeUrl, xTier } from '../lib/xbadge';
 
 /** Material Symbols のアイコン。使う名前は index.html の icon_names にも追加すること */
 export function Icon(props: { name: string; filled?: boolean; className?: string }) {
@@ -229,5 +230,30 @@ export function Switch(props: { checked: boolean; onChange: (v: boolean) => void
         onChange={(e) => props.onChange(e.target.checked)}
       />
     </label>
+  );
+}
+
+/** Xパワー到達バッジ (2500 / 2700 / 3000)。withValue で数値も並べて表示 */
+export function XBadge(props: { xp: number | null; withValue?: boolean }) {
+  const tier = xTier(props.xp);
+  if (!tier) return props.withValue && props.xp ? <span className="xp-value">XP{props.xp}</span> : null;
+  return (
+    <span className="xbadge" title={`Xパワー${tier.min}以上（${props.xp}）`}>
+      <img src={xBadgeUrl(tier)} alt={tier.label} />
+      {props.withValue && <span className="xp-value" style={{ color: tier.dark }}>XP{props.xp}</span>}
+    </span>
+  );
+}
+
+/** 選手アイコン (未設定ならイニシャル) */
+export function Avatar(props: { name: string; src: string; color: string; size?: number }) {
+  const size = props.size ?? 40;
+  return (
+    <span
+      className="avatar"
+      style={{ width: size, height: size, borderColor: props.color, fontSize: size * 0.42 } as CSSProperties}
+    >
+      {props.src ? <img src={props.src} alt="" /> : [...(props.name || '?')][0]}
+    </span>
   );
 }

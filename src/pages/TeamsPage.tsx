@@ -1,4 +1,4 @@
-import { Empty, Icon, IconButton, TeamName, WeaponTag } from '../components/ui';
+import { Empty, Icon, IconButton, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { isAlive, type MatchView } from '../lib/bracket';
 import { poolStatus } from '../lib/usage';
 import { navigate } from '../router';
@@ -63,7 +63,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                       {p.leader && <Icon name="workspace_premium" filled className="leader" />}
                       {p.featured && <Icon name="star" filled className="star" />}
                       {p.name || '(名前未入力)'}
-                      {p.rank && <span className="muted body-s">{p.rank}</span>}
+                      <XBadge xp={p.xp} />
                     </li>
                   ))}
                   {team.players.length === 0 && <li className="muted body-s">未登録</li>}

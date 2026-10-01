@@ -1,4 +1,4 @@
-import { Empty, Icon, TeamName, WeaponTag } from '../components/ui';
+import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { rulesText } from '../lib/announce';
 import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
 import { navigate } from '../router';
@@ -108,12 +108,18 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
             {featured.map(({ p, tm }) => (
               <a key={p.id} className="card player-card" href={`#/teams/${tm.id}`} style={{ borderLeftColor: tm.color }}>
                 <div className="player-card-head">
-                  <span className="title-m">
-                    <Icon name="star" filled className="star" /> {p.name || '(名前未入力)'}
+                  <span className="title-m player-title">
+                    <Avatar name={p.name} src={p.avatar} color={tm.color} size={36} />
+                    {p.name || '(名前未入力)'}
+                    <XBadge xp={p.xp} />
                   </span>
                   <TeamName name={tm.name} color={tm.color} />
                 </div>
-                {p.rank && <div className="muted">{p.rank}</div>}
+                {(p.xp || p.rank) && (
+                  <div className="muted">
+                    {p.xp ? `XP${p.xp}` : ''} {p.rank}
+                  </div>
+                )}
                 <div className="tags">
                   {p.mains.map((w) => (
                     <WeaponTag key={w} id={w} />

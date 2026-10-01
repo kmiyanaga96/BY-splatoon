@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Icon, IconButton, SnackbarHost } from './components/ui';
 import { computeBracket } from './lib/bracket';
 import { AnnouncePage } from './pages/AnnouncePage';
+import { AwardPage } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -17,6 +18,7 @@ const NAV = [
   { path: 'weapons', label: 'ブキ表', icon: 'table_view' },
   { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
   { path: 'announce', label: '告知', icon: 'campaign' },
+  { path: 'award', label: '表彰', icon: 'emoji_events' },
   { path: 'settings', label: '設定', icon: 'settings' },
 ];
 
@@ -65,6 +67,9 @@ export function App() {
       break;
     case 'announce':
       content = <AnnouncePage t={t} rounds={rounds} />;
+      break;
+    case 'award':
+      content = <AwardPage t={t} rounds={rounds} />;
       break;
     case 'settings':
       content = <SettingsPage t={t} />;

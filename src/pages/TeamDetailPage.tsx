@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag } from '../components/ui';
+import { AvatarInput } from '../components/AvatarInput';
+import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { WeaponPicker } from '../components/WeaponPicker';
 import { teamText } from '../lib/announce';
 import { roundName, type MatchView } from '../lib/bracket';
@@ -167,6 +168,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
                   <span className="overline">選手 {i + 1}</span>
                   {p.featured && <Icon name="star" filled className="star" />}
                   {p.leader && <Icon name="workspace_premium" filled className="leader" />}
+                  <XBadge xp={p.xp} />
                   <span className="spacer" />
                   <IconButton
                     icon="arrow_upward"
@@ -184,6 +186,14 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
                     }
                   />
                 </div>
+                <div className="player-identity">
+                  <AvatarInput
+                    name={p.name}
+                    color={team.color}
+                    value={p.avatar}
+                    onChange={(v) => editPlayer(p.id, (y) => void (y.avatar = v))}
+                  />
+                </div>
                 <div className="form-row">
                   <Field label="名前">
                     <input
@@ -192,10 +202,27 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
                       onChange={(e) => editPlayer(p.id, (y) => void (y.name = e.target.value))}
                     />
                   </Field>
-                  <Field label="XP・ウデマエなど">
+                  <Field label="Xパワー" hint="2500以上でバッジ">
                     <input
                       className="input"
-                      placeholder="例: XP2500 / S+10"
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={5000}
+                      placeholder="例: 2650"
+                      value={p.xp ?? ''}
+                      onChange={(e) =>
+                        editPlayer(p.id, (y) => {
+                          const v = e.target.value === '' ? null : Number(e.target.value);
+                          y.xp = v != null && Number.isFinite(v) ? v : null;
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="ウデマエ・メモ">
+                    <input
+                      className="input"
+                      placeholder="例: S+10 / 最高XP2800"
                       value={p.rank}
                       onChange={(e) => editPlayer(p.id, (y) => void (y.rank = e.target.value))}
                     />

@@ -65,7 +65,7 @@ export function teamText(t: Tournament, team: Team, rounds?: MatchView[][]): str
     for (const p of team.players) {
       const marks = `${p.leader ? '👑' : ''}${p.featured ? '⭐' : ''}`;
       const mains = p.mains.length ? `（${p.mains.map(weaponName).join('・')}）` : '';
-      lines.push(`・${marks}${p.name || '(名前未入力)'}${mains}${p.rank ? ` ${p.rank}` : ''}`);
+      lines.push(`・${marks}${p.name || '(名前未入力)'}${mains}${p.xp ? ` XP${p.xp}` : ''}${p.rank ? ` ${p.rank}` : ''}`);
     }
   }
   const featured = team.players.filter((p) => p.featured && p.comment);
