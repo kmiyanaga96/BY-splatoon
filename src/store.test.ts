@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { xTier } from './lib/xbadge';
-import { normalizeTournament, parseXp } from './store';
+import { normalizeData, parseXp } from './model';
 
 describe('Xパワー', () => {
   it('旧データの自由記述から XP を拾う', () => {
@@ -10,10 +10,10 @@ describe('Xパワー', () => {
   });
 
   it('xp 未保存の旧データは rank から補完し、保存済みの値はそのまま使う', () => {
-    const t = normalizeTournament({
-      teams: [{ players: [{ name: 'a', rank: 'XP2800' }, { name: 'b', rank: 'XP2800', xp: null }, { name: 'c', xp: 3001 }] }],
+    const d = normalizeData({
+      tournaments: [{ teams: [{ players: [{ name: 'a', rank: 'XP2800' }, { name: 'b', rank: 'XP2800', xp: null }, { name: 'c', xp: 3001 }] }] }],
     });
-    expect(t.teams[0].players.map((p) => p.xp)).toEqual([2800, null, 3001]);
+    expect(d.players.map((p) => p.xp)).toEqual([2800, null, 3001]);
   });
 
   it('バッジの段階', () => {

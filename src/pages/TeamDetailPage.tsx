@@ -1,19 +1,23 @@
 import { useState } from 'react';
-import { AvatarInput } from '../components/AvatarInput';
+import { PlayerProfileFields } from '../components/PlayerProfileFields';
+import { PlayerSelect } from '../components/PlayerSelect';
 import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { WeaponPicker } from '../components/WeaponPicker';
 import { teamText } from '../lib/announce';
 import { roundName, type MatchView } from '../lib/bracket';
+import { roster } from '../lib/roster';
 import { poolStatus, teamUses } from '../lib/usage';
 import { navigate } from '../router';
-import { newPlayer, updateCurrent } from '../store';
-import type { Player, Team, Tournament } from '../types';
+import { newMember, newPlayer, update, updateCurrent, useApp, usePlayers } from '../store';
+import type { Member, Team, Tournament } from '../types';
 
-type Picking = { kind: 'pool' } | { kind: 'mains'; playerId: string } | null;
+type Picking = 'pool' | 'members' | null;
 
 export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: string; rounds: MatchView[][] }) {
   const team = t.teams.find((x) => x.id === teamId);
   const [picking, setPicking] = useState<Picking>(null);
+  const app = useApp();
+  const players = usePlayers();
   if (!team) {
     return (
       <Empty icon="groups">
@@ -27,11 +31,23 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
       const x = d.teams.find((y) => y.id === teamId);
       if (x) fn(x);
     });
-  const editPlayer = (playerId: string, fn: (p: Player) => void) =>
+  const editMember = (playerId: string, fn: (m: Member) => void) =>
     edit((x) => {
-      const p = x.players.find((y) => y.id === playerId);
-      if (p) fn(p);
+      const m = x.members.find((y) => y.playerId === playerId);
+      if (m) fn(m);
     });
+
+  // 同じ大会の別チームに入っている選手は選べない
+  const unavailable = new Map<string, string>();
+  for (const o of t.teams) for (const m of o.members) unavailable.set(m.playerId, o.id === teamId ? 'このチーム' : o.name);
+  const addMember = (playerId: string) => edit((x) => void x.members.push(newMember(playerId)));
+  const createMember = (name: string) => {
+    const p = newPlayer(name);
+    update((d) => {
+      d.players.push(p);
+      d.tournaments.find((x) => x.id === d.currentId)?.teams.find((x) => x.id === teamId)?.members.push(newMember(p.id));
+    });
+  };
 
   const remove = () => {
     if (!confirm(`「${team.name}」を削除しますか？（トーナメント表の枠は空きになります）`)) return;
@@ -50,7 +66,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
   }
   const status = poolStatus(t, rounds, teamId);
   const uses = teamUses(rounds, teamId);
-  const pickingPlayer = picking?.kind === 'mains' ? team.players.find((p) => p.id === picking.playerId) : null;
+  const members = roster(team, players);
 
   return (
     <div className="page">
@@ -60,7 +76,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
           <TeamName name={team.name || '(チーム名未入力)'} color={team.color} big />
         </h1>
         <span className="spacer" />
-        <CopyButton text={teamText(t, team, rounds)} label="紹介文をコピー" variant="tonal" />
+        <CopyButton text={teamText(t, team, players, rounds)} label="紹介文をコピー" variant="tonal" />
         <button className="btn text danger" onClick={remove}>
           <Icon name="delete" />
           削除
@@ -101,7 +117,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
                 候補ブキ（{team.pool.length}
                 {t.rules.poolMax > 0 && ` / ${t.rules.poolMax}`}）
               </h2>
-              <button className="btn tonal" onClick={() => setPicking({ kind: 'pool' })}>
+              <button className="btn tonal" onClick={() => setPicking('pool')}>
                 <Icon name="edit" />
                 編集
               </button>
@@ -153,110 +169,55 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
         <section className="detail-main">
           <div className="section-head">
             <h2 className="section-title">
-              メンバー（{team.players.length} / 規定 {t.rules.teamSize} 人）
+              メンバー（{team.members.length} / 規定 {t.rules.teamSize} 人）
             </h2>
-            <button className="btn filled" onClick={() => edit((x) => void x.players.push(newPlayer()))}>
+            <button className="btn filled" onClick={() => setPicking('members')}>
               <Icon name="person_add" />
-              メンバーを追加
+              選手を追加
             </button>
           </div>
-          {team.players.length === 0 && <Empty icon="person_add">メンバーを追加してください</Empty>}
+          <p className="muted body-s">
+            アイコン・名前・Xパワー・得意ブキは選手 DB に保存され、他の大会でも共通です。注目選手・リーダー・紹介文はこの大会だけの設定です。
+          </p>
+          {team.members.length === 0 && <Empty icon="person_add">「選手を追加」から選手 DB の選手を選ぶか、新しく登録してください</Empty>}
           <div className="players">
-            {team.players.map((p, i) => (
-              <div key={p.id} className={`card player-edit ${p.featured ? 'featured' : ''}`}>
+            {members.map(({ member: m, player: p }, i) => (
+              <div key={p.id} className={`card player-edit ${m.featured ? 'featured' : ''}`}>
                 <div className="player-edit-head">
                   <span className="overline">選手 {i + 1}</span>
-                  {p.featured && <Icon name="star" filled className="star" />}
-                  {p.leader && <Icon name="workspace_premium" filled className="leader" />}
+                  {m.featured && <Icon name="star" filled className="star" />}
+                  {m.leader && <Icon name="workspace_premium" filled className="leader" />}
                   <XBadge xp={p.xp} />
                   <span className="spacer" />
                   <IconButton
                     icon="arrow_upward"
                     label="上へ"
                     disabled={i === 0}
-                    onClick={() => edit((x) => void ([x.players[i - 1], x.players[i]] = [x.players[i], x.players[i - 1]]))}
+                    onClick={() => edit((x) => void ([x.members[i - 1], x.members[i]] = [x.members[i], x.members[i - 1]]))}
                   />
+                  <IconButton icon="person" label="選手ページを開く" onClick={() => navigate('players', p.id)} />
                   <IconButton
-                    icon="delete"
-                    label="削除"
+                    icon="person_remove"
+                    label="チームから外す"
                     danger
                     onClick={() =>
-                      confirm(`${p.name || 'この選手'}を削除しますか？`) &&
-                      edit((x) => void (x.players = x.players.filter((y) => y.id !== p.id)))
+                      confirm(`${p.name || 'この選手'}をチームから外しますか？（選手 DB からは消えません）`) &&
+                      edit((x) => void (x.members = x.members.filter((y) => y.playerId !== p.id)))
                     }
                   />
                 </div>
-                <div className="player-identity">
-                  <AvatarInput
-                    name={p.name}
-                    color={team.color}
-                    value={p.avatar}
-                    onChange={(v) => editPlayer(p.id, (y) => void (y.avatar = v))}
-                  />
-                </div>
-                <div className="form-row">
-                  <Field label="名前">
-                    <input
-                      className="input"
-                      value={p.name}
-                      onChange={(e) => editPlayer(p.id, (y) => void (y.name = e.target.value))}
-                    />
-                  </Field>
-                  <Field label="Xパワー" hint="2500以上でバッジ">
-                    <input
-                      className="input"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      max={5000}
-                      placeholder="例: 2650"
-                      value={p.xp ?? ''}
-                      onChange={(e) =>
-                        editPlayer(p.id, (y) => {
-                          const v = e.target.value === '' ? null : Number(e.target.value);
-                          y.xp = v != null && Number.isFinite(v) ? v : null;
-                        })
-                      }
-                    />
-                  </Field>
-                  <Field label="ウデマエ・メモ">
-                    <input
-                      className="input"
-                      placeholder="例: S+10 / 最高XP2800"
-                      value={p.rank}
-                      onChange={(e) => editPlayer(p.id, (y) => void (y.rank = e.target.value))}
-                    />
-                  </Field>
-                </div>
-                <div className="tags">
-                  <span className="label">得意ブキ</span>
-                  {p.mains.map((w) => (
-                    <WeaponTag
-                      key={w}
-                      id={w}
-                      onRemove={() => editPlayer(p.id, (y) => void (y.mains = y.mains.filter((m) => m !== w)))}
-                    />
-                  ))}
-                  <button className="btn text small" onClick={() => setPicking({ kind: 'mains', playerId: p.id })}>
-                    <Icon name="add" />
-                    選ぶ
-                  </button>
-                </div>
-                <Field label={p.featured ? '注目ポイント・紹介文' : 'ひとこと'}>
+                <PlayerProfileFields player={p} color={team.color} />
+                <Field label={m.featured ? '注目ポイント・紹介文（この大会）' : 'ひとこと（この大会）'}>
                   <textarea
                     className="input"
                     rows={2}
-                    value={p.comment}
-                    onChange={(e) => editPlayer(p.id, (y) => void (y.comment = e.target.value))}
+                    value={m.comment}
+                    onChange={(e) => editMember(p.id, (y) => void (y.comment = e.target.value))}
                   />
                 </Field>
                 <div className="switches">
-                  <Switch
-                    label="注目選手"
-                    checked={p.featured}
-                    onChange={(v) => editPlayer(p.id, (y) => void (y.featured = v))}
-                  />
-                  <Switch label="リーダー" checked={p.leader} onChange={(v) => editPlayer(p.id, (y) => void (y.leader = v))} />
+                  <Switch label="注目選手" checked={m.featured} onChange={(v) => editMember(p.id, (y) => void (y.featured = v))} />
+                  <Switch label="リーダー" checked={m.leader} onChange={(v) => editMember(p.id, (y) => void (y.leader = v))} />
                 </div>
               </div>
             ))}
@@ -264,7 +225,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
         </section>
       </div>
 
-      {picking?.kind === 'pool' && (
+      {picking === 'pool' && (
         <WeaponPicker
           title={`${team.name} の候補ブキ`}
           selected={team.pool}
@@ -275,12 +236,14 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
           onClose={() => setPicking(null)}
         />
       )}
-      {pickingPlayer && (
-        <WeaponPicker
-          title={`${pickingPlayer.name || '選手'} の得意ブキ`}
-          selected={pickingPlayer.mains}
-          max={3}
-          onChange={(ids) => editPlayer(pickingPlayer.id, (y) => void (y.mains = ids))}
+      {picking === 'members' && (
+        <PlayerSelect
+          title={`${team.name} に選手を追加`}
+          players={app.players}
+          unavailable={unavailable}
+          color={team.color}
+          onSelect={addMember}
+          onCreate={createMember}
           onClose={() => setPicking(null)}
         />
       )}

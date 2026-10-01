@@ -1,20 +1,29 @@
-// アプリ全体のデータ型。localStorage と JSON エクスポートはこの形で保存される。
+// アプリ全体のデータ型。保存先 (localStorage / Firebase) と JSON エクスポートはこの形を扱う。
 
+/** 選手 DB の 1 人。大会をまたいで共通 (アイコンや XP は一度登録すれば使い回せる) */
 export interface Player {
   id: string;
   name: string;
+  /** Discord の表示名など (任意) */
+  discord: string;
+  /** Xパワー (バッジ表示に使う)。未入力は null */
+  xp: number | null;
+  /** アイコン画像 (縮小済みの data URL / 保存先の URL)。未設定は空文字 */
+  avatar: string;
   /** 得意ブキ (Weapon.id) */
   mains: string[];
   /** ウデマエなど自由記述のメモ */
-  rank: string;
-  /** Xパワー (バッジ表示に使う)。未入力は null */
-  xp: number | null;
-  /** アイコン画像 (縮小済みの data URL)。未設定は空文字 */
-  avatar: string;
-  comment: string;
+  note: string;
+}
+
+/** チームへの所属。大会ごとの情報 (リーダー・注目選手・紹介文) はこちらに持つ */
+export interface Member {
+  playerId: string;
+  leader: boolean;
   /** 注目選手 */
   featured: boolean;
-  leader: boolean;
+  /** 注目ポイント・ひとこと */
+  comment: string;
 }
 
 export interface Team {
@@ -23,7 +32,7 @@ export interface Team {
   color: string;
   /** 意気込み・チーム紹介 */
   comment: string;
-  players: Player[];
+  members: Member[];
   /** 登録した候補ブキ (Weapon.id) */
   pool: string[];
 }
@@ -36,6 +45,9 @@ export interface Game {
   mode: GameMode;
   stage: string;
   winner: 'A' | 'B' | null;
+  /** そのゲームに出た選手 (Player.id)。null はチーム全員 (補欠がいないとき) */
+  lineupA: string[] | null;
+  lineupB: string[] | null;
 }
 
 /** トーナメントの 1 試合の記録 */
@@ -85,8 +97,11 @@ export interface Tournament {
   bracket: Bracket;
 }
 
+export type PlayerMap = Map<string, Player>;
+
 export interface AppData {
-  version: 1;
+  version: 2;
   currentId: string;
+  players: Player[];
   tournaments: Tournament[];
 }

@@ -11,6 +11,7 @@ import {
   weaponStatsText,
 } from '../lib/announce';
 import { roundName, sideId, type MatchView } from '../lib/bracket';
+import { usePlayers } from '../store';
 import type { Tournament } from '../types';
 
 type Kind = 'overview' | 'teams' | 'team' | 'featured' | 'match' | 'results' | 'weapons';
@@ -43,6 +44,7 @@ function splitForDiscord(text: string): string[] {
 }
 
 export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
+  const players = usePlayers();
   const [kind, setKind] = useState<Kind>('overview');
   const [teamId, setTeamId] = useState(t.teams[0]?.id ?? '');
   const matches = rounds.flat().filter((m) => m.a.kind === 'team' && m.b.kind === 'team');
@@ -56,23 +58,23 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
       case 'overview':
         return overviewText(t);
       case 'teams':
-        return allTeamsText(t, rounds);
+        return allTeamsText(t, players, rounds);
       case 'team': {
         const team = t.teams.find((x) => x.id === teamId);
-        return team ? teamText(t, team, rounds) : 'チームを選んでください';
+        return team ? teamText(t, team, players, rounds) : 'チームを選んでください';
       }
       case 'featured':
-        return featuredText(t);
+        return featuredText(t, players);
       case 'match': {
         const m = matches.find((x) => x.key === matchKey);
-        return m ? matchCardText(t, rounds, m) : '対戦カードが決まっている試合がありません';
+        return m ? matchCardText(t, players, rounds, m) : '対戦カードが決まっている試合がありません';
       }
       case 'results':
         return resultsText(t, rounds, withWeapons);
       case 'weapons':
         return weaponStatsText(t, rounds);
     }
-  }, [kind, t, rounds, teamId, matchKey, withWeapons]);
+  }, [kind, t, players, rounds, teamId, matchKey, withWeapons]);
 
   // 生成した文章は貼り付け前に手直しできる。元の文章が変わったら手直しは破棄する
   const [draft, setDraft] = useState<{ base: string; text: string } | null>(null);

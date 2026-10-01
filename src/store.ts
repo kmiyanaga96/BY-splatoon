@@ -1,157 +1,78 @@
-// アプリの状態管理。サーバーは使わず、ブラウザの localStorage に自動保存する。
-// 他の運営メンバーとの受け渡しは JSON のエクスポート/インポートで行う。
+// アプリの状態管理。画面はこのメモリ上の状態を読み書きし、変更は保存先 (StorageAdapter) に送る。
+// いまの保存先は localStorage。Firebase 版ができたら connectStorage() で差し替える。
 
-import { useSyncExternalStore } from 'react';
-import type { AppData, Bracket, Player, Rules, Team, Tournament } from './types';
+import { useMemo, useSyncExternalStore } from 'react';
+import { emptyData, normalizeData, referencedPlayerIds } from './model';
+import { loadLocalSync, localStorageAdapter } from './storage/local';
+import type { Changes, StorageAdapter } from './storage/types';
+import type { AppData, Player, PlayerMap, Tournament } from './types';
 
-const STORAGE_KEY = 'by-splatoon:v1';
+export type { PlayerMap };
 
-export function newId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
+export { newGame, newId, newMember, newPlayer, newTeam, newTournament } from './model';
 
-export const defaultRules = (): Rules => ({
-  poolMax: 3,
-  reuse: 'match',
-  allowDuplicate: true,
-  bestOf: 3,
-  finalBestOf: 5,
-  teamSize: 4,
-});
 
-export function newTournament(name = '新しい大会'): Tournament {
-  return {
-    id: newId(),
-    name,
-    date: '',
-    description: '',
-    rules: defaultRules(),
-    teams: [],
-    bracket: { slots: [], matches: {} },
-  };
-}
+/** 表示中の大会はこの端末だけの設定として持つ (保存先が共有になっても他人の画面を変えない) */
+const CURRENT_KEY = 'by-splatoon:current';
 
-const TEAM_COLORS = ['#f2e14c', '#7b5cff', '#ff5c8a', '#3fd2c7', '#ff9b3d', '#5c9dff', '#9be15d', '#e66cff'];
-
-export function newTeam(index: number): Team {
-  return {
-    id: newId(),
-    name: `チーム${index + 1}`,
-    color: TEAM_COLORS[index % TEAM_COLORS.length],
-    comment: '',
-    players: [],
-    pool: [],
-  };
-}
-
-export function newPlayer(): Player {
-  return { id: newId(), name: '', mains: [], rank: '', xp: null, avatar: '', comment: '', featured: false, leader: false };
-}
-
-// ---- 読み込み時の補完 (古いデータや手書きの JSON でも落ちないように) ----
-
-const str = (v: unknown, d = '') => (typeof v === 'string' ? v : d);
-const arr = <T>(v: unknown, f: (x: any, i: number) => T): T[] => (Array.isArray(v) ? v.map(f) : []);
-const strArr = (v: unknown) => arr(v, (x) => str(x)).filter(Boolean);
-
-/** 旧データの自由記述 ("XP2500 / S+10" など) から Xパワーを拾う */
-export function parseXp(text: string): number | null {
-  const m = text.normalize('NFKC').match(/X\s*P?\s*[:：]?\s*(\d{4})/i);
-  return m ? Number(m[1]) : null;
-}
-
-function normalizePlayer(p: any): Player {
-  const rank = str(p?.rank);
-  const xp = typeof p?.xp === 'number' && Number.isFinite(p.xp) ? p.xp : p?.xp === null ? null : parseXp(rank);
-  const avatar = str(p?.avatar);
-  return {
-    id: str(p?.id) || newId(),
-    name: str(p?.name),
-    mains: strArr(p?.mains),
-    rank,
-    xp,
-    avatar: avatar.startsWith('data:image/') ? avatar : '',
-    comment: str(p?.comment),
-    featured: !!p?.featured,
-    leader: !!p?.leader,
-  };
-}
-
-function normalizeTeam(t: any, i: number): Team {
-  const base = newTeam(i);
-  return {
-    id: str(t?.id) || base.id,
-    name: str(t?.name, base.name),
-    color: str(t?.color, base.color),
-    comment: str(t?.comment),
-    players: arr(t?.players, normalizePlayer),
-    pool: strArr(t?.pool),
-  };
-}
-
-function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
-  const slots = arr(b?.slots, (x) => (typeof x === 'string' && teamIds.has(x) ? x : null));
-  const matches: Bracket['matches'] = {};
-  for (const [key, m] of Object.entries<any>(b?.matches ?? {})) {
-    matches[key] = {
-      a: str(m?.a),
-      b: str(m?.b),
-      games: arr(m?.games, (g) => ({
-        weaponA: str(g?.weaponA),
-        weaponB: str(g?.weaponB),
-        mode: str(g?.mode) as any,
-        stage: str(g?.stage),
-        winner: g?.winner === 'A' || g?.winner === 'B' ? g.winner : null,
-      })),
-      override: typeof m?.override === 'string' ? m.override : null,
-      note: str(m?.note),
-    };
-  }
-  // 枠数は 2 の累乗のみ有効
-  const valid = slots.length >= 2 && (slots.length & (slots.length - 1)) === 0;
-  return valid ? { slots, matches } : { slots: [], matches: {} };
-}
-
-export function normalizeTournament(t: any): Tournament {
-  const base = newTournament();
-  const teams = arr(t?.teams, normalizeTeam);
-  const rules = { ...base.rules };
-  for (const k of Object.keys(rules) as (keyof Rules)[]) {
-    const v = t?.rules?.[k];
-    if (typeof v === typeof rules[k] && (typeof v !== 'number' || Number.isFinite(v))) (rules as any)[k] = v;
-  }
-  return {
-    id: str(t?.id) || base.id,
-    name: str(t?.name, base.name),
-    date: str(t?.date),
-    description: str(t?.description),
-    rules,
-    teams,
-    bracket: normalizeBracket(t?.bracket, new Set(teams.map((x) => x.id))),
-  };
-}
-
-export function normalizeData(d: any): AppData {
-  const tournaments = arr(d?.tournaments, normalizeTournament);
-  if (tournaments.length === 0) tournaments.push(newTournament('ブキ統一杯'));
-  const currentId = tournaments.some((t) => t.id === d?.currentId) ? d.currentId : tournaments[0].id;
-  return { version: 1, currentId, tournaments };
-}
-
-// ---- ストア本体 ----
-
-function load(): AppData {
+function readCurrentId(): string | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return normalizeData(JSON.parse(raw));
-  } catch (e) {
-    console.warn('保存データの読み込みに失敗しました', e);
+    return localStorage.getItem(CURRENT_KEY);
+  } catch {
+    return null;
   }
-  return normalizeData(null);
 }
 
-let state: AppData = load();
+function withLocalCurrent(data: AppData): AppData {
+  const id = readCurrentId();
+  return id && data.tournaments.some((t) => t.id === id) ? { ...data, currentId: id } : data;
+}
+
+// ---- 差分の検出 ----
+
+type Snapshot = Map<string, string>;
+
+function snapshotOf(data: AppData): Snapshot {
+  const s: Snapshot = new Map();
+  for (const p of data.players) s.set(`p:${p.id}`, JSON.stringify(p));
+  for (const t of data.tournaments) s.set(`t:${t.id}`, JSON.stringify(t));
+  return s;
+}
+
+function diff(prev: Snapshot, data: AppData): Changes {
+  const changes: Changes = { players: { upserted: [], deleted: [] }, tournaments: { upserted: [], deleted: [] } };
+  const seen = new Set<string>();
+  for (const p of data.players) {
+    const key = `p:${p.id}`;
+    seen.add(key);
+    if (prev.get(key) !== JSON.stringify(p)) changes.players.upserted.push(p);
+  }
+  for (const t of data.tournaments) {
+    const key = `t:${t.id}`;
+    seen.add(key);
+    if (prev.get(key) !== JSON.stringify(t)) changes.tournaments.upserted.push(t);
+  }
+  for (const key of prev.keys()) {
+    if (seen.has(key)) continue;
+    if (key.startsWith('p:')) changes.players.deleted.push(key.slice(2));
+    else changes.tournaments.deleted.push(key.slice(2));
+  }
+  return changes;
+}
+
+const isEmpty = (c: Changes) =>
+  !c.players.upserted.length && !c.players.deleted.length && !c.tournaments.upserted.length && !c.tournaments.deleted.length;
+
+// ---- 状態 ----
+
+const hasStorage = typeof localStorage !== 'undefined';
+const initialRaw = hasStorage ? loadLocalSync() : null;
+let adapter: StorageAdapter = localStorageAdapter;
+let state: AppData = withLocalCurrent(initialRaw ? normalizeData(initialRaw) : emptyData());
+let snapshot: Snapshot = new Map(); // 空から始めると初回は全件が「変更」になり、v1 データも v2 で保存し直される
 let saveError: string | null = null;
+let saving: Promise<void> = Promise.resolve();
+let unsubscribeRemote: (() => void) | undefined;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -164,12 +85,48 @@ function subscribe(l: () => void) {
 }
 
 function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    saveError = null;
-  } catch (e) {
-    saveError = String(e);
+  const changes = diff(snapshot, state);
+  if (isEmpty(changes)) return;
+  snapshot = snapshotOf(state);
+  const data = state;
+  saving = saving
+    .then(() => adapter.save(data, changes))
+    .then(
+      () => {
+        if (saveError) {
+          saveError = null;
+          emit();
+        }
+      },
+      (e) => {
+        saveError = e instanceof Error ? e.message : String(e);
+        emit();
+      },
+    );
+}
+
+function receiveRemote(raw: unknown) {
+  state = withLocalCurrent(normalizeData(raw));
+  snapshot = snapshotOf(state);
+  emit();
+}
+
+/** 保存先を切り替える。保存先にデータがなければ、いまのデータをそこへ書き込む */
+export async function connectStorage(next: StorageAdapter) {
+  unsubscribeRemote?.();
+  adapter = next;
+  const raw = await next.load();
+  if (raw) receiveRemote(raw);
+  else {
+    snapshot = new Map();
+    persist();
   }
+  unsubscribeRemote = next.subscribe?.(receiveRemote);
+}
+
+if (hasStorage) {
+  persist();
+  unsubscribeRemote = adapter.subscribe?.(receiveRemote);
 }
 
 export function getState(): AppData {
@@ -178,6 +135,11 @@ export function getState(): AppData {
 
 export function setState(next: AppData) {
   state = next;
+  try {
+    localStorage.setItem(CURRENT_KEY, next.currentId);
+  } catch {
+    /* 表示中の大会を覚えられなくても動作に支障はない */
+  }
   persist();
   emit();
 }
@@ -196,6 +158,13 @@ export function updateCurrent(fn: (t: Tournament) => void) {
   });
 }
 
+export function updatePlayer(id: string, fn: (p: Player) => void) {
+  update((d) => {
+    const p = d.players.find((x) => x.id === id);
+    if (p) fn(p);
+  });
+}
+
 export function useApp(): AppData {
   return useSyncExternalStore(subscribe, getState);
 }
@@ -205,34 +174,33 @@ export function useCurrent(): Tournament {
   return app.tournaments.find((t) => t.id === app.currentId) ?? app.tournaments[0];
 }
 
+export function usePlayers(): PlayerMap {
+  const players = useApp().players;
+  return useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+}
+
 export function useSaveError(): string | null {
   useApp();
   return saveError;
 }
 
-// ---- 他タブで編集されたときに追従 ----
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY && e.newValue) {
-      try {
-        state = normalizeData(JSON.parse(e.newValue));
-        emit();
-      } catch {
-        /* 壊れたデータは無視 */
-      }
-    }
-  });
+export function storageName(): string {
+  return adapter.name;
 }
 
 // ---- エクスポート / インポート ----
 
-export function exportJson(tournaments: Tournament[]): string {
-  const data: AppData = { version: 1, currentId: tournaments[0]?.id ?? '', tournaments };
+/** 大会と、その大会に出ている選手をまとめて書き出す */
+export function exportJson(tournaments: Tournament[], allPlayers = false): string {
+  const ids = referencedPlayerIds(tournaments);
+  const players = state.players.filter((p) => allPlayers || ids.has(p.id));
+  const data: AppData = { version: 2, currentId: tournaments[0]?.id ?? '', players, tournaments };
   return JSON.stringify(data, null, 2);
 }
 
 /**
- * JSON を読み込んで大会を追加する。同じ ID の大会があれば上書き。
+ * JSON を読み込んで大会と選手を追加する。同じ ID の大会・選手は上書き。
+ * 旧形式 (選手 DB 導入前) の JSON は、名前が同じ選手を既存の選手にまとめる。
  * 読み込んだ大会の ID 一覧を返す。
  */
 export function importJson(text: string): string[] {
@@ -240,15 +208,19 @@ export function importJson(text: string): string[] {
   if (!Array.isArray(parsed?.tournaments) && !Array.isArray(parsed?.teams)) {
     throw new Error('このツールの大会データではないようです');
   }
-  // 大会単体の JSON にも対応
-  const incoming = normalizeData(Array.isArray(parsed?.tournaments) ? parsed : { tournaments: [parsed] }).tournaments;
+  const incoming = normalizeData(parsed, state.players);
   update((d) => {
-    for (const t of incoming) {
+    const players = new Map(d.players.map((p) => [p.id, p]));
+    for (const p of incoming.players) players.set(p.id, p);
+    d.players = [...players.values()];
+    // 初期状態の空の大会しかなければ、取り込んだ大会で置き換える
+    if (d.tournaments.length === 1 && d.tournaments[0].teams.length === 0 && !d.tournaments[0].description) d.tournaments = [];
+    for (const t of incoming.tournaments) {
       const i = d.tournaments.findIndex((x) => x.id === t.id);
       if (i >= 0) d.tournaments[i] = t;
       else d.tournaments.push(t);
     }
-    d.currentId = incoming[0].id;
+    d.currentId = incoming.tournaments[0].id;
   });
-  return incoming.map((t) => t.id);
+  return incoming.tournaments.map((t) => t.id);
 }

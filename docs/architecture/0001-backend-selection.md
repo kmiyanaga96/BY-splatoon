@@ -1,6 +1,6 @@
 # ADR 0001: バックエンド（DB・認証・画像保存）の選定と移行計画
 
-- 状態: **提案中**（主催・開発者の判断待ち）
+- 状態: **採用**（2026-10-01 に開発者が Firebase で進めることを決定）
 - 作成日: 2026-10-01
 
 ## 1. 背景
@@ -69,8 +69,10 @@
 
 - ログインは Google アカウント（Firebase Auth）。
 - `members/{uid}` に役割を持たせる：`owner`（主催）／`staff`（運営：編集可）／`viewer`（閲覧のみ）。
-- Security Rules：読み取りは登録メンバーのみ、書き込みは `owner` / `staff` のみ。メンバーの追加は `owner` だけ。
-- 画面共有で見せるだけの人はログイン不要（共有するのは運営の画面のため）。
+- **決定**：当面は閲覧にログインを求めない（主催と開発者以外は画面共有越しに見る運用のため）。
+- 書き込みは Firestore の `config/access.editors`（メールアドレスの配列）に載っている人だけに許可する。
+  パスワードやアカウント DB は自前で持たず、Google ログイン（Firebase Auth）に任せる。
+- 将来サーバー内の各自に編集させる場合は、閲覧も含めてログイン必須に切り替える（ルールの変更で対応できる）。
 
 ### 5.2 データモデル（Firestore）
 
@@ -95,7 +97,8 @@ tournaments/{id}       { name, date, description, rules, status,
 - 選手ごとの直近 N 大会の成績（優勝・準優勝・ベスト N）
 - 選手ごとの使用ブキ回数・勝率（チームで統一したブキ × その選手が所属していた試合）
 
-※ 現状は「補欠がどの試合に出たか」は記録していない。必要ならゲームごとの出場メンバーの記録を追加する（要相談）。
+ゲームごとの出場メンバー（`lineupA` / `lineupB`）を記録する。補欠はほぼいない運用なので、
+未指定（null）は「チーム全員」とみなし、規定人数より多いチームのときだけ入力欄を出す。
 
 ### 5.4 ブキアイコン
 
@@ -119,15 +122,23 @@ tournaments/{id}       { name, date, description, rules, status,
 
 段階 2 までは今の構成のままで進められ、Firebase の準備を待たずに着手できる。
 
-## 7. 主催・開発者に決めてほしいこと
+## 7. 決定事項（2026-10-01）
 
-1. Firebase で進めてよいか（他の候補を選ぶ場合はその理由）。
-2. Firebase プロジェクトの作成と Blaze への切り替え、予算アラート（例：月 500 円）の設定、AI Pro クレジットの適用を誰が行うか（Google アカウントの持ち主の操作が必要）。
-3. 閲覧にもログインを必須にするか（推奨：必須。選手名・アイコンを外に出さないため）。
-4. 補欠の出場記録（ゲームごとの出場メンバー）を取るか。
-5. ブキアイコンの取り込み（段階 1）を先に進めてよいか。
+1. Firebase で進める。
+2. Firebase のセットアップは開発者が行う（手順: [firebase-setup-manual.md](../firebase-setup-manual.md)。完了後に削除）。
+3. 閲覧のログインは当面不要。書き込みのみ編集者リストで制限する。
+4. ゲームごとの出場メンバーを記録する（補欠は基本いない）。
+5. ブキアイコンの取り込み（段階 1）を進める。
 
-## 8. 参考
+## 8. 進み具合
+
+- [x] 段階 0：ADR・X バッジ
+- [x] 段階 1：ブキアイコン（`public/weapons/`、`npm run update-weapon-icons`）
+- [x] 段階 2：保存処理の抽象化（`src/storage/`）・選手 DB 化・旧データの自動移行・出場メンバー記録・選手ページ
+- [ ] 段階 3：Firebase 版の保存先（セットアップ完了後）
+- [ ] 段階 4〜6
+
+## 9. 参考
 
 - Google AI Pro / Ultra への Google Developer Program 特典（Cloud クレジット）統合：https://blog.google/innovation-and-ai/technology/developers-tools/gdp-premium-ai-pro-ultra/
 - クレジットの適用手順（My Benefits）：https://developers.google.com/program/my-benefits

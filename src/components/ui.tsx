@@ -1,7 +1,7 @@
 // Material Design 3 に沿った共通 UI 部品
 
 import { useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
-import { categoryOf, getWeapon, weaponName } from '../data/weapons';
+import { categoryOf, getWeapon, weaponIconUrl, weaponName } from '../data/weapons';
 import { xBadgeUrl, xTier } from '../lib/xbadge';
 
 /** Material Symbols のアイコン。使う名前は index.html の icon_names にも追加すること */
@@ -73,6 +73,7 @@ export function WeaponTag(props: { id: string; state?: 'used' | 'out' | 'warn'; 
   const title = w ? `${w.name}\nサブ: ${w.sub}\nスペシャル: ${w.special} (${w.sp}p)` : props.id;
   return (
     <span className={`wtag ${props.state ?? ''}`} style={{ '--c': cat?.color ?? '#888' } as CSSProperties} title={title}>
+      <WeaponIcon id={props.id} />
       {weaponName(props.id)}
       {props.note && <small className="wtag-note">{props.note}</small>}
       {props.onRemove && (
@@ -81,6 +82,22 @@ export function WeaponTag(props: { id: string; state?: 'used' | 'out' | 'warn'; 
         </button>
       )}
     </span>
+  );
+}
+
+/** ブキアイコン。画像が無いブキ (データ更新直後など) は何も出さない */
+export function WeaponIcon(props: { id: string; size?: number }) {
+  const src = weaponIconUrl(props.id);
+  if (!src) return null;
+  return (
+    <img
+      className="weapon-icon"
+      src={src}
+      alt=""
+      loading="lazy"
+      style={props.size ? { width: props.size, height: props.size } : undefined}
+      onError={(e) => (e.currentTarget.style.display = 'none')}
+    />
   );
 }
 

@@ -1,7 +1,9 @@
 import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { rulesText } from '../lib/announce';
 import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
+import { roster } from '../lib/roster';
 import { navigate } from '../router';
+import { usePlayers } from '../store';
 import type { Tournament } from '../types';
 
 export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
@@ -10,7 +12,12 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
   const done = playable.filter((m) => m.winner.kind === 'team');
   const upcoming = playable.filter((m) => m.a.kind === 'team' && m.b.kind === 'team' && m.winner.kind === 'tbd');
   const champ = team(champion(rounds));
-  const featured = t.teams.flatMap((tm) => tm.players.filter((p) => p.featured).map((p) => ({ p, tm })));
+  const players = usePlayers();
+  const featured = t.teams.flatMap((tm) =>
+    roster(tm, players)
+      .filter((x) => x.member.featured)
+      .map(({ member, player }) => ({ p: player, m: member, tm })),
+  );
 
   const steps = [
     { done: t.name !== '新しい大会' && t.name !== 'ブキ統一杯', label: '大会名・ルールを設定する', to: 'settings' },
@@ -35,7 +42,7 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
             <b>{t.teams.length}</b>チーム
           </div>
           <div className="stat">
-            <b>{t.teams.reduce((n, x) => n + x.players.length, 0)}</b>選手
+            <b>{t.teams.reduce((n, x) => n + x.members.length, 0)}</b>選手
           </div>
           <div className="stat">
             <b>
@@ -105,7 +112,7 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
           <Empty icon="star">チーム編集画面で「注目」をオンにした選手がここに表示されます</Empty>
         ) : (
           <div className="grid">
-            {featured.map(({ p, tm }) => (
+            {featured.map(({ p, m, tm }) => (
               <a key={p.id} className="card player-card" href={`#/teams/${tm.id}`} style={{ borderLeftColor: tm.color }}>
                 <div className="player-card-head">
                   <span className="title-m player-title">
@@ -115,9 +122,9 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
                   </span>
                   <TeamName name={tm.name} color={tm.color} />
                 </div>
-                {(p.xp || p.rank) && (
+                {(p.xp || p.note) && (
                   <div className="muted">
-                    {p.xp ? `XP${p.xp}` : ''} {p.rank}
+                    {p.xp ? `XP${p.xp}` : ''} {p.note}
                   </div>
                 )}
                 <div className="tags">
@@ -125,7 +132,7 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
                     <WeaponTag key={w} id={w} />
                   ))}
                 </div>
-                {p.comment && <p className="pre body-s">{p.comment}</p>}
+                {m.comment && <p className="pre body-s">{m.comment}</p>}
               </a>
             ))}
           </div>

@@ -5,6 +5,7 @@ import { AnnouncePage } from './pages/AnnouncePage';
 import { AwardPage } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
+import { PlayersPage } from './pages/PlayersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -15,6 +16,7 @@ import { update, useApp, useCurrent, useSaveError } from './store';
 const NAV = [
   { path: '', label: 'ホーム', icon: 'home' },
   { path: 'teams', label: 'チーム', icon: 'groups' },
+  { path: 'players', label: '選手', icon: 'person' },
   { path: 'weapons', label: 'ブキ表', icon: 'table_view' },
   { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
   { path: 'announce', label: '告知', icon: 'campaign' },
@@ -58,6 +60,9 @@ export function App() {
   switch (page) {
     case 'teams':
       content = sub ? <TeamDetailPage t={t} teamId={sub} rounds={rounds} /> : <TeamsPage t={t} rounds={rounds} />;
+      break;
+    case 'players':
+      content = <PlayersPage playerId={sub} />;
       break;
     case 'weapons':
       content = <WeaponsPage t={t} rounds={rounds} />;
