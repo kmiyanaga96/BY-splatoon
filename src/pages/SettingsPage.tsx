@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Field } from '../components/ui';
+import { Field, Icon, Switch } from '../components/ui';
 import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { exportJson, importJson, newId, newTournament, normalizeData, setState, update, updateCurrent, useApp } from '../store';
 import type { ReuseRule, Rules, Tournament } from '../types';
@@ -65,11 +65,14 @@ export function SettingsPage({ t }: { t: Tournament }) {
   };
 
   return (
-    <div className="stack">
-      <h1>設定</h1>
+    <div className="page">
+      <div className="page-header">
+        <h1 className="headline">設定</h1>
+      </div>
 
+      <div className="cols-2">
       <section className="card">
-        <h2>大会情報</h2>
+        <h2 className="card-title">大会情報</h2>
         <div className="form-row">
           <Field label="大会名">
             <input className="input" value={t.name} onChange={(e) => updateCurrent((d) => void (d.name = e.target.value))} />
@@ -89,7 +92,7 @@ export function SettingsPage({ t }: { t: Tournament }) {
       </section>
 
       <section className="card">
-        <h2>ブキ統一ルール</h2>
+        <h2 className="card-title">ブキ統一ルール</h2>
         <div className="form-row">
           <Field label="候補ブキの登録上限" hint="0 で無制限">
             <input
@@ -124,46 +127,52 @@ export function SettingsPage({ t }: { t: Tournament }) {
           <Field label="決勝">
             <BestOfSelect value={t.rules.finalBestOf} onChange={(v) => setRule('finalBestOf', v)} />
           </Field>
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={t.rules.allowDuplicate}
-              onChange={(e) => setRule('allowDuplicate', e.target.checked)}
-            />
-            他チームと同じ候補ブキを登録してよい
-          </label>
         </div>
+        <Switch
+          label="他チームと同じ候補ブキを登録してよい"
+          checked={t.rules.allowDuplicate}
+          onChange={(v) => setRule('allowDuplicate', v)}
+        />
       </section>
+      </div>
+
+      <div className="cols-2">
 
       <section className="card">
-        <h2>大会の管理</h2>
-        <p className="muted small">登録済み: {app.tournaments.map((x) => x.name).join(' / ')}</p>
-        <div className="row">
-          <button className="btn" onClick={addTournament}>
-            ＋ 新しい大会
+        <h2 className="card-title">大会の管理</h2>
+        <p className="muted body-s">登録済み: {app.tournaments.map((x) => x.name).join(' / ')}</p>
+        <div className="button-stack">
+          <button className="btn tonal" onClick={addTournament}>
+            <Icon name="add" />
+            新しい大会
           </button>
-          <button className="btn" onClick={duplicate}>
+          <button className="btn outlined" onClick={duplicate}>
+            <Icon name="content_copy" />
             この大会を複製（チーム・ルールを引き継ぐ）
           </button>
-          <button className="btn danger" onClick={remove}>
+          <button className="btn text danger" onClick={remove}>
+            <Icon name="delete" />
             この大会を削除
           </button>
         </div>
       </section>
 
       <section className="card">
-        <h2>データの保存・共有</h2>
-        <p className="muted small">
+        <h2 className="card-title">データの保存・共有</h2>
+        <p className="muted body-s">
           データはこのブラウザ内（localStorage）に自動保存されます。別の端末や運営メンバーに渡すときは JSON ファイルに書き出して、相手の画面で読み込んでください。
         </p>
-        <div className="row">
-          <button className="btn primary" onClick={() => download(`${safeName(t.name)}_${today()}.json`, exportJson([t]))}>
+        <div className="button-stack">
+          <button className="btn filled" onClick={() => download(`${safeName(t.name)}_${today()}.json`, exportJson([t]))}>
+            <Icon name="download" />
             この大会を書き出し
           </button>
-          <button className="btn" onClick={() => download(`by-splatoon_all_${today()}.json`, exportJson(app.tournaments))}>
+          <button className="btn outlined" onClick={() => download(`by-splatoon_all_${today()}.json`, exportJson(app.tournaments))}>
+            <Icon name="download" />
             全データを書き出し
           </button>
-          <button className="btn" onClick={() => fileRef.current?.click()}>
+          <button className="btn outlined" onClick={() => fileRef.current?.click()}>
+            <Icon name="upload" />
             JSON を読み込む
           </button>
           <input
@@ -173,14 +182,15 @@ export function SettingsPage({ t }: { t: Tournament }) {
             hidden
             onChange={(e) => onImport(e.target.files?.[0])}
           />
-          <span className="spacer" />
-          <button className="btn danger" onClick={resetAll}>
+          <button className="btn text danger" onClick={resetAll}>
+            <Icon name="restart_alt" />
             全データを初期化
           </button>
         </div>
       </section>
+      </div>
 
-      <p className="muted small">
+      <p className="muted body-s">
         ブキデータ: {WEAPONS.length} 種（ゲームデータ Ver.{WEAPON_DATA_VERSION.slice(0, -2)}.{WEAPON_DATA_VERSION.slice(-2, -1)}.{WEAPON_DATA_VERSION.slice(-1)} 時点）
       </p>
     </div>

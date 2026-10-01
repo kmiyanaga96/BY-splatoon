@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { CATEGORIES, WEAPONS, matchesQuery } from '../data/weapons';
-import { Modal, WeaponTag } from './ui';
+import { FilterChip, Icon, Modal, Switch, WeaponTag } from './ui';
 
 interface Props {
   title: string;
@@ -40,9 +40,18 @@ export function WeaponPicker(props: Props) {
   };
 
   return (
-    <Modal title={props.title} onClose={props.onClose} wide>
+    <Modal
+      title={props.title}
+      onClose={props.onClose}
+      wide
+      actions={
+        <button className="btn filled" onClick={props.onClose}>
+          完了
+        </button>
+      }
+    >
       <div className="picker-selected">
-        <span className="muted">
+        <span className="label">
           選択中 {selected.length}
           {max > 0 && ` / ${max}`}
         </span>
@@ -50,35 +59,36 @@ export function WeaponPicker(props: Props) {
           <WeaponTag key={id} id={id} onRemove={() => toggle(id)} />
         ))}
       </div>
-      <div className="picker-controls">
-        <input
-          className="input"
-          placeholder="ブキ名・サブ・スペシャルで検索 (ひらがな可)"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          autoFocus
-        />
-        <label className="check">
-          <input type="checkbox" checked={showReplica} onChange={(e) => setShowReplica(e.target.checked)} />
-          レプリカも表示
-        </label>
+      <div className="toolbar">
+        <div className="search">
+          <Icon name="search" />
+          <input
+            className="input"
+            placeholder="ブキ名・サブ・スペシャルで検索（ひらがな可）"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <Switch label="レプリカも表示" checked={showReplica} onChange={setShowReplica} />
       </div>
       <div className="chips">
-        <button className={`chip ${cat === null ? 'on' : ''}`} onClick={() => setCat(null)}>
-          すべて
-        </button>
+        <FilterChip label="すべて" selected={cat === null} onClick={() => setCat(null)} />
         {CATEGORIES.map((c) => (
-          <button
+          <FilterChip
             key={c.id}
-            className={`chip ${cat === c.id ? 'on' : ''}`}
-            style={{ '--c': c.color } as CSSProperties}
+            label={c.name}
+            color={c.color}
+            selected={cat === c.id}
             onClick={() => setCat(cat === c.id ? null : c.id)}
-          >
-            {c.name}
-          </button>
+          />
         ))}
       </div>
-      {full && <p className="warn-text">登録上限 ({max}) に達しています。外してから選び直してください。</p>}
+      {full && (
+        <p className="supporting warn-text">
+          <Icon name="info" /> 登録上限（{max}）に達しています。外してから選び直してください。
+        </p>
+      )}
       <div className="picker-grid">
         {list.map((w) => {
           const on = selected.includes(w.id);
@@ -92,8 +102,12 @@ export function WeaponPicker(props: Props) {
               style={{ '--c': color } as CSSProperties}
               onClick={() => toggle(w.id)}
               disabled={disabled}
+              aria-pressed={on}
             >
-              <span className="picker-name">{w.name}</span>
+              <span className="picker-name">
+                {on && <Icon name="check" />}
+                {w.name}
+              </span>
               <span className="picker-kit">
                 {w.sub} / {w.special}
               </span>
@@ -102,11 +116,6 @@ export function WeaponPicker(props: Props) {
           );
         })}
         {list.length === 0 && <p className="muted">該当するブキがありません</p>}
-      </div>
-      <div className="modal-foot">
-        <button className="btn primary" onClick={props.onClose}>
-          完了
-        </button>
       </div>
     </Modal>
   );

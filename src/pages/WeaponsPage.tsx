@@ -1,18 +1,28 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { Empty, TeamName } from '../components/ui';
-import { CATEGORIES, WEAPONS, matchesQuery } from '../data/weapons';
+import { Empty, FilterChip, Icon, Segmented, Switch, TeamName } from '../components/ui';
+import { CATEGORIES, WEAPONS, getWeapon, matchesQuery, type Weapon } from '../data/weapons';
 import type { MatchView } from '../lib/bracket';
 import { teamUses } from '../lib/usage';
-import type { Tournament } from '../types';
+import type { Team, Tournament } from '../types';
 
-type Sort = 'order' | 'popular';
+type View = 'teams' | 'weapons' | 'table';
+type CellState = 'pool' | 'used' | 'out' | 'offpool' | null;
 
-/** ブキ × チームの一覧表。どのチームがどのブキを持っていて、どれを使ったかを一目で見る */
+const STATE_LABEL: Record<Exclude<CellState, null>, string> = {
+  pool: '未使用',
+  used: '使用',
+  out: '使用済み',
+  offpool: '候補外で使用',
+};
+
+const catColor = (w: Weapon) => CATEGORIES.find((c) => c.id === w.category)?.color;
+
+/** どのチームがどのブキを持っていて、どれを使ったかを一覧する。画面共有で見やすいようカード表示が基本 */
 export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
+  const [view, setView] = useState<View>('teams');
   const [showAll, setShowAll] = useState(false);
   const [cat, setCat] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<Sort>('popular');
 
   // teamId -> weaponId -> 使用回数
   const usage = useMemo(() => {
@@ -25,105 +35,216 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
     return m;
   }, [t, rounds]);
 
+  const stateOf = (team: Team, weaponId: string): { state: CellState; used: number } => {
+    const inPool = team.pool.includes(weaponId);
+    const used = usage.get(team.id)?.get(weaponId) ?? 0;
+    if (inPool && used && t.rules.reuse === 'tournament') return { state: 'out', used };
+    if (inPool && used) return { state: 'used', used };
+    if (inPool) return { state: 'pool', used };
+    if (used) return { state: 'offpool', used };
+    return { state: null, used };
+  };
+
   const rows = useMemo(() => {
     const relevant = (id: string) => t.teams.some((x) => x.pool.includes(id) || usage.get(x.id)?.has(id));
-    const list = WEAPONS.filter(
+    return WEAPONS.filter(
       (w) => (showAll ? !w.replica || relevant(w.id) : relevant(w.id)) && (!cat || w.category === cat) && matchesQuery(w, query),
-    ).map((w) => ({ w, count: t.teams.filter((x) => x.pool.includes(w.id)).length }));
-    if (sort === 'popular') list.sort((a, b) => b.count - a.count);
-    return list;
-  }, [t, usage, showAll, cat, query, sort]);
+    )
+      .map((w) => ({ w, count: t.teams.filter((x) => x.pool.includes(w.id)).length }))
+      .sort((a, b) => b.count - a.count);
+  }, [t, usage, showAll, cat, query]);
 
-  return (
-    <div className="stack">
-      <div className="page-head">
-        <h1>ブキ表</h1>
-      </div>
-      <p className="muted">
-        ◯ = 候補に登録 / 数字 = 使用回数 / ✕ = 大会ルールにより使用済みで選択不可 / ! = 候補外のブキを使用
-      </p>
-      <div className="picker-controls">
-        <input className="input" placeholder="ブキを検索" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <select className="input" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-          <option value="popular">登録チーム数順</option>
-          <option value="order">ブキ順</option>
-        </select>
-        <label className="check">
-          <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
-          未登録のブキも表示
-        </label>
+  const filters = (
+    <>
+      <div className="toolbar">
+        <div className="search">
+          <Icon name="search" />
+          <input className="input" placeholder="ブキを検索" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <Switch label="どのチームも登録していないブキも表示" checked={showAll} onChange={setShowAll} />
       </div>
       <div className="chips">
-        <button className={`chip ${cat === null ? 'on' : ''}`} onClick={() => setCat(null)}>
-          すべて
-        </button>
+        <FilterChip label="すべて" selected={cat === null} onClick={() => setCat(null)} />
         {CATEGORIES.map((c) => (
-          <button
+          <FilterChip
             key={c.id}
-            className={`chip ${cat === c.id ? 'on' : ''}`}
-            style={{ '--c': c.color } as CSSProperties}
+            label={c.name}
+            color={c.color}
+            selected={cat === c.id}
             onClick={() => setCat(cat === c.id ? null : c.id)}
-          >
-            {c.name}
-          </button>
+          />
         ))}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="page">
+      <div className="page-header row">
+        <h1 className="headline">ブキ表</h1>
+        <span className="spacer" />
+        <Segmented
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'teams', label: 'チーム別', icon: 'groups' },
+            { value: 'weapons', label: 'ブキ別', icon: 'grid_view' },
+            { value: 'table', label: '一覧表', icon: 'table_view' },
+          ]}
+        />
       </div>
 
       {t.teams.length === 0 ? (
-        <Empty>チームを登録するとここに一覧が表示されます</Empty>
-      ) : rows.length === 0 ? (
-        <Empty>表示するブキがありません（チームの候補ブキを登録してください）</Empty>
+        <Empty icon="groups">チームを登録するとここに表示されます</Empty>
+      ) : view === 'teams' ? (
+        <TeamsView t={t} usage={usage} stateOf={stateOf} />
       ) : (
-        <div className="table-wrap">
-          <table className="matrix">
-            <thead>
-              <tr>
-                <th className="sticky-col">ブキ</th>
-                <th>登録</th>
-                {t.teams.map((team) => (
-                  <th key={team.id} className="team-col">
-                    <a href={`#/teams/${team.id}`}>
-                      <TeamName name={team.name} color={team.color} />
-                    </a>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ w, count }) => {
-                const color = CATEGORIES.find((c) => c.id === w.category)?.color;
-                const dup = count >= 2 && !t.rules.allowDuplicate;
+        <>
+          {filters}
+          {rows.length === 0 ? (
+            <Empty icon="table_view">表示するブキがありません（チームの候補ブキを登録してください）</Empty>
+          ) : view === 'weapons' ? (
+            <div className="grid weapon-grid">
+              {rows.map(({ w, count }) => (
+                <article
+                  key={w.id}
+                  className={`card weapon-card ${count >= 2 && !t.rules.allowDuplicate ? 'dup' : ''}`}
+                  style={{ '--c': catColor(w) } as CSSProperties}
+                >
+                  <div className="weapon-card-head">
+                    <span className="title-m">{w.name}</span>
+                    <span className="count-badge">{count}</span>
+                  </div>
+                  <span className="picker-kit">
+                    {w.sub} / {w.special}
+                  </span>
+                  <div className="team-chips">
+                    {t.teams.map((team) => {
+                      const { state, used } = stateOf(team, w.id);
+                      if (!state) return null;
+                      return (
+                        <span key={team.id} className={`team-chip ${state}`} title={STATE_LABEL[state]}>
+                          <TeamName name={team.name} color={team.color} />
+                          {used > 0 && <small>{state === 'out' ? '使用済み' : `${used}回`}</small>}
+                        </span>
+                      );
+                    })}
+                    {count === 0 && <span className="muted body-s">登録チームなし</span>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <MatrixView t={t} rows={rows} stateOf={stateOf} />
+          )}
+        </>
+      )}
+      <p className="legend">
+        <span className="cell-mark pool">◯</span>候補（未使用）
+        <span className="cell-mark used">2</span>使用回数
+        <span className="cell-mark out">✕</span>大会ルールにより使用済み
+        <span className="cell-mark offpool">!</span>候補外のブキを使用
+      </p>
+    </div>
+  );
+}
+
+function TeamsView(props: {
+  t: Tournament;
+  usage: Map<string, Map<string, number>>;
+  stateOf: (team: Team, weaponId: string) => { state: CellState; used: number };
+}) {
+  const { t, usage, stateOf } = props;
+  return (
+    <div className="grid team-grid">
+      {t.teams.map((team) => {
+        const offPool = [...(usage.get(team.id)?.keys() ?? [])].filter((w) => !team.pool.includes(w));
+        const available = team.pool.filter((w) => stateOf(team, w).state !== 'out').length;
+        return (
+          <article key={team.id} className="card pool-card" style={{ borderTopColor: team.color }}>
+            <div className="team-card-head">
+              <a href={`#/teams/${team.id}`} className="team-card-title">
+                <TeamName name={team.name} color={team.color} big />
+              </a>
+              <span className="spacer" />
+              <span className="count-badge" title="選べるブキ / 候補ブキ">
+                {available}/{team.pool.length}
+              </span>
+            </div>
+            <ul className="pool-list">
+              {[...team.pool, ...offPool].map((id) => {
+                const w = getWeapon(id);
+                const { state, used } = stateOf(team, id);
+                if (!w || !state) return null;
                 return (
-                  <tr key={w.id} className={dup ? 'dup' : ''}>
-                    <th className="sticky-col weapon-cell" style={{ '--c': color } as CSSProperties}>
-                      <span className="weapon-name">{w.name}</span>
+                  <li key={id} className={`pool-row ${state}`} style={{ '--c': catColor(w) } as CSSProperties}>
+                    <span className="pool-row-name">
+                      <b>{w.name}</b>
                       <span className="picker-kit">
                         {w.sub} / {w.special}
                       </span>
-                    </th>
-                    <td className="count">{count || ''}</td>
-                    {t.teams.map((team) => {
-                      const inPool = team.pool.includes(w.id);
-                      const used = usage.get(team.id)?.get(w.id) ?? 0;
-                      let mark = '';
-                      let cls = '';
-                      if (inPool && used && t.rules.reuse === 'tournament') [mark, cls] = ['✕', 'out'];
-                      else if (inPool && used) [mark, cls] = [String(used), 'used'];
-                      else if (inPool) [mark, cls] = ['◯', 'pool'];
-                      else if (used) [mark, cls] = ['!', 'warn'];
-                      return (
-                        <td key={team.id} className={`cell ${cls}`}>
-                          {mark}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                    </span>
+                    <span className={`status-pill ${state}`}>
+                      {state === 'used' ? `${used}回使用` : STATE_LABEL[state]}
+                    </span>
+                  </li>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      )}
+              {team.pool.length === 0 && offPool.length === 0 && <li className="muted body-s">候補ブキ未登録</li>}
+            </ul>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function MatrixView(props: {
+  t: Tournament;
+  rows: { w: Weapon; count: number }[];
+  stateOf: (team: Team, weaponId: string) => { state: CellState; used: number };
+}) {
+  const { t, rows, stateOf } = props;
+  const mark = (state: CellState, used: number) =>
+    state === 'out' ? '✕' : state === 'used' ? String(used) : state === 'pool' ? '◯' : state === 'offpool' ? '!' : '';
+  return (
+    <div className="table-wrap card">
+      <table className="matrix">
+        <thead>
+          <tr>
+            <th className="sticky-col">ブキ</th>
+            <th>登録</th>
+            {t.teams.map((team) => (
+              <th key={team.id} className="team-col">
+                <a href={`#/teams/${team.id}`}>
+                  <TeamName name={team.name} color={team.color} />
+                </a>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ w, count }) => (
+            <tr key={w.id} className={count >= 2 && !t.rules.allowDuplicate ? 'dup' : ''}>
+              <th className="sticky-col weapon-cell" style={{ '--c': catColor(w) } as CSSProperties}>
+                <span className="weapon-name">{w.name}</span>
+                <span className="picker-kit">
+                  {w.sub} / {w.special}
+                </span>
+              </th>
+              <td className="count">{count || ''}</td>
+              {t.teams.map((team) => {
+                const { state, used } = stateOf(team, w.id);
+                return (
+                  <td key={team.id} className={`cell ${state ?? ''}`} title={state ? STATE_LABEL[state] : undefined}>
+                    {mark(state, used)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
