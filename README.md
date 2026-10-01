@@ -31,7 +31,8 @@ Discord サーバー「バックヤード（BY）」の内輪大会向け、ス�
 ### Xパワーバッジ
 
 選手の「Xパワー」に数値を入れると、2500 / 2700 / 3000 以上で名前の横にバッジが付きます（チーム一覧・ホーム・表彰画像など）。
-バッジは `src/lib/xbadge.ts` の SVG（オリジナルデザイン）で、色は `X_TIERS` の 3 色を変えるだけで調整できます。
+バッジはゲーム内の X ランキングバッジ（炎の飾り＋盾、銅・銀・金）をモチーフにしたオリジナルの SVG（`src/lib/xbadge.ts`）で、
+2500 = 銅、2700 = 銀、3000 = 金です。色は `X_TIERS` で調整できます。
 
 ### 選手アイコン
 
@@ -86,6 +87,11 @@ npm run build      # dist/ に静的ファイルを出力
 ```sh
 npm run update-weapons -- 1120
 ```
+
+## 今後の構成変更
+
+選手の DB 化・ログイン対応に向けたバックエンドの選定と移行計画は
+[docs/architecture/0001-backend-selection.md](docs/architecture/0001-backend-selection.md) を参照。
 
 ## 構成
 

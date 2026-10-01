@@ -247,7 +247,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
 
     // Xバッジ (右上)
     const badge = badges[i];
-    if (badge) ctx.drawImage(badge, cx + D * 0.22, cy - D / 2 - 10, 54, 61);
+    if (badge) ctx.drawImage(badge, cx + D * 0.18, cy - D / 2 - 14, 64, 64);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
