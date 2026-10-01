@@ -1,0 +1,75 @@
+rules_version = '2';
+
+// BY スプラ大会ツールの Firestore ルール
+// - 閲覧: 誰でも可 (画面共有で見せる運用のため。ログイン必須にするなら players / tournaments の read を isSignedIn() に)
+// - 書き込み: config/access.editors にメールアドレスがある Google アカウントだけ
+// - config/access はコンソールからのみ編集 (アプリからは書き換えられない)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEditor() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in get(/databases/$(database)/documents/config/access).data.editors;
+    }
+
+    // 書き込みに付ける「誰がいつ」
+    function stamped(d) {
+      return d.updatedBy == request.auth.token.email && d.updatedAt == request.time;
+    }
+
+    function isShortString(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function validPlayer(d, id) {
+      return d.keys().hasOnly(['id', 'name', 'discord', 'xp', 'avatar', 'mains', 'note', 'updatedAt', 'updatedBy'])
+        && d.keys().hasAll(['id', 'name'])
+        && d.id == id
+        && isShortString(d.name, 100)
+        && (!('discord' in d) || isShortString(d.discord, 100))
+        && (!('xp' in d) || d.xp == null || (d.xp is number && d.xp >= 0 && d.xp <= 9999))
+        // アイコンは 192px に縮小した data URL (1 枚 20KB 前後)。念のため 300KB まで
+        && (!('avatar' in d) || (isShortString(d.avatar, 300000) && (d.avatar == '' || d.avatar.matches('^data:image/.*'))))
+        && (!('mains' in d) || (d.mains is list && d.mains.size() <= 10))
+        && (!('note' in d) || isShortString(d.note, 500));
+    }
+
+    function validTournament(d, id) {
+      return d.keys().hasOnly(['id', 'name', 'date', 'description', 'rules', 'teams', 'bracket', 'updatedAt', 'updatedBy'])
+        && d.keys().hasAll(['id', 'name', 'teams', 'bracket', 'rules'])
+        && d.id == id
+        && isShortString(d.name, 200)
+        && (!('date' in d) || isShortString(d.date, 200))
+        && (!('description' in d) || isShortString(d.description, 5000))
+        && d.rules is map
+        && d.teams is list && d.teams.size() <= 64
+        && d.bracket is map;
+    }
+
+    match /config/access {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /players/{playerId} {
+      allow read: if true;
+      allow create, update: if isEditor() && stamped(request.resource.data) && validPlayer(request.resource.data, playerId);
+      allow delete: if isEditor();
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create, update: if isEditor() && stamped(request.resource.data) && validTournament(request.resource.data, tournamentId);
+      allow delete: if isEditor();
+    }
+
+    // それ以外は全部拒否
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

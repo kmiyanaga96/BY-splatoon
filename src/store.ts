@@ -4,6 +4,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { emptyData, normalizeData, referencedPlayerIds } from './model';
 import { loadLocalSync, localStorageAdapter } from './storage/local';
+
 import type { Changes, StorageAdapter } from './storage/types';
 import type { AppData, Player, PlayerMap, Tournament } from './types';
 
@@ -66,13 +67,19 @@ const isEmpty = (c: Changes) =>
 // ---- 状態 ----
 
 const hasStorage = typeof localStorage !== 'undefined';
-const initialRaw = hasStorage ? loadLocalSync() : null;
 let adapter: StorageAdapter = localStorageAdapter;
-let state: AppData = withLocalCurrent(initialRaw ? normalizeData(initialRaw) : emptyData());
-let snapshot: Snapshot = new Map(); // 空から始めると初回は全件が「変更」になり、v1 データも v2 で保存し直される
+let state: AppData = emptyData();
+/** 最後に保存先へ送った (または保存先から受け取った) 内容。差分の基準 */
+let snapshot: Snapshot = new Map();
 let saveError: string | null = null;
 let saving: Promise<void> = Promise.resolve();
 let unsubscribeRemote: (() => void) | undefined;
+let flushTimer: ReturnType<typeof setTimeout> | undefined;
+let inFlight = 0;
+/** 自分の保存中に届いた他所からの更新。保存が終わってから反映する */
+let deferredRemote: unknown | null = null;
+export type StorageStatus = 'loading' | 'ready' | 'error';
+let status: StorageStatus = 'ready';
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -84,13 +91,18 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l);
 }
 
-function persist() {
+const hasPendingSave = () => inFlight > 0 || flushTimer !== undefined;
+
+function flush() {
+  flushTimer = undefined;
   const changes = diff(snapshot, state);
   if (isEmpty(changes)) return;
   snapshot = snapshotOf(state);
   const data = state;
+  const target = adapter;
+  inFlight++;
   saving = saving
-    .then(() => adapter.save(data, changes))
+    .then(() => target.save(data, changes))
     .then(
       () => {
         if (saveError) {
@@ -98,35 +110,113 @@ function persist() {
           emit();
         }
       },
-      (e) => {
+      async (e) => {
         saveError = e instanceof Error ? e.message : String(e);
         emit();
+        // 保存に失敗したら、保存先の内容に戻す (画面と保存先がずれたままにしない)
+        try {
+          deferredRemote = (await target.load()) ?? deferredRemote;
+        } catch {
+          /* 読み直せなければそのまま */
+        }
       },
-    );
+    )
+    .finally(() => {
+      inFlight--;
+      if (!hasPendingSave() && deferredRemote) {
+        const raw = deferredRemote;
+        deferredRemote = null;
+        receiveRemote(raw);
+      }
+    });
+}
+
+function persist() {
+  if (adapter.debounceMs) {
+    clearTimeout(flushTimer);
+    flushTimer = setTimeout(flush, adapter.debounceMs);
+  } else {
+    flush();
+  }
 }
 
 function receiveRemote(raw: unknown) {
-  state = withLocalCurrent(normalizeData(raw));
+  if (hasPendingSave()) {
+    deferredRemote = raw;
+    return;
+  }
+  state = withLocalCurrent({ ...normalizeData(raw), currentId: state.currentId });
   snapshot = snapshotOf(state);
   emit();
 }
 
-/** 保存先を切り替える。保存先にデータがなければ、いまのデータをそこへ書き込む */
+/** 保存先を切り替え、そこからデータを読み込む */
 export async function connectStorage(next: StorageAdapter) {
   unsubscribeRemote?.();
   adapter = next;
-  const raw = await next.load();
-  if (raw) receiveRemote(raw);
-  else {
-    snapshot = new Map();
-    persist();
+  status = 'loading';
+  emit();
+  try {
+    const raw = await next.load();
+    state = withLocalCurrent(normalizeData(raw));
+    snapshot = snapshotOf(state);
+    status = 'ready';
+  } catch (e) {
+    console.error(e);
+    saveError = `データを読み込めませんでした: ${e instanceof Error ? e.message : e}`;
+    status = 'error';
   }
+  emit();
   unsubscribeRemote = next.subscribe?.(receiveRemote);
 }
 
-if (hasStorage) {
-  persist();
-  unsubscribeRemote = adapter.subscribe?.(receiveRemote);
+/** 保存先の準備中 (読み込みが終わるまで編集できないようにする) */
+export function markLoading() {
+  status = 'loading';
+  emit();
+}
+
+/** localStorage 版で起動する (同期的に読めるので画面が空で出ない) */
+export function startLocal() {
+  const raw = hasStorage ? loadLocalSync() : null;
+  adapter = localStorageAdapter;
+  state = withLocalCurrent(raw ? normalizeData(raw) : emptyData());
+  snapshot = new Map(); // 空から始めると初回は全件が「変更」になり、v1 データも v2 で保存し直される
+  if (hasStorage) {
+    persist();
+    unsubscribeRemote = adapter.subscribe?.(receiveRemote);
+  }
+  emit();
+}
+
+if (typeof window !== 'undefined') {
+  // まだ送っていない変更があるうちにページを閉じようとしたら、すぐ送って確認を出す
+  window.addEventListener('beforeunload', (e) => {
+    if (!hasPendingSave()) return;
+    if (flushTimer) flush();
+    e.preventDefault();
+  });
+}
+
+// ---- 編集権限 (Firebase では編集者だけが書き込める) ----
+
+let canEdit: () => boolean = () => true;
+let onBlocked: () => void = () => {};
+
+export function setEditGuard(allowed: () => boolean, blocked: () => void) {
+  canEdit = allowed;
+  onBlocked = blocked;
+  emit();
+}
+
+export function useCanEdit(): boolean {
+  useApp();
+  return canEdit();
+}
+
+export function useStorageStatus(): StorageStatus {
+  useApp();
+  return status;
 }
 
 export function getState(): AppData {
@@ -134,6 +224,11 @@ export function getState(): AppData {
 }
 
 export function setState(next: AppData) {
+  if (!canEdit()) {
+    onBlocked();
+    emit(); // 入力欄を元の値に戻す
+    return;
+  }
   state = next;
   try {
     localStorage.setItem(CURRENT_KEY, next.currentId);
@@ -165,6 +260,17 @@ export function updatePlayer(id: string, fn: (p: Player) => void) {
   });
 }
 
+/** 表示する大会を切り替える (この端末だけの設定なので、閲覧モードでも変えられる) */
+export function selectTournament(id: string) {
+  state = { ...state, currentId: id };
+  try {
+    localStorage.setItem(CURRENT_KEY, id);
+  } catch {
+    /* 覚えられなくても動作に支障はない */
+  }
+  emit();
+}
+
 export function useApp(): AppData {
   return useSyncExternalStore(subscribe, getState);
 }
@@ -188,6 +294,10 @@ export function storageName(): string {
   return adapter.name;
 }
 
+export function isLocalStorage(): boolean {
+  return adapter === localStorageAdapter;
+}
+
 // ---- エクスポート / インポート ----
 
 /** 大会と、その大会に出ている選手をまとめて書き出す */
@@ -204,7 +314,12 @@ export function exportJson(tournaments: Tournament[], allPlayers = false): strin
  * 読み込んだ大会の ID 一覧を返す。
  */
 export function importJson(text: string): string[] {
-  const parsed = JSON.parse(text);
+  return importData(JSON.parse(text));
+}
+
+/** 読み込んだデータ (JSON・このブラウザの旧データ) を取り込む */
+export function importData(parsed: any): string[] {
+  if (!canEdit()) throw new Error('閲覧モードでは取り込めません。編集者のアカウントでログインしてください');
   if (!Array.isArray(parsed?.tournaments) && !Array.isArray(parsed?.teams)) {
     throw new Error('このツールの大会データではないようです');
   }

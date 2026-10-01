@@ -12,6 +12,8 @@ export interface Changes {
  */
 export interface StorageAdapter {
   readonly name: string;
+  /** 指定すると、この時間 (ms) 入力が止まるまで保存をまとめる (書き込み回数を減らすため) */
+  readonly debounceMs?: number;
   /** 起動時の読み込み。データがなければ null */
   load(): Promise<unknown | null>;
   /** 変更を保存する。data は変更後の全体、changes はその差分 */

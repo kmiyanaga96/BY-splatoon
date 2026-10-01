@@ -5,8 +5,9 @@ Discord サーバー「バックヤード（BY）」の内輪大会向け、ス�
 「各チームがどのブキを選べるのか」「注目選手は誰か」「どこまで勝ち進んだか」を
 まとめて見せる・告知することに特化しています。
 
-- サーバー・ログイン不要の静的 Web アプリ（データはブラウザの localStorage に自動保存）
-- 運営メンバー間の受け渡しは JSON ファイルの書き出し / 読み込み
+- 静的 Web アプリ（GitHub Pages）＋ Firebase（Firestore・Google ログイン）
+- データはオンラインで共有。**閲覧はログイン不要、編集は編集者に登録した Google アカウントだけ**
+- JSON ファイルの書き出し / 読み込みでバックアップ・受け渡しもできる
 
 ## できること
 
@@ -77,11 +78,25 @@ npm run build      # dist/ に静的ファイルを出力
 
 ## データについて
 
-- 保存先: ブラウザの localStorage（キー `by-splatoon:v2`）。同じブラウザなら閉じても残ります。
-  選手 DB 導入前（`by-splatoon:v1`）のデータは初回起動時に自動で移行し、同じ名前の選手は 1 人にまとめます（v1 のデータも消さずに残します）。
-  保存処理は `src/storage/` の差し替え可能な形になっており、今後 Firebase 版に切り替える予定です。
-  ブラウザのデータ削除やシークレットウィンドウでは消えるので、大会前後は「設定 → この大会を書き出し」でバックアップしてください。
-- 共有: 書き出した JSON を Discord 等で渡し、相手が「JSON を読み込む」で取り込みます（同じ大会は上書き）。
+### 保存先
+
+| モード | 使い方 | 内容 |
+| --- | --- | --- |
+| Firebase（既定） | そのままビルド | Firestore に保存してオンラインで共有。編集は Google ログイン + 編集者リスト |
+| ローカル | `VITE_STORAGE=local npm run dev` など | 従来どおりこのブラウザの localStorage だけに保存（オフラインで試すとき用） |
+
+- Firestore の構成：`players/{id}`（選手 DB）、`tournaments/{id}`（大会）、`config/access`（`editors`: 編集できるメールアドレスの配列。コンソールで編集）
+- アクセス制御は `firestore.rules`。変更したら `npm run test:rules`（エミュレーターでテスト）→ `npm run deploy:rules`（要 `npx firebase login`）
+- エミュレーターで動かす：`npm run emulators` を起動したまま `VITE_FIREBASE_EMULATOR=1 npm run dev`
+  （エミュレーターではログイン時にメールアドレスを入力するだけでログインできる。編集者にするには
+  エミュレーターの Firestore に `config/access` を作る）
+
+### 旧データ・バックアップ
+
+- ローカルモード（および Firebase 化以前）のデータはブラウザの localStorage（キー `by-splatoon:v2`、選手 DB 導入前は `by-splatoon:v1`）にあります。
+  v1 は起動時に自動で v2 に変換し、同じ名前の選手は 1 人にまとめます（元データは消しません）。
+- Firebase モードでは、設定ページの「このブラウザに保存されていたデータをオンラインに取り込む」で旧データを移せます。
+- バックアップは「設定 → 全データを書き出し」の JSON で。「JSON を読み込む」で取り込めます（同じ大会・選手は上書き）。
 
 ### ブキアイコン
 
@@ -113,7 +128,11 @@ src/
   types.ts            データ型（保存形式）
   model.ts            データの生成・補完・旧形式からの移行
   store.ts            状態管理・差分の保存・インポート/エクスポート
-  storage/            保存先 (localStorage 版。Firebase 版を追加予定)
+  storage/            保存先 (localStorage 版 / Firebase 版)
+  firebase/           Firebase の初期化・Google ログイン
+  backend.ts          起動時の保存先の選択・編集権限
+firestore.rules       Firestore のアクセス制御
+tests/                ルールのテスト (エミュレーターで実行)
   data/               ブキ・ステージデータ
   lib/bracket.ts      トーナメント計算（勝者は記録から毎回導出）
   lib/usage.ts        ブキ使用状況・再使用ルール

@@ -88,7 +88,10 @@ tournaments/{id}       { name, date, description, rules, status,
 
 - **選手を大会から切り離す**のが今回の要点。チームは `playerId` を参照するだけにする。これでアイコン・XP・得意ブキの入力は 1 回で済む。
 - チームと試合記録は大会のドキュメントにまとめて持つ（一度にまとめて更新でき、1 大会 〜50 KB なので上限 1 MB に対して余裕がある）。
-- 選手アイコンは Cloud Storage の `avatars/{playerId}.webp` に置く（今の data URL 方式から移す）。
+- 選手アイコンは **選手ドキュメントの中に 192px に縮小した data URL のまま持つ**（1 枚 20KB 前後。上限 1MB に対して十分小さい）。
+  - 当初は Cloud Storage に置く予定だったが、Storage の画像を表彰画像（Canvas）に描いて PNG に書き出すには
+    バケットの CORS 設定が別途必要になる。data URL なら同一オリジン扱いでそのまま描けるため、こちらに変更した（2026-10-01）。
+  - Firestore はブラウザに永続キャッシュするので、2 回目以降の読み込みでアイコンを毎回ダウンロードすることもない。
 
 ### 5.3 集計（直近の成績・よく使うブキ）
 
@@ -135,8 +138,10 @@ tournaments/{id}       { name, date, description, rules, status,
 - [x] 段階 0：ADR・X バッジ
 - [x] 段階 1：ブキアイコン（`public/weapons/`、`npm run update-weapon-icons`）
 - [x] 段階 2：保存処理の抽象化（`src/storage/`）・選手 DB 化・旧データの自動移行・出場メンバー記録・選手ページ
-- [ ] 段階 3：Firebase 版の保存先（セットアップ完了後）
-- [ ] 段階 4〜6
+- [x] 段階 3：Firebase 版の保存先（`src/storage/firebase.ts`）・Google ログイン・編集者チェック・Security Rules とそのテスト（`npm run test:rules`）
+- [x] 段階 4：移行ツール（設定ページの「このブラウザに保存されていたデータをオンラインに取り込む」、JSON 読み込み）
+- [x] 段階 5：選手ページ・集計画面（段階 2 で実装済み）
+- [ ] 段階 6：本番切り替え（セキュリティルールを反映してから main にマージ）
 
 ## 9. 参考
 
