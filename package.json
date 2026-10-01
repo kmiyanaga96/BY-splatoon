@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "update-weapons": "node scripts/fetch-weapons.mjs"
+    "update-weapons": "node scripts/fetch-weapons.mjs",
+    "update-weapon-icons": "node scripts/fetch-weapon-icons.mjs"
   },
   "dependencies": {
     "react": "^19.3.0",
