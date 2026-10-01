@@ -1,0 +1,1735 @@
+{
+ "version": "1120",
+ "weapons": [
+  {
+   "id": "Shooter_Short_00",
+   "name": "ボールドマーカー",
+   "category": "Shooter",
+   "main": "Shooter_Short",
+   "sub": "カーリングボム",
+   "special": "ウルトラハンコ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Short_01",
+   "name": "ボールドマーカーネオ",
+   "category": "Shooter",
+   "main": "Shooter_Short",
+   "sub": "ジャンプビーコン",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Shooter_First_00",
+   "name": "わかばシューター",
+   "category": "Shooter",
+   "main": "Shooter_First",
+   "sub": "スプラッシュボム",
+   "special": "グレートバリア",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_First_01",
+   "name": "もみじシューター",
+   "category": "Shooter",
+   "main": "Shooter_First",
+   "sub": "トーピード",
+   "special": "ホップソナー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Precision_00",
+   "name": "シャープマーカー",
+   "category": "Shooter",
+   "main": "Shooter_Precision",
+   "sub": "クイックボム",
+   "special": "カニタンク",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Precision_01",
+   "name": "シャープマーカーネオ",
+   "category": "Shooter",
+   "main": "Shooter_Precision",
+   "sub": "キューバンボム",
+   "special": "トリプルトルネード",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Precision_02",
+   "name": "シャープマーカーGECK",
+   "category": "Shooter",
+   "main": "Shooter_Precision",
+   "sub": "ポイズンミスト",
+   "special": "アメフラシ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Blaze_00",
+   "name": "プロモデラーMG",
+   "category": "Shooter",
+   "main": "Shooter_Blaze",
+   "sub": "タンサンボム",
+   "special": "サメライド",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Blaze_01",
+   "name": "プロモデラーRG",
+   "category": "Shooter",
+   "main": "Shooter_Blaze",
+   "sub": "スプリンクラー",
+   "special": "ナイスダマ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Blaze_02",
+   "name": "プロモデラー彩",
+   "category": "Shooter",
+   "main": "Shooter_Blaze",
+   "sub": "クイックボム",
+   "special": "スミナガシート",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Normal_00",
+   "name": "スプラシューター",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "キューバンボム",
+   "special": "ウルトラショット",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Normal_01",
+   "name": "スプラシューターコラボ",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "スプラッシュボム",
+   "special": "トリプルトルネード",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Normal_02",
+   "name": "スプラシューター煌",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "クイックボム",
+   "special": "テイオウイカ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Normal_H",
+   "name": "ヒーローシューター レプリカ",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "キューバンボム",
+   "special": "ウルトラショット",
+   "sp": 200,
+   "replica": true
+  },
+  {
+   "id": "Shooter_Normal_Oct",
+   "name": "オクタシューター レプリカ",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "スプラッシュボム",
+   "special": "トリプルトルネード",
+   "sp": 190,
+   "replica": true
+  },
+  {
+   "id": "Shooter_Normal_O",
+   "name": "オーダーシューター レプリカ",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "キューバンボム",
+   "special": "ウルトラショット",
+   "sp": 200,
+   "replica": true
+  },
+  {
+   "id": "Shooter_Gravity_00",
+   "name": ".52ガロン",
+   "category": "Shooter",
+   "main": "Shooter_Gravity",
+   "sub": "スプラッシュシールド",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Gravity_01",
+   "name": ".52ガロンデコ",
+   "category": "Shooter",
+   "main": "Shooter_Gravity",
+   "sub": "カーリングボム",
+   "special": "スミナガシート",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_QuickMiddle_00",
+   "name": "N-ZAP85",
+   "category": "Shooter",
+   "main": "Shooter_QuickMiddle",
+   "sub": "キューバンボム",
+   "special": "エナジースタンド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_QuickMiddle_01",
+   "name": "N-ZAP89",
+   "category": "Shooter",
+   "main": "Shooter_QuickMiddle",
+   "sub": "ロボットボム",
+   "special": "デコイチラシ",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Expert_00",
+   "name": "プライムシューター",
+   "category": "Shooter",
+   "main": "Shooter_Expert",
+   "sub": "ラインマーカー",
+   "special": "カニタンク",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Expert_01",
+   "name": "プライムシューターコラボ",
+   "category": "Shooter",
+   "main": "Shooter_Expert",
+   "sub": "キューバンボム",
+   "special": "ナイスダマ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Expert_02",
+   "name": "プライムシューターFRZN",
+   "category": "Shooter",
+   "main": "Shooter_Expert",
+   "sub": "スプラッシュボム",
+   "special": "マルチミサイル",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Heavy_00",
+   "name": ".96ガロン",
+   "category": "Shooter",
+   "main": "Shooter_Heavy",
+   "sub": "スプリンクラー",
+   "special": "キューインキ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Heavy_01",
+   "name": ".96ガロンデコ",
+   "category": "Shooter",
+   "main": "Shooter_Heavy",
+   "sub": "スプラッシュシールド",
+   "special": "テイオウイカ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Heavy_02",
+   "name": ".96ガロン爪",
+   "category": "Shooter",
+   "main": "Shooter_Heavy",
+   "sub": "ラインマーカー",
+   "special": "エナジースタンド",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Long_00",
+   "name": "ジェットスイーパー",
+   "category": "Shooter",
+   "main": "Shooter_Long",
+   "sub": "ラインマーカー",
+   "special": "キューインキ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Long_01",
+   "name": "ジェットスイーパーカスタム",
+   "category": "Shooter",
+   "main": "Shooter_Long",
+   "sub": "ポイズンミスト",
+   "special": "アメフラシ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Long_02",
+   "name": "ジェットスイーパーCOBR",
+   "category": "Shooter",
+   "main": "Shooter_Long",
+   "sub": "クイックボム",
+   "special": "ウルトラチャクチ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_QuickLong_00",
+   "name": "スペースシューター",
+   "category": "Shooter",
+   "main": "Shooter_QuickLong",
+   "sub": "ポイントセンサー",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_QuickLong_01",
+   "name": "スペースシューターコラボ",
+   "category": "Shooter",
+   "main": "Shooter_QuickLong",
+   "sub": "トラップ",
+   "special": "ジェットパック",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Short_00",
+   "name": "ノヴァブラスター",
+   "category": "Blaster",
+   "main": "Blaster_Short",
+   "sub": "スプラッシュボム",
+   "special": "ショクワンダー",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Short_01",
+   "name": "ノヴァブラスターネオ",
+   "category": "Blaster",
+   "main": "Blaster_Short",
+   "sub": "タンサンボム",
+   "special": "ウルトラハンコ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Short_O",
+   "name": "オーダーブラスター レプリカ",
+   "category": "Blaster",
+   "main": "Blaster_Short",
+   "sub": "スプラッシュボム",
+   "special": "ショクワンダー",
+   "sp": 170,
+   "replica": true
+  },
+  {
+   "id": "Blaster_Middle_00",
+   "name": "ホットブラスター",
+   "category": "Blaster",
+   "main": "Blaster_Middle",
+   "sub": "ロボットボム",
+   "special": "グレートバリア",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Middle_01",
+   "name": "ホットブラスターカスタム",
+   "category": "Blaster",
+   "main": "Blaster_Middle",
+   "sub": "ポイントセンサー",
+   "special": "ウルトラチャクチ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Middle_02",
+   "name": "ホットブラスター艶",
+   "category": "Blaster",
+   "main": "Blaster_Middle",
+   "sub": "ジャンプビーコン",
+   "special": "カニタンク",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Long_00",
+   "name": "ロングブラスター",
+   "category": "Blaster",
+   "main": "Blaster_Long",
+   "sub": "キューバンボム",
+   "special": "ホップソナー",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Long_01",
+   "name": "ロングブラスターカスタム",
+   "category": "Blaster",
+   "main": "Blaster_Long",
+   "sub": "スプラッシュボム",
+   "special": "テイオウイカ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Blaster_LightShort_00",
+   "name": "クラッシュブラスター",
+   "category": "Blaster",
+   "main": "Blaster_LightShort",
+   "sub": "スプラッシュボム",
+   "special": "ウルトラショット",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Blaster_LightShort_01",
+   "name": "クラッシュブラスターネオ",
+   "category": "Blaster",
+   "main": "Blaster_LightShort",
+   "sub": "カーリングボム",
+   "special": "デコイチラシ",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Light_00",
+   "name": "ラピッドブラスター",
+   "category": "Blaster",
+   "main": "Blaster_Light",
+   "sub": "トラップ",
+   "special": "トリプルトルネード",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Light_01",
+   "name": "ラピッドブラスターデコ",
+   "category": "Blaster",
+   "main": "Blaster_Light",
+   "sub": "トーピード",
+   "special": "ジェットパック",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Blaster_LightLong_00",
+   "name": "Rブラスターエリート",
+   "category": "Blaster",
+   "main": "Blaster_LightLong",
+   "sub": "ポイズンミスト",
+   "special": "キューインキ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Blaster_LightLong_01",
+   "name": "Rブラスターエリートデコ",
+   "category": "Blaster",
+   "main": "Blaster_LightLong",
+   "sub": "ラインマーカー",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Blaster_LightLong_02",
+   "name": "RブラスターエリートWNTR",
+   "category": "Blaster",
+   "main": "Blaster_LightLong",
+   "sub": "キューバンボム",
+   "special": "エナジースタンド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Precision_00",
+   "name": "S-BLAST92",
+   "category": "Blaster",
+   "main": "Blaster_Precision",
+   "sub": "スプリンクラー",
+   "special": "サメライド",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Blaster_Precision_01",
+   "name": "S-BLAST91",
+   "category": "Blaster",
+   "main": "Blaster_Precision",
+   "sub": "クイックボム",
+   "special": "ナイスダマ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleQuick_00",
+   "name": "L3リールガン",
+   "category": "Shooter",
+   "main": "Shooter_TripleQuick",
+   "sub": "カーリングボム",
+   "special": "カニタンク",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleQuick_01",
+   "name": "L3リールガンD",
+   "category": "Shooter",
+   "main": "Shooter_TripleQuick",
+   "sub": "クイックボム",
+   "special": "ウルトラハンコ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleQuick_02",
+   "name": "L3リールガン箔",
+   "category": "Shooter",
+   "main": "Shooter_TripleQuick",
+   "sub": "スプラッシュボム",
+   "special": "ジェットパック",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleMiddle_00",
+   "name": "H3リールガン",
+   "category": "Shooter",
+   "main": "Shooter_TripleMiddle",
+   "sub": "ポイントセンサー",
+   "special": "エナジースタンド",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleMiddle_01",
+   "name": "H3リールガンD",
+   "category": "Shooter",
+   "main": "Shooter_TripleMiddle",
+   "sub": "スプラッシュシールド",
+   "special": "グレートバリア",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_TripleMiddle_02",
+   "name": "H3リールガンSNAK",
+   "category": "Shooter",
+   "main": "Shooter_TripleMiddle",
+   "sub": "キューバンボム",
+   "special": "トリプルトルネード",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Flash_00",
+   "name": "ボトルガイザー",
+   "category": "Shooter",
+   "main": "Shooter_Flash",
+   "sub": "スプラッシュシールド",
+   "special": "ウルトラショット",
+   "sp": 220,
+   "replica": false
+  },
+  {
+   "id": "Shooter_Flash_01",
+   "name": "ボトルガイザーフォイル",
+   "category": "Shooter",
+   "main": "Shooter_Flash",
+   "sub": "ロボットボム",
+   "special": "スミナガシート",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Roller_Compact_00",
+   "name": "カーボンローラー",
+   "category": "Roller",
+   "main": "Roller_Compact",
+   "sub": "ロボットボム",
+   "special": "ショクワンダー",
+   "sp": 160,
+   "replica": false
+  },
+  {
+   "id": "Roller_Compact_01",
+   "name": "カーボンローラーデコ",
+   "category": "Roller",
+   "main": "Roller_Compact",
+   "sub": "クイックボム",
+   "special": "ウルトラショット",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Roller_Compact_02",
+   "name": "カーボンローラーANGL",
+   "category": "Roller",
+   "main": "Roller_Compact",
+   "sub": "タンサンボム",
+   "special": "デコイチラシ",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Roller_Normal_00",
+   "name": "スプラローラー",
+   "category": "Roller",
+   "main": "Roller_Normal",
+   "sub": "カーリングボム",
+   "special": "グレートバリア",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Roller_Normal_01",
+   "name": "スプラローラーコラボ",
+   "category": "Roller",
+   "main": "Roller_Normal",
+   "sub": "ジャンプビーコン",
+   "special": "テイオウイカ",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Roller_Normal_O",
+   "name": "オーダーローラー レプリカ",
+   "category": "Roller",
+   "main": "Roller_Normal",
+   "sub": "カーリングボム",
+   "special": "グレートバリア",
+   "sp": 180,
+   "replica": true
+  },
+  {
+   "id": "Roller_Heavy_00",
+   "name": "ダイナモローラー",
+   "category": "Roller",
+   "main": "Roller_Heavy",
+   "sub": "スプリンクラー",
+   "special": "エナジースタンド",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Roller_Heavy_01",
+   "name": "ダイナモローラーテスラ",
+   "category": "Roller",
+   "main": "Roller_Heavy",
+   "sub": "スプラッシュボム",
+   "special": "デコイチラシ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Roller_Heavy_02",
+   "name": "ダイナモローラー冥",
+   "category": "Roller",
+   "main": "Roller_Heavy",
+   "sub": "ポイントセンサー",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Roller_Hunter_00",
+   "name": "ヴァリアブルローラー",
+   "category": "Roller",
+   "main": "Roller_Hunter",
+   "sub": "トラップ",
+   "special": "マルチミサイル",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Roller_Hunter_01",
+   "name": "ヴァリアブルローラーフォイル",
+   "category": "Roller",
+   "main": "Roller_Hunter",
+   "sub": "キューバンボム",
+   "special": "スミナガシート",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Roller_Wide_00",
+   "name": "ワイドローラー",
+   "category": "Roller",
+   "main": "Roller_Wide",
+   "sub": "スプラッシュシールド",
+   "special": "キューインキ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Roller_Wide_01",
+   "name": "ワイドローラーコラボ",
+   "category": "Roller",
+   "main": "Roller_Wide",
+   "sub": "ラインマーカー",
+   "special": "アメフラシ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Roller_Wide_02",
+   "name": "ワイドローラー惑",
+   "category": "Roller",
+   "main": "Roller_Wide",
+   "sub": "トーピード",
+   "special": "ウルトラチャクチ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Brush_Mini_00",
+   "name": "パブロ",
+   "category": "Brush",
+   "main": "Brush_Mini",
+   "sub": "スプラッシュボム",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Brush_Mini_01",
+   "name": "パブロ・ヒュー",
+   "category": "Brush",
+   "main": "Brush_Mini",
+   "sub": "トラップ",
+   "special": "ウルトラハンコ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Brush_Normal_00",
+   "name": "ホクサイ",
+   "category": "Brush",
+   "main": "Brush_Normal",
+   "sub": "キューバンボム",
+   "special": "ショクワンダー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Brush_Normal_01",
+   "name": "ホクサイ・ヒュー",
+   "category": "Brush",
+   "main": "Brush_Normal",
+   "sub": "ジャンプビーコン",
+   "special": "アメフラシ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Brush_Normal_02",
+   "name": "ホクサイ彗",
+   "category": "Brush",
+   "main": "Brush_Normal",
+   "sub": "ロボットボム",
+   "special": "テイオウイカ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Brush_Normal_O",
+   "name": "オーダーブラシ レプリカ",
+   "category": "Brush",
+   "main": "Brush_Normal",
+   "sub": "キューバンボム",
+   "special": "ショクワンダー",
+   "sp": 190,
+   "replica": true
+  },
+  {
+   "id": "Brush_Heavy_00",
+   "name": "フィンセント",
+   "category": "Brush",
+   "main": "Brush_Heavy",
+   "sub": "カーリングボム",
+   "special": "ホップソナー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Brush_Heavy_01",
+   "name": "フィンセント・ヒュー",
+   "category": "Brush",
+   "main": "Brush_Heavy",
+   "sub": "ポイントセンサー",
+   "special": "マルチミサイル",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Brush_Heavy_02",
+   "name": "フィンセントBRNZ",
+   "category": "Brush",
+   "main": "Brush_Heavy",
+   "sub": "スプラッシュシールド",
+   "special": "ウルトラショット",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_Quick_00",
+   "name": "スクイックリンα",
+   "category": "Charger",
+   "main": "Charger_Quick",
+   "sub": "ポイントセンサー",
+   "special": "グレートバリア",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_Quick_01",
+   "name": "スクイックリンβ",
+   "category": "Charger",
+   "main": "Charger_Quick",
+   "sub": "ロボットボム",
+   "special": "ショクワンダー",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Charger_Normal_00",
+   "name": "スプラチャージャー",
+   "category": "Charger",
+   "main": "Charger_Normal",
+   "sub": "スプラッシュボム",
+   "special": "キューインキ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_Normal_01",
+   "name": "スプラチャージャーコラボ",
+   "category": "Charger",
+   "main": "Charger_Normal",
+   "sub": "スプラッシュシールド",
+   "special": "トリプルトルネード",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_Normal_02",
+   "name": "スプラチャージャーFRST",
+   "category": "Charger",
+   "main": "Charger_Normal",
+   "sub": "スプリンクラー",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_Normal_O",
+   "name": "オーダーチャージャー レプリカ",
+   "category": "Charger",
+   "main": "Charger_Normal",
+   "sub": "スプラッシュボム",
+   "special": "キューインキ",
+   "sp": 190,
+   "replica": true
+  },
+  {
+   "id": "Charger_NormalScope_00",
+   "name": "スプラスコープ",
+   "category": "Charger",
+   "main": "Charger_NormalScope",
+   "sub": "スプラッシュボム",
+   "special": "キューインキ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_NormalScope_01",
+   "name": "スプラスコープコラボ",
+   "category": "Charger",
+   "main": "Charger_NormalScope",
+   "sub": "スプラッシュシールド",
+   "special": "トリプルトルネード",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_NormalScope_02",
+   "name": "スプラスコープFRST",
+   "category": "Charger",
+   "main": "Charger_NormalScope",
+   "sub": "スプリンクラー",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_Long_00",
+   "name": "リッター4K",
+   "category": "Charger",
+   "main": "Charger_Long",
+   "sub": "トラップ",
+   "special": "ホップソナー",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Charger_Long_01",
+   "name": "リッター4Kカスタム",
+   "category": "Charger",
+   "main": "Charger_Long",
+   "sub": "ジャンプビーコン",
+   "special": "テイオウイカ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Charger_LongScope_00",
+   "name": "4Kスコープ",
+   "category": "Charger",
+   "main": "Charger_LongScope",
+   "sub": "トラップ",
+   "special": "ホップソナー",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Charger_LongScope_01",
+   "name": "4Kスコープカスタム",
+   "category": "Charger",
+   "main": "Charger_LongScope",
+   "sub": "ジャンプビーコン",
+   "special": "テイオウイカ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Charger_Light_00",
+   "name": "14式竹筒銃・甲",
+   "category": "Charger",
+   "main": "Charger_Light",
+   "sub": "ロボットボム",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_Light_01",
+   "name": "14式竹筒銃・乙",
+   "category": "Charger",
+   "main": "Charger_Light",
+   "sub": "タンサンボム",
+   "special": "デコイチラシ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Charger_Keeper_00",
+   "name": "ソイチューバー",
+   "category": "Charger",
+   "main": "Charger_Keeper",
+   "sub": "トーピード",
+   "special": "マルチミサイル",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_Keeper_01",
+   "name": "ソイチューバーカスタム",
+   "category": "Charger",
+   "main": "Charger_Keeper",
+   "sub": "タンサンボム",
+   "special": "ウルトラハンコ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Charger_Pencil_00",
+   "name": "R-PEN/5H",
+   "category": "Charger",
+   "main": "Charger_Pencil",
+   "sub": "スプリンクラー",
+   "special": "エナジースタンド",
+   "sp": 220,
+   "replica": false
+  },
+  {
+   "id": "Charger_Pencil_01",
+   "name": "R-PEN/5B",
+   "category": "Charger",
+   "main": "Charger_Pencil",
+   "sub": "スプラッシュシールド",
+   "special": "アメフラシ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Strong_00",
+   "name": "バケットスロッシャー",
+   "category": "Slosher",
+   "main": "Slosher_Strong",
+   "sub": "スプラッシュボム",
+   "special": "トリプルトルネード",
+   "sp": 220,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Strong_01",
+   "name": "バケットスロッシャーデコ",
+   "category": "Slosher",
+   "main": "Slosher_Strong",
+   "sub": "ラインマーカー",
+   "special": "ショクワンダー",
+   "sp": 170,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Strong_O",
+   "name": "オーダースロッシャー レプリカ",
+   "category": "Slosher",
+   "main": "Slosher_Strong",
+   "sub": "スプラッシュボム",
+   "special": "トリプルトルネード",
+   "sp": 220,
+   "replica": true
+  },
+  {
+   "id": "Slosher_Diffusion_00",
+   "name": "ヒッセン",
+   "category": "Slosher",
+   "main": "Slosher_Diffusion",
+   "sub": "ポイズンミスト",
+   "special": "ジェットパック",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Diffusion_01",
+   "name": "ヒッセン・ヒュー",
+   "category": "Slosher",
+   "main": "Slosher_Diffusion",
+   "sub": "タンサンボム",
+   "special": "エナジースタンド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Diffusion_02",
+   "name": "ヒッセンASH",
+   "category": "Slosher",
+   "main": "Slosher_Diffusion",
+   "sub": "スプラッシュボム",
+   "special": "スミナガシート",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Launcher_00",
+   "name": "スクリュースロッシャー",
+   "category": "Slosher",
+   "main": "Slosher_Launcher",
+   "sub": "タンサンボム",
+   "special": "ナイスダマ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Launcher_01",
+   "name": "スクリュースロッシャーネオ",
+   "category": "Slosher",
+   "main": "Slosher_Launcher",
+   "sub": "ポイントセンサー",
+   "special": "ウルトラショット",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Bathtub_00",
+   "name": "オーバーフロッシャー",
+   "category": "Slosher",
+   "main": "Slosher_Bathtub",
+   "sub": "スプリンクラー",
+   "special": "アメフラシ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Bathtub_01",
+   "name": "オーバーフロッシャーデコ",
+   "category": "Slosher",
+   "main": "Slosher_Bathtub",
+   "sub": "ラインマーカー",
+   "special": "テイオウイカ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Washtub_00",
+   "name": "エクスプロッシャー",
+   "category": "Slosher",
+   "main": "Slosher_Washtub",
+   "sub": "ポイントセンサー",
+   "special": "アメフラシ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Washtub_01",
+   "name": "エクスプロッシャーカスタム",
+   "category": "Slosher",
+   "main": "Slosher_Washtub",
+   "sub": "スプラッシュシールド",
+   "special": "ウルトラチャクチ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Double_00",
+   "name": "モップリン",
+   "category": "Slosher",
+   "main": "Slosher_Double",
+   "sub": "キューバンボム",
+   "special": "サメライド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Double_01",
+   "name": "モップリンD",
+   "category": "Slosher",
+   "main": "Slosher_Double",
+   "sub": "ジャンプビーコン",
+   "special": "ホップソナー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Slosher_Double_02",
+   "name": "モップリン角",
+   "category": "Slosher",
+   "main": "Slosher_Double",
+   "sub": "カーリングボム",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Quick_00",
+   "name": "スプラスピナー",
+   "category": "Spinner",
+   "main": "Spinner_Quick",
+   "sub": "クイックボム",
+   "special": "ウルトラハンコ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Quick_01",
+   "name": "スプラスピナーコラボ",
+   "category": "Spinner",
+   "main": "Spinner_Quick",
+   "sub": "ポイズンミスト",
+   "special": "グレートバリア",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Quick_02",
+   "name": "スプラスピナーPYTN",
+   "category": "Spinner",
+   "main": "Spinner_Quick",
+   "sub": "ジャンプビーコン",
+   "special": "ウルトラショット",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Standard_00",
+   "name": "バレルスピナー",
+   "category": "Spinner",
+   "main": "Spinner_Standard",
+   "sub": "スプリンクラー",
+   "special": "ホップソナー",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Standard_01",
+   "name": "バレルスピナーデコ",
+   "category": "Spinner",
+   "main": "Spinner_Standard",
+   "sub": "ポイントセンサー",
+   "special": "テイオウイカ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Standard_O",
+   "name": "オーダースピナー レプリカ",
+   "category": "Spinner",
+   "main": "Spinner_Standard",
+   "sub": "スプリンクラー",
+   "special": "ホップソナー",
+   "sp": 210,
+   "replica": true
+  },
+  {
+   "id": "Spinner_Hyper_00",
+   "name": "ハイドラント",
+   "category": "Spinner",
+   "main": "Spinner_Hyper",
+   "sub": "ロボットボム",
+   "special": "ナイスダマ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Hyper_01",
+   "name": "ハイドラントカスタム",
+   "category": "Spinner",
+   "main": "Spinner_Hyper",
+   "sub": "トラップ",
+   "special": "スミナガシート",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Hyper_02",
+   "name": "ハイドラント圧",
+   "category": "Spinner",
+   "main": "Spinner_Hyper",
+   "sub": "スプリンクラー",
+   "special": "グレートバリア",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Downpour_00",
+   "name": "クーゲルシュライバー",
+   "category": "Spinner",
+   "main": "Spinner_Downpour",
+   "sub": "タンサンボム",
+   "special": "ジェットパック",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Downpour_01",
+   "name": "クーゲルシュライバー・ヒュー",
+   "category": "Spinner",
+   "main": "Spinner_Downpour",
+   "sub": "トラップ",
+   "special": "キューインキ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Serein_00",
+   "name": "ノーチラス47",
+   "category": "Spinner",
+   "main": "Spinner_Serein",
+   "sub": "ポイントセンサー",
+   "special": "アメフラシ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Spinner_Serein_01",
+   "name": "ノーチラス79",
+   "category": "Spinner",
+   "main": "Spinner_Serein",
+   "sub": "キューバンボム",
+   "special": "ウルトラチャクチ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_HyperShort_00",
+   "name": "イグザミナー",
+   "category": "Spinner",
+   "main": "Spinner_HyperShort",
+   "sub": "カーリングボム",
+   "special": "エナジースタンド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Spinner_HyperShort_01",
+   "name": "イグザミナー・ヒュー",
+   "category": "Spinner",
+   "main": "Spinner_HyperShort",
+   "sub": "スプラッシュボム",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Short_00",
+   "name": "スパッタリー",
+   "category": "Maneuver",
+   "main": "Maneuver_Short",
+   "sub": "ジャンプビーコン",
+   "special": "エナジースタンド",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Short_01",
+   "name": "スパッタリー・ヒュー",
+   "category": "Maneuver",
+   "main": "Maneuver_Short",
+   "sub": "トーピード",
+   "special": "サメライド",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Short_02",
+   "name": "スパッタリーOWL",
+   "category": "Maneuver",
+   "main": "Maneuver_Short",
+   "sub": "スプラッシュボム",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Normal_00",
+   "name": "スプラマニューバー",
+   "category": "Maneuver",
+   "main": "Maneuver_Normal",
+   "sub": "キューバンボム",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Normal_01",
+   "name": "スプラマニューバーコラボ",
+   "category": "Maneuver",
+   "main": "Maneuver_Normal",
+   "sub": "カーリングボム",
+   "special": "ウルトラチャクチ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Normal_02",
+   "name": "スプラマニューバー耀",
+   "category": "Maneuver",
+   "main": "Maneuver_Normal",
+   "sub": "タンサンボム",
+   "special": "グレートバリア",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Normal_O",
+   "name": "オーダーマニューバー レプリカ",
+   "category": "Maneuver",
+   "main": "Maneuver_Normal",
+   "sub": "キューバンボム",
+   "special": "カニタンク",
+   "sp": 200,
+   "replica": true
+  },
+  {
+   "id": "Maneuver_Gallon_00",
+   "name": "ケルビン525",
+   "category": "Maneuver",
+   "main": "Maneuver_Gallon",
+   "sub": "スプラッシュシールド",
+   "special": "ナイスダマ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Gallon_01",
+   "name": "ケルビン525デコ",
+   "category": "Maneuver",
+   "main": "Maneuver_Gallon",
+   "sub": "ポイントセンサー",
+   "special": "ウルトラショット",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Dual_00",
+   "name": "デュアルスイーパー",
+   "category": "Maneuver",
+   "main": "Maneuver_Dual",
+   "sub": "スプラッシュボム",
+   "special": "ホップソナー",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Dual_01",
+   "name": "デュアルスイーパーカスタム",
+   "category": "Maneuver",
+   "main": "Maneuver_Dual",
+   "sub": "ジャンプビーコン",
+   "special": "デコイチラシ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Dual_02",
+   "name": "デュアルスイーパー蹄",
+   "category": "Maneuver",
+   "main": "Maneuver_Dual",
+   "sub": "ポイントセンサー",
+   "special": "スミナガシート",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Stepper_00",
+   "name": "クアッドホッパーブラック",
+   "category": "Maneuver",
+   "main": "Maneuver_Stepper",
+   "sub": "ロボットボム",
+   "special": "サメライド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Stepper_01",
+   "name": "クアッドホッパーホワイト",
+   "category": "Maneuver",
+   "main": "Maneuver_Stepper",
+   "sub": "スプリンクラー",
+   "special": "ショクワンダー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Long_00",
+   "name": "ガエンFF",
+   "category": "Maneuver",
+   "main": "Maneuver_Long",
+   "sub": "トラップ",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Maneuver_Long_01",
+   "name": "ガエンFFカスタム",
+   "category": "Maneuver",
+   "main": "Maneuver_Long",
+   "sub": "クイックボム",
+   "special": "トリプルトルネード",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Normal_00",
+   "name": "パラシェルター",
+   "category": "Shelter",
+   "main": "Shelter_Normal",
+   "sub": "スプリンクラー",
+   "special": "トリプルトルネード",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Normal_01",
+   "name": "パラシェルターソレーラ",
+   "category": "Shelter",
+   "main": "Shelter_Normal",
+   "sub": "ロボットボム",
+   "special": "ジェットパック",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Normal_O",
+   "name": "オーダーシェルター レプリカ",
+   "category": "Shelter",
+   "main": "Shelter_Normal",
+   "sub": "スプリンクラー",
+   "special": "トリプルトルネード",
+   "sp": 210,
+   "replica": true
+  },
+  {
+   "id": "Shelter_Wide_00",
+   "name": "キャンピングシェルター",
+   "category": "Shelter",
+   "main": "Shelter_Wide",
+   "sub": "ジャンプビーコン",
+   "special": "キューインキ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Wide_01",
+   "name": "キャンピングシェルターソレーラ",
+   "category": "Shelter",
+   "main": "Shelter_Wide",
+   "sub": "トラップ",
+   "special": "ウルトラショット",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Wide_02",
+   "name": "キャンピングシェルターCREM",
+   "category": "Shelter",
+   "main": "Shelter_Wide",
+   "sub": "ポイズンミスト",
+   "special": "デコイチラシ",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Compact_00",
+   "name": "スパイガジェット",
+   "category": "Shelter",
+   "main": "Shelter_Compact",
+   "sub": "トラップ",
+   "special": "サメライド",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Compact_01",
+   "name": "スパイガジェットソレーラ",
+   "category": "Shelter",
+   "main": "Shelter_Compact",
+   "sub": "トーピード",
+   "special": "スミナガシート",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Compact_02",
+   "name": "スパイガジェット繚",
+   "category": "Shelter",
+   "main": "Shelter_Compact",
+   "sub": "カーリングボム",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 180,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Focus_00",
+   "name": "24式張替傘・甲",
+   "category": "Shelter",
+   "main": "Shelter_Focus",
+   "sub": "ラインマーカー",
+   "special": "グレートバリア",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Shelter_Focus_01",
+   "name": "24式張替傘・乙",
+   "category": "Shelter",
+   "main": "Shelter_Focus",
+   "sub": "ポイズンミスト",
+   "special": "ウルトラチャクチ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Normal_00",
+   "name": "トライストリンガー",
+   "category": "Stringer",
+   "main": "Stringer_Normal",
+   "sub": "ポイズンミスト",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Normal_01",
+   "name": "トライストリンガーコラボ",
+   "category": "Stringer",
+   "main": "Stringer_Normal",
+   "sub": "スプリンクラー",
+   "special": "デコイチラシ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Normal_02",
+   "name": "トライストリンガー燈",
+   "category": "Stringer",
+   "main": "Stringer_Normal",
+   "sub": "ラインマーカー",
+   "special": "ジェットパック",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Normal_O",
+   "name": "オーダーストリンガー レプリカ",
+   "category": "Stringer",
+   "main": "Stringer_Normal",
+   "sub": "ポイズンミスト",
+   "special": "メガホンレーザー5.1ch",
+   "sp": 190,
+   "replica": true
+  },
+  {
+   "id": "Stringer_Short_00",
+   "name": "LACT-450",
+   "category": "Stringer",
+   "main": "Stringer_Short",
+   "sub": "カーリングボム",
+   "special": "マルチミサイル",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Short_01",
+   "name": "LACT-450デコ",
+   "category": "Stringer",
+   "main": "Stringer_Short",
+   "sub": "スプラッシュシールド",
+   "special": "サメライド",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Short_02",
+   "name": "LACT-450MILK",
+   "category": "Stringer",
+   "main": "Stringer_Short",
+   "sub": "トーピード",
+   "special": "ナイスダマ",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Explosion_00",
+   "name": "フルイドV",
+   "category": "Stringer",
+   "main": "Stringer_Explosion",
+   "sub": "ロボットボム",
+   "special": "ウルトラハンコ",
+   "sp": 200,
+   "replica": false
+  },
+  {
+   "id": "Stringer_Explosion_01",
+   "name": "フルイドVカスタム",
+   "category": "Stringer",
+   "main": "Stringer_Explosion",
+   "sub": "ポイントセンサー",
+   "special": "ホップソナー",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Saber_Normal_00",
+   "name": "ジムワイパー",
+   "category": "Saber",
+   "main": "Saber_Normal",
+   "sub": "クイックボム",
+   "special": "ショクワンダー",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Saber_Normal_01",
+   "name": "ジムワイパー・ヒュー",
+   "category": "Saber",
+   "main": "Saber_Normal",
+   "sub": "ポイズンミスト",
+   "special": "カニタンク",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Saber_Normal_02",
+   "name": "ジムワイパー封",
+   "category": "Saber",
+   "main": "Saber_Normal",
+   "sub": "ロボットボム",
+   "special": "ナイスダマ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Saber_Normal_O",
+   "name": "オーダーワイパー レプリカ",
+   "category": "Saber",
+   "main": "Saber_Normal",
+   "sub": "クイックボム",
+   "special": "ショクワンダー",
+   "sp": 210,
+   "replica": true
+  },
+  {
+   "id": "Saber_Lite_00",
+   "name": "ドライブワイパー",
+   "category": "Saber",
+   "main": "Saber_Lite",
+   "sub": "トーピード",
+   "special": "ウルトラハンコ",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Saber_Lite_01",
+   "name": "ドライブワイパーデコ",
+   "category": "Saber",
+   "main": "Saber_Lite",
+   "sub": "ジャンプビーコン",
+   "special": "マルチミサイル",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Saber_Lite_02",
+   "name": "ドライブワイパーRUST",
+   "category": "Saber",
+   "main": "Saber_Lite",
+   "sub": "カーリングボム",
+   "special": "ウルトラショット",
+   "sp": 190,
+   "replica": false
+  },
+  {
+   "id": "Saber_Heavy_00",
+   "name": "デンタルワイパーミント",
+   "category": "Saber",
+   "main": "Saber_Heavy",
+   "sub": "キューバンボム",
+   "special": "グレートバリア",
+   "sp": 210,
+   "replica": false
+  },
+  {
+   "id": "Saber_Heavy_01",
+   "name": "デンタルワイパースミ",
+   "category": "Saber",
+   "main": "Saber_Heavy",
+   "sub": "スプラッシュシールド",
+   "special": "ジェットパック",
+   "sp": 200,
+   "replica": false
+  }
+ ]
+}
