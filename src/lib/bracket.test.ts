@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { newTournament } from '../store';
 import type { Game, Tournament } from '../types';
-import { champion, computeBracket, createSlots, isAlive, roundName, seedOrder, sideId } from './bracket';
+import { champion, computeBracket, createSlots, isAlive, placements, roundName, seedOrder, sideId } from './bracket';
 import { blockedWeapons, poolStatus } from './usage';
 
 const game = (winner: 'A' | 'B', weaponA = '', weaponB = ''): Game => ({ weaponA, weaponB, mode: '', stage: '', winner });
@@ -60,6 +60,18 @@ describe('computeBracket', () => {
     rounds = computeBracket(t);
     expect(champion(rounds)).toBe('t3');
     expect(roundName(1, rounds.length)).toBe('決勝');
+  });
+
+  it('成績 (優勝・準優勝・ベスト4) を判定する', () => {
+    const t = setup(4); // [t1, t4, t2, t3]
+    t.bracket.matches['0-0'] = { a: 't1', b: 't4', games: [], override: 't1', note: '' };
+    t.bracket.matches['0-1'] = { a: 't2', b: 't3', games: [], override: 't3', note: '' };
+    expect(placements(computeBracket(t)).get('t4')).toEqual({ rank: 4, label: 'ベスト4' });
+    expect(placements(computeBracket(t)).has('t1')).toBe(false); // まだ勝ち残り
+    t.bracket.matches['1-0'] = { a: 't1', b: 't3', games: [], override: 't3', note: '' };
+    const p = placements(computeBracket(t));
+    expect(p.get('t3')).toEqual({ rank: 1, label: '優勝' });
+    expect(p.get('t1')).toEqual({ rank: 2, label: '準優勝' });
   });
 
   it('前の試合の勝者を変えると、後の試合の記録は無効 (stale) になる', () => {

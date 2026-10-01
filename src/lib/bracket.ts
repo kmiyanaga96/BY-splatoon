@@ -147,3 +147,26 @@ export function isAlive(rounds: MatchView[][], teamId: string): boolean {
   }
   return true;
 }
+
+export interface Placement {
+  /** 並べ替え用の順位 (1, 2, 4, 8, ...) */
+  rank: number;
+  label: string;
+}
+
+/** 確定した成績。まだ勝ち残っているチームは含まれない */
+export function placements(rounds: MatchView[][]): Map<string, Placement> {
+  const total = rounds.length;
+  const result = new Map<string, Placement>();
+  rounds.forEach((round, r) => {
+    for (const m of round) {
+      const w = sideId(m.winner);
+      if (!w || m.a.kind !== 'team' || m.b.kind !== 'team') continue;
+      const loser = w === m.a.id ? m.b.id : m.a.id;
+      const rank = 2 ** (total - r);
+      result.set(loser, { rank, label: r === total - 1 ? '準優勝' : `ベスト${rank}` });
+      if (r === total - 1) result.set(w, { rank: 1, label: '優勝' });
+    }
+  });
+  return result;
+}

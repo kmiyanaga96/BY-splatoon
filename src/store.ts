@@ -45,7 +45,7 @@ export function newTeam(index: number): Team {
 }
 
 export function newPlayer(): Player {
-  return { id: newId(), name: '', mains: [], rank: '', comment: '', featured: false, leader: false };
+  return { id: newId(), name: '', mains: [], rank: '', xp: null, avatar: '', comment: '', featured: false, leader: false };
 }
 
 // ---- 読み込み時の補完 (古いデータや手書きの JSON でも落ちないように) ----
@@ -54,12 +54,23 @@ const str = (v: unknown, d = '') => (typeof v === 'string' ? v : d);
 const arr = <T>(v: unknown, f: (x: any, i: number) => T): T[] => (Array.isArray(v) ? v.map(f) : []);
 const strArr = (v: unknown) => arr(v, (x) => str(x)).filter(Boolean);
 
+/** 旧データの自由記述 ("XP2500 / S+10" など) から Xパワーを拾う */
+export function parseXp(text: string): number | null {
+  const m = text.normalize('NFKC').match(/X\s*P?\s*[:：]?\s*(\d{4})/i);
+  return m ? Number(m[1]) : null;
+}
+
 function normalizePlayer(p: any): Player {
+  const rank = str(p?.rank);
+  const xp = typeof p?.xp === 'number' && Number.isFinite(p.xp) ? p.xp : p?.xp === null ? null : parseXp(rank);
+  const avatar = str(p?.avatar);
   return {
     id: str(p?.id) || newId(),
     name: str(p?.name),
     mains: strArr(p?.mains),
-    rank: str(p?.rank),
+    rank,
+    xp,
+    avatar: avatar.startsWith('data:image/') ? avatar : '',
     comment: str(p?.comment),
     featured: !!p?.featured,
     leader: !!p?.leader,
