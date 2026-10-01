@@ -1,7 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Field, Icon, Switch } from '../components/ui';
 import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
-import { exportJson, importJson, newId, newTournament, normalizeData, setState, update, updateCurrent, useApp } from '../store';
+import { emptyData } from '../model';
+import { loadLocalSync } from '../storage/local';
+import { exportJson, importData, importJson, isLocalStorage, newId, newTournament, setState, storageName, update, updateCurrent, useApp, useCanEdit } from '../store';
 import type { ReuseRule, Rules, Tournament } from '../types';
 
 function download(filename: string, text: string) {
@@ -13,6 +15,23 @@ function download(filename: string, text: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/** オンラインへの取り込みが済んだら、案内を出さないようにする (元データは残す) */
+const MIGRATED_KEY = 'by-splatoon:migrated-to-firebase';
+function readFlag(key: string): boolean {
+  try {
+    return localStorage.getItem(key) === '1';
+  } catch {
+    return false;
+  }
+}
+function writeFlag(key: string) {
+  try {
+    localStorage.setItem(key, '1');
+  } catch {
+    /* 覚えられなくても動作に支障はない */
+  }
 }
 
 const safeName = (s: string) => s.replace(/[\\/:*?"<>|\s]+/g, '_') || 'tournament';
@@ -61,9 +80,34 @@ export function SettingsPage({ t }: { t: Tournament }) {
     }
   };
 
+  const canEdit = useCanEdit();
+  const [migrated, setMigrated] = useState(() => readFlag(MIGRATED_KEY));
+  const localRaw = isLocalStorage() || migrated ? null : (loadLocalSync() as any);
+  const localData =
+    localRaw && Array.isArray(localRaw.tournaments)
+      ? {
+          tournaments: localRaw.tournaments.length,
+          players: Array.isArray(localRaw.players)
+            ? localRaw.players.length
+            : localRaw.tournaments.reduce((n: number, t: any) => n + (t?.teams ?? []).reduce((m: number, x: any) => m + (x?.players?.length ?? 0), 0), 0),
+        }
+      : null;
+
+  const migrateLocal = () => {
+    if (!confirm('このブラウザに保存されていたデータをオンラインに取り込みますか？')) return;
+    try {
+      const ids = importData(localRaw);
+      writeFlag(MIGRATED_KEY);
+      setMigrated(true);
+      alert(`${ids.length} 件の大会を取り込みました。（このブラウザの元データは消さずに残しています）`);
+    } catch (e) {
+      alert(`取り込めませんでした: ${e instanceof Error ? e.message : e}`);
+    }
+  };
+
   const resetAll = () => {
-    if (!confirm('すべての大会データを削除して初期状態に戻しますか？\n先にバックアップ（全データ書き出し）をおすすめします。')) return;
-    setState(normalizeData(null));
+    if (!confirm('すべての大会データと選手 DB を削除して初期状態に戻しますか？\n先にバックアップ（全データ書き出し）をおすすめします。')) return;
+    setState(emptyData());
   };
 
   return (
@@ -162,14 +206,15 @@ export function SettingsPage({ t }: { t: Tournament }) {
       <section className="card">
         <h2 className="card-title">データの保存・共有</h2>
         <p className="muted body-s">
-          データはこのブラウザ内（localStorage）に自動保存されます。別の端末や運営メンバーに渡すときは JSON ファイルに書き出して、相手の画面で読み込んでください。
+          保存先: {storageName()}。変更は自動で保存されます。別の端末や運営メンバーに渡すときは JSON
+          ファイルに書き出して、相手の画面で読み込んでください（大会に出ている選手の情報も一緒に書き出されます）。
         </p>
         <div className="button-stack">
           <button className="btn filled" onClick={() => download(`${safeName(t.name)}_${today()}.json`, exportJson([t]))}>
             <Icon name="download" />
             この大会を書き出し
           </button>
-          <button className="btn outlined" onClick={() => download(`by-splatoon_all_${today()}.json`, exportJson(app.tournaments))}>
+          <button className="btn outlined" onClick={() => download(`by-splatoon_all_${today()}.json`, exportJson(app.tournaments, true))}>
             <Icon name="download" />
             全データを書き出し
           </button>
@@ -184,11 +229,26 @@ export function SettingsPage({ t }: { t: Tournament }) {
             hidden
             onChange={(e) => onImport(e.target.files?.[0])}
           />
-          <button className="btn text danger" onClick={resetAll}>
-            <Icon name="restart_alt" />
-            全データを初期化
-          </button>
+          {isLocalStorage() ? (
+            <button className="btn text danger" onClick={resetAll}>
+              <Icon name="restart_alt" />
+              全データを初期化
+            </button>
+          ) : (
+            localData && (
+              <button className="btn tonal" onClick={migrateLocal} disabled={!canEdit}>
+                <Icon name="upload" />
+                このブラウザに保存されていたデータをオンラインに取り込む
+              </button>
+            )
+          )}
         </div>
+        {!isLocalStorage() && localData && (
+          <p className="muted body-s">
+            このブラウザには、オンライン化する前のデータ（大会 {localData.tournaments} 件・選手 {localData.players} 人）が残っています。
+            取り込むと、同じ大会・選手は上書きされ、名前が同じ選手は 1 人にまとめられます。
+          </p>
+        )}
       </section>
       </div>
 

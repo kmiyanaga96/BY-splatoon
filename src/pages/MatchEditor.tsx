@@ -1,11 +1,12 @@
-import { CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponTag } from '../components/ui';
+import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponTag } from '../components/ui';
 import { CATEGORIES, WEAPONS, weaponName } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
 import { roundName, sideId, winsNeeded, type MatchView } from '../lib/bracket';
+import { lineupIds, roster } from '../lib/roster';
 import { blockedWeapons, poolStatus } from '../lib/usage';
-import { updateCurrent } from '../store';
-import type { Game, GameMode, MatchRecord, Team, Tournament } from '../types';
+import { newGame, updateCurrent, usePlayers } from '../store';
+import type { Game, GameMode, MatchRecord, PlayerMap, Team, Tournament } from '../types';
 
 const MODES: GameMode[] = ['', 'ナワバリ', 'エリア', 'ヤグラ', 'ホコ', 'アサリ'];
 
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function MatchEditor({ t, rounds, m, onClose }: Props) {
+  const players = usePlayers();
   const a = t.teams.find((x) => x.id === sideId(m.a));
   const b = t.teams.find((x) => x.id === sideId(m.b));
   if (!a || !b) {
@@ -46,15 +48,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
   const addGame = () =>
     edit((rec) => {
       // 前のゲームと同じブキで始める (再使用不可ルールなら空欄)
-      const prev = rec.games.at(-1);
-      const keep = t.rules.reuse === 'free';
-      rec.games.push({
-        weaponA: keep ? (prev?.weaponA ?? '') : '',
-        weaponB: keep ? (prev?.weaponB ?? '') : '',
-        mode: prev?.mode ?? '',
-        stage: '',
-        winner: null,
-      });
+      rec.games.push(newGame(rec.games.at(-1), t.rules.reuse === 'free'));
     });
 
   return (
@@ -74,7 +68,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
           <button className="btn text" onClick={onClose}>
             閉じる
           </button>
-          <CopyButton text={matchCardText(t, rounds, m)} label="対戦カード告知をコピー" />
+          <CopyButton text={matchCardText(t, players, rounds, m)} label="対戦カード告知をコピー" />
         </>
       }
     >
@@ -131,6 +125,15 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                 {g.winner === 'A' && <Icon name="check" />}
                 {a.name} 勝ち
               </button>
+              {a.members.length > t.rules.teamSize && (
+                <LineupPicker
+                  team={a}
+                  players={players}
+                  size={t.rules.teamSize}
+                  value={g.lineupA}
+                  onChange={(v) => editGame(i, (x) => void (x.lineupA = v))}
+                />
+              )}
             </div>
             <div className="game-side">
               <WeaponSelect
@@ -147,6 +150,15 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                 {g.winner === 'B' && <Icon name="check" />}
                 {b.name} 勝ち
               </button>
+              {b.members.length > t.rules.teamSize && (
+                <LineupPicker
+                  team={b}
+                  players={players}
+                  size={t.rules.teamSize}
+                  value={g.lineupB}
+                  onChange={(v) => editGame(i, (x) => void (x.lineupB = v))}
+                />
+              )}
             </div>
             <IconButton icon="delete" label={`${i + 1}戦目を削除`} onClick={() => edit((rec) => void rec.games.splice(i, 1))} />
           </div>
@@ -186,6 +198,45 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
         />
       </Field>
     </Modal>
+  );
+}
+
+/** 補欠がいるチームだけ表示する、ゲームごとの出場メンバーの選択 */
+function LineupPicker(props: {
+  team: Team;
+  players: PlayerMap;
+  size: number;
+  value: string[] | null;
+  onChange: (v: string[] | null) => void;
+}) {
+  const { team, value, size } = props;
+  const current = lineupIds(team, value);
+  const toggle = (id: string) => {
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    props.onChange(next.length === team.members.length ? null : next);
+  };
+  return (
+    <div className="lineup">
+      <span className={`overline ${current.length !== size ? 'warn-text' : ''}`}>
+        出場 {current.length}/{size}
+        {value === null && '（未指定＝全員）'}
+      </span>
+      <div className="lineup-chips">
+        {roster(team, props.players).map(({ player: p }) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`lineup-chip ${current.includes(p.id) ? 'on' : ''}`}
+            aria-pressed={current.includes(p.id)}
+            onClick={() => toggle(p.id)}
+            title={p.name}
+          >
+            <Avatar name={p.name} src={p.avatar} color={team.color} size={22} />
+            {p.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

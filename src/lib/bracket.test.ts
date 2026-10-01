@@ -4,7 +4,7 @@ import type { Game, Tournament } from '../types';
 import { champion, computeBracket, createSlots, isAlive, placements, roundName, seedOrder, sideId } from './bracket';
 import { blockedWeapons, poolStatus } from './usage';
 
-const game = (winner: 'A' | 'B', weaponA = '', weaponB = ''): Game => ({ weaponA, weaponB, mode: '', stage: '', winner });
+const game = (winner: 'A' | 'B', weaponA = '', weaponB = ''): Game => ({ weaponA, weaponB, mode: '', stage: '', winner, lineupA: null, lineupB: null });
 
 function setup(teamCount: number): Tournament {
   const t = newTournament();
@@ -13,7 +13,7 @@ function setup(teamCount: number): Tournament {
     name: `T${i + 1}`,
     color: '',
     comment: '',
-    players: [],
+    members: [],
     pool: [],
   }));
   t.bracket.slots = createSlots(t.teams.map((x) => x.id));

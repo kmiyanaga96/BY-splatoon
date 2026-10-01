@@ -20,6 +20,11 @@ export function getWeapon(id: string): Weapon | undefined {
   return byId.get(id);
 }
 
+/** ブキアイコン (public/weapons/ の静的ファイル)。scripts/fetch-weapon-icons.mjs で取得 */
+export function weaponIconUrl(id: string): string {
+  return byId.has(id) ? `${import.meta.env.BASE_URL}weapons/${id}.png` : '';
+}
+
 export function weaponName(id: string): string {
   return byId.get(id)?.name ?? (id ? `不明なブキ(${id})` : '');
 }

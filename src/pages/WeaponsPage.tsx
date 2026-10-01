@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { Empty, FilterChip, Icon, Segmented, Switch, TeamName } from '../components/ui';
+import { Empty, FilterChip, Icon, Segmented, Switch, TeamName, WeaponIcon } from '../components/ui';
 import { CATEGORIES, WEAPONS, getWeapon, matchesQuery, type Weapon } from '../data/weapons';
 import type { MatchView } from '../lib/bracket';
 import { teamUses } from '../lib/usage';
@@ -112,7 +112,9 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
                   style={{ '--c': catColor(w) } as CSSProperties}
                 >
                   <div className="weapon-card-head">
+                    <WeaponIcon id={w.id} size={48} />
                     <span className="title-m">{w.name}</span>
+                    <span className="spacer" />
                     <span className="count-badge">{count}</span>
                   </div>
                   <span className="picker-kit">
@@ -178,6 +180,7 @@ function TeamsView(props: {
                 if (!w || !state) return null;
                 return (
                   <li key={id} className={`pool-row ${state}`} style={{ '--c': catColor(w) } as CSSProperties}>
+                    <WeaponIcon id={id} size={48} />
                     <span className="pool-row-name">
                       <b>{w.name}</b>
                       <span className="picker-kit">
@@ -227,9 +230,14 @@ function MatrixView(props: {
           {rows.map(({ w, count }) => (
             <tr key={w.id} className={count >= 2 && !t.rules.allowDuplicate ? 'dup' : ''}>
               <th className="sticky-col weapon-cell" style={{ '--c': catColor(w) } as CSSProperties}>
-                <span className="weapon-name">{w.name}</span>
-                <span className="picker-kit">
-                  {w.sub} / {w.special}
+                <span className="weapon-cell-inner">
+                  <WeaponIcon id={w.id} size={36} />
+                  <span>
+                    <span className="weapon-name">{w.name}</span>
+                    <span className="picker-kit">
+                      {w.sub} / {w.special}
+                    </span>
+                  </span>
                 </span>
               </th>
               <td className="count">{count || ''}</td>

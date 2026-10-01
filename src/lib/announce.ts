@@ -1,9 +1,10 @@
 // Discord に貼り付ける告知文の生成。Discord の Markdown (太字・見出し・引用) を使う。
 
-import type { Team, Tournament } from '../types';
+import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
 import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
 import { poolStatus, teamUses } from './usage';
+import { roster } from './roster';
 
 export const DISCORD_LIMIT = 2000;
 
@@ -48,7 +49,7 @@ export function overviewText(t: Tournament): string {
   return parts.join('\n\n');
 }
 
-export function teamText(t: Tournament, team: Team, rounds?: MatchView[][]): string {
+export function teamText(t: Tournament, team: Team, players: PlayerMap, rounds?: MatchView[][]): string {
   const lines = [`## ${team.name}`];
   if (team.comment) lines.push(`> ${team.comment.replace(/\n/g, '\n> ')}`);
   const status = rounds ? poolStatus(t, rounds, team.id) : null;
@@ -60,29 +61,31 @@ export function teamText(t: Tournament, team: Team, rounds?: MatchView[][]): str
     });
     lines.push(`🔫 **候補ブキ**: ${pool.join(' / ')}`);
   }
-  if (team.players.length) {
+  const members = roster(team, players);
+  if (members.length) {
     lines.push('👥 **メンバー**');
-    for (const p of team.players) {
-      const marks = `${p.leader ? '👑' : ''}${p.featured ? '⭐' : ''}`;
+    for (const { member: m, player: p } of members) {
+      const marks = `${m.leader ? '👑' : ''}${m.featured ? '⭐' : ''}`;
       const mains = p.mains.length ? `（${p.mains.map(weaponName).join('・')}）` : '';
-      lines.push(`・${marks}${p.name || '(名前未入力)'}${mains}${p.xp ? ` XP${p.xp}` : ''}${p.rank ? ` ${p.rank}` : ''}`);
+      lines.push(`・${marks}${p.name || '(名前未入力)'}${mains}${p.xp ? ` XP${p.xp}` : ''}${p.note ? ` ${p.note}` : ''}`);
     }
   }
-  const featured = team.players.filter((p) => p.featured && p.comment);
-  for (const p of featured) lines.push(`⭐ **注目選手 ${p.name}**: ${p.comment}`);
+  for (const { member: m, player: p } of members.filter((x) => x.member.featured && x.member.comment)) {
+    lines.push(`⭐ **注目選手 ${p.name}**: ${m.comment}`);
+  }
   return lines.join('\n');
 }
 
-export function allTeamsText(t: Tournament, rounds?: MatchView[][]): string {
-  return [`# ${t.name} 参加チーム紹介`, ...t.teams.map((team) => teamText(t, team, rounds))].join('\n\n');
+export function allTeamsText(t: Tournament, players: PlayerMap, rounds?: MatchView[][]): string {
+  return [`# ${t.name} 参加チーム紹介`, ...t.teams.map((team) => teamText(t, team, players, rounds))].join('\n\n');
 }
 
-export function featuredText(t: Tournament): string {
+export function featuredText(t: Tournament, players: PlayerMap): string {
   const lines = [`# ${t.name} 注目選手`];
   for (const team of t.teams) {
-    for (const p of team.players.filter((x) => x.featured)) {
+    for (const { member: m, player: p } of roster(team, players).filter((x) => x.member.featured)) {
       const mains = p.mains.length ? `（${p.mains.map(weaponName).join('・')}）` : '';
-      lines.push(`⭐ **${p.name}** [${team.name}]${mains}${p.comment ? `\n> ${p.comment}` : ''}`);
+      lines.push(`⭐ **${p.name}** [${team.name}]${mains}${m.comment ? `\n> ${m.comment}` : ''}`);
     }
   }
   if (lines.length === 1) lines.push('（注目選手が登録されていません）');
@@ -90,7 +93,7 @@ export function featuredText(t: Tournament): string {
 }
 
 /** これから行う試合のカード紹介 */
-export function matchCardText(t: Tournament, rounds: MatchView[][], m: MatchView): string {
+export function matchCardText(t: Tournament, players: PlayerMap, rounds: MatchView[][], m: MatchView): string {
   const total = rounds.length;
   const lines = [`# ${roundName(m.round, total)} 第${m.index + 1}試合 (BO${m.bestOf})`];
   lines.push(`## ${sideLabel(t, m, 'a')} 🆚 ${sideLabel(t, m, 'b')}`);
@@ -104,7 +107,9 @@ export function matchCardText(t: Tournament, rounds: MatchView[][], m: MatchView
     lines.push(`**${team.name}**`);
     lines.push(`・選べるブキ: ${avail.join(' / ') || 'なし'}`);
     if (used.length) lines.push(`・使用済み: ${used.join(' / ')}`);
-    const featured = team.players.filter((p) => p.featured).map((p) => p.name);
+    const featured = roster(team, players)
+      .filter((x) => x.member.featured)
+      .map((x) => x.player.name);
     if (featured.length) lines.push(`・注目選手: ${featured.join('、')}`);
   }
   return lines.join('\n');

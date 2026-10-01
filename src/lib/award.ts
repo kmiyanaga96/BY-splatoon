@@ -25,6 +25,8 @@ export interface AwardWeapon {
   name: string;
   color: string;
   count: number;
+  /** ブキアイコンの URL */
+  icon: string;
 }
 
 export interface AwardData {
@@ -151,6 +153,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       return tier ? loadImage(xBadgeUrl(tier)) : Promise.resolve(null);
     })),
   ]);
+  const weaponIcons = await Promise.all(d.weapons.map((w) => loadImage(w.icon)));
 
   if (!isCurrent()) return;
   canvas.width = AWARD_W;
@@ -216,7 +219,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   const n = Math.max(1, d.members.length);
   const colW = Math.min(300, (W - x0 * 2) / n);
   const D = Math.min(150, colW - 50);
-  const top = 500;
+  const top = 488;
   d.members.forEach((m, i) => {
     const cx = x0 + colW * i + colW / 2;
     const cy = top + D / 2;
@@ -247,7 +250,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
 
     // Xバッジ (右上)
     const badge = badges[i];
-    if (badge) ctx.drawImage(badge, cx + D * 0.22, cy - D / 2 - 10, 54, 61);
+    if (badge) ctx.drawImage(badge, cx + D * 0.18, cy - D / 2 - 14, 64, 64);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
@@ -273,44 +276,69 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     }
   });
 
-  // 使用ブキ
+  // 使用ブキ (アイコン + 名前)
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  const wy = template === 'team' ? 790 : 812;
+  const IS = 72; // アイコンの直径
+  const iy = 758;
   ctx.font = `700 24px ${BODY}`;
   ctx.fillStyle = SUB;
-  ctx.fillText(d.weaponCaption, x0, wy);
-  let x = x0 + ctx.measureText(d.weaponCaption).width + 24;
-  const limit = template === 'pop' ? W - 260 : W - x0;
-  d.weapons.forEach((w, i) => {
-    if (x < 0) return;
-    const label = w.count > 1 ? `${w.name} ×${w.count}` : w.name;
-    ctx.font = `700 26px ${BODY}`;
-    const tw = ctx.measureText(label).width + 32;
-    const rest = d.weapons.length - i;
-    if (x + tw > limit - (rest > 1 ? 70 : 0)) {
-      ctx.fillStyle = SUB;
-      ctx.fillText(`+${rest}`, x + 4, wy);
-      x = -1;
-      return;
-    }
-    ctx.fillStyle = tint(w.color, 0.75);
-    ctx.strokeStyle = w.color;
-    ctx.lineWidth = 3;
+  ctx.fillText(d.weaponCaption, x0, iy + IS / 2);
+  const slot = 150;
+  let x = x0 + ctx.measureText(d.weaponCaption).width + 32;
+  const limit = template === 'pop' ? W - 250 : W - x0;
+  const maxSlots = Math.max(1, Math.floor((limit - x) / slot));
+  const shown = d.weapons.length > maxSlots ? d.weapons.slice(0, maxSlots - 1) : d.weapons;
+  shown.forEach((w, i) => {
+    const cx = x + slot / 2;
+    const cy = iy + IS / 2;
+    ctx.fillStyle = tint(w.color, 0.7);
     ctx.beginPath();
-    ctx.roundRect(x, wy - 24, tw, 48, 10);
+    ctx.arc(cx, cy, IS / 2, 0, Math.PI * 2);
     ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = w.color;
     ctx.stroke();
+    const icon = weaponIcons[i];
+    if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
+    if (w.count > 1) {
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.arc(cx + IS * 0.38, cy - IS * 0.36, 17, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `700 18px ${BODY}`;
+      ctx.textAlign = 'center';
+      ctx.fillText(`×${w.count}`, cx + IS * 0.38, cy - IS * 0.36 + 1);
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = INK;
-    ctx.fillText(label, x + 16, wy + 1);
-    x += tw + 12;
+    ctx.fillText(fit(ctx, w.name, (s) => `700 ${s}px ${BODY}`, 18, 12, slot - 8), cx, iy + IS + 22);
+    ctx.textBaseline = 'middle';
+    x += slot;
   });
+  if (shown.length < d.weapons.length) {
+    ctx.textAlign = 'left';
+    ctx.font = `700 26px ${BODY}`;
+    ctx.fillStyle = SUB;
+    ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
+  }
 
-  // フッター
-  ctx.font = `500 20px ${BODY}`;
-  ctx.fillStyle = '#787585';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillText('BY スプラ大会ツール', x0, H - (template === 'team' ? 58 : 36));
+  // フッター (右上に白い札で表示。どの背景でも読めるように)
+  ctx.font = `500 18px ${BODY}`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  const label = 'BY スプラ大会ツール';
+  const fw = ctx.measureText(label).width + 28;
+  const fx = W - (template === 'team' ? 72 : 40);
+  const fy = template === 'team' ? 76 : 44;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.beginPath();
+  ctx.roundRect(fx - fw, fy - 17, fw, 34, 17);
+  ctx.fill();
+  ctx.fillStyle = SUB;
+  ctx.fillText(label, fx - 14, fy + 1);
 }
 
 export function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {

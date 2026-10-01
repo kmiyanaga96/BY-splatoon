@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Icon, IconButton, SnackbarHost } from './components/ui';
+import { signIn, signOut, STORAGE_MODE, useAuthView } from './backend';
+import { Avatar, Icon, IconButton, SnackbarHost } from './components/ui';
 import { computeBracket } from './lib/bracket';
 import { AnnouncePage } from './pages/AnnouncePage';
 import { AwardPage } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
+import { PlayersPage } from './pages/PlayersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { WeaponsPage } from './pages/WeaponsPage';
 import { useRoute } from './router';
-import { update, useApp, useCurrent, useSaveError } from './store';
+import { selectTournament, useApp, useCurrent, useSaveError, useStorageStatus } from './store';
 
 const NAV = [
   { path: '', label: 'ホーム', icon: 'home' },
   { path: 'teams', label: 'チーム', icon: 'groups' },
+  { path: 'players', label: '選手', icon: 'person' },
   { path: 'weapons', label: 'ブキ表', icon: 'table_view' },
   { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
   { path: 'announce', label: '告知', icon: 'campaign' },
@@ -50,6 +53,8 @@ export function App() {
   const route = useRoute();
   const saveError = useSaveError();
   const [shareMode, setShareMode] = useShareMode();
+  const authView = useAuthView();
+  const storageStatus = useStorageStatus();
   const rounds = useMemo(() => computeBracket(t), [t]);
   const [page, sub] = route;
   const current = page ?? '';
@@ -58,6 +63,9 @@ export function App() {
   switch (page) {
     case 'teams':
       content = sub ? <TeamDetailPage t={t} teamId={sub} rounds={rounds} /> : <TeamsPage t={t} rounds={rounds} />;
+      break;
+    case 'players':
+      content = <PlayersPage playerId={sub} />;
       break;
     case 'weapons':
       content = <WeaponsPage t={t} rounds={rounds} />;
@@ -109,7 +117,7 @@ export function App() {
             <select
               className="input tournament-select"
               value={app.currentId}
-              onChange={(e) => update((d) => void (d.currentId = e.target.value))}
+              onChange={(e) => selectTournament(e.target.value)}
               aria-label="表示する大会"
             >
               {app.tournaments.map((x) => (
@@ -125,19 +133,60 @@ export function App() {
             selected={shareMode}
             onClick={() => setShareMode(!shareMode)}
           />
+          {STORAGE_MODE === 'firebase' && <AccountButton />}
         </header>
+        {STORAGE_MODE === 'firebase' && authView.status !== 'loading' && !authView.isEditor && (
+          <div className="banner info">
+            <Icon name="visibility" />
+            {authView.status === 'signedIn'
+              ? `閲覧モード：${authView.email} には編集権限がありません。`
+              : '閲覧モード：編集するには右上の「ログイン」から編集者の Google アカウントでログインしてください。'}
+          </div>
+        )}
         {saveError && (
           <div className="banner error">
             <Icon name="warning" />
             ブラウザへの保存に失敗しました。設定ページからデータを書き出して保管してください。({saveError})
           </div>
         )}
-        <main className="main">{content}</main>
+        <main className="main">
+          {storageStatus === 'loading' ? (
+            <div className="loading" role="status">
+              <span className="spinner" />
+              データを読み込んでいます…
+            </div>
+          ) : (
+            content
+          )}
+        </main>
       </div>
       <nav className="nav-bar" aria-label="メニュー">
         {navItems}
       </nav>
       <SnackbarHost />
     </div>
+  );
+}
+
+function AccountButton() {
+  const a = useAuthView();
+  if (a.status === 'loading') return null;
+  if (a.status !== 'signedIn') {
+    return (
+      <button className="btn tonal" onClick={signIn}>
+        <Icon name="login" />
+        ログイン
+      </button>
+    );
+  }
+  return (
+    <button
+      className="account-button"
+      onClick={() => confirm(`${a.email} からログアウトしますか？`) && signOut()}
+      title={`${a.name ?? ''} ${a.email ?? ''}${a.isEditor ? '（編集者）' : '（閲覧のみ）'}\nクリックでログアウト`}
+    >
+      <Avatar name={a.name ?? a.email ?? '?'} src={a.photoURL ?? ''} color={a.isEditor ? '#582eff' : '#787585'} size={36} />
+      {a.isEditor && <Icon name="edit" className="account-badge" />}
+    </button>
   );
 }

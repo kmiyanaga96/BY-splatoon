@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { CATEGORIES, WEAPONS, matchesQuery } from '../data/weapons';
-import { FilterChip, Icon, Modal, Switch, WeaponTag } from './ui';
+import { FilterChip, Icon, Modal, Switch, WeaponIcon, WeaponTag } from './ui';
 
 interface Props {
   title: string;
@@ -104,14 +104,17 @@ export function WeaponPicker(props: Props) {
               disabled={disabled}
               aria-pressed={on}
             >
-              <span className="picker-name">
-                {on && <Icon name="check" />}
-                {w.name}
+              <WeaponIcon id={w.id} size={44} />
+              <span className="picker-text">
+                <span className="picker-name">
+                  {on && <Icon name="check" />}
+                  {w.name}
+                </span>
+                <span className="picker-kit">
+                  {w.sub} / {w.special}
+                </span>
+                {note && <span className="picker-note">{note}</span>}
               </span>
-              <span className="picker-kit">
-                {w.sub} / {w.special}
-              </span>
-              {note && <span className="picker-note">{note}</span>}
             </button>
           );
         })}

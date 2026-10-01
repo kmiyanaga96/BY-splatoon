@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AvatarInput } from '../components/AvatarInput';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
-import { categoryOf, weaponName } from '../data/weapons';
+import { categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
 import { placements, type MatchView } from '../lib/bracket';
+import { roster } from '../lib/roster';
 import { teamUses } from '../lib/usage';
-import { updateCurrent } from '../store';
+import { updatePlayer, usePlayers } from '../store';
 import type { Team, Tournament } from '../types';
 
 type WeaponSource = 'used' | 'pool';
@@ -28,6 +29,7 @@ function download(blob: Blob, filename: string) {
 /** 大会後の表彰画像を、テンプレートにチームの情報を流し込んで作る */
 export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
   const places = useMemo(() => placements(rounds), [rounds]);
+  const players = usePlayers();
   // 成績順 (未確定のチームはシード順で後ろ)
   const teams = useMemo(
     () =>
@@ -58,12 +60,13 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       title: customTitle || place?.label || '出場',
       rank: place?.rank ?? null,
       team: { name: team.name, color: team.color },
-      members: team.players.map((p) => ({ name: p.name, avatar: p.avatar, xp: p.xp, leader: p.leader })),
+      members: roster(team, players).map(({ member: m, player: p }) => ({ name: p.name, avatar: p.avatar, xp: p.xp, leader: m.leader })),
       weaponCaption: useRecorded ? '使用ブキ' : '候補ブキ',
       weapons: ids.map((id) => ({
         name: weaponName(id),
         color: categoryOf(id)?.color ?? '#888888',
         count: useRecorded ? (counts.get(id) ?? 0) : 0,
+        icon: weaponIconUrl(id),
       })),
       showXp,
     };
@@ -115,11 +118,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
     showSnackbar(`${teams.length} チーム分の画像を保存しました`);
   };
 
-  const editPlayerAvatar = (playerId: string, avatar: string) =>
-    updateCurrent((d) => {
-      const p = d.teams.find((x) => x.id === selected.team.id)?.players.find((y) => y.id === playerId);
-      if (p) p.avatar = avatar;
-    });
+  const editPlayerAvatar = (playerId: string, avatar: string) => updatePlayer(playerId, (p) => void (p.avatar = avatar));
 
   return (
     <div className="page">
@@ -199,7 +198,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
               プロフィールのアイコンを開き「画像をコピー」すると貼り付けられます。未設定のメンバーは名前の頭文字で表示します。
             </p>
             <div className="avatar-grid">
-              {selected.team.players.map((p) => (
+              {roster(selected.team, players).map(({ player: p }) => (
                 <div key={p.id} className="avatar-cell">
                   <div className="avatar-cell-name">
                     <span className="title-m">{p.name || '(名前未入力)'}</span>
@@ -208,7 +207,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                   <AvatarInput name={p.name} color={selected.team.color} value={p.avatar} onChange={(v) => editPlayerAvatar(p.id, v)} />
                 </div>
               ))}
-              {selected.team.players.length === 0 && <Empty>メンバーが登録されていません</Empty>}
+              {selected.team.members.length === 0 && <Empty>メンバーが登録されていません</Empty>}
             </div>
           </section>
         </div>

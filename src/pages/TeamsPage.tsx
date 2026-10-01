@@ -1,11 +1,13 @@
-import { Empty, Icon, IconButton, TeamName, WeaponTag, XBadge } from '../components/ui';
+import { Avatar, Empty, Icon, IconButton, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { isAlive, type MatchView } from '../lib/bracket';
+import { roster } from '../lib/roster';
 import { poolStatus } from '../lib/usage';
 import { navigate } from '../router';
-import { newTeam, updateCurrent } from '../store';
+import { newTeam, updateCurrent, usePlayers } from '../store';
 import type { Tournament } from '../types';
 
 export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
+  const players = usePlayers();
   const addTeam = () => {
     const team = newTeam(t.teams.length);
     updateCurrent((d) => void d.teams.push(team));
@@ -56,17 +58,18 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                 </div>
               </div>
               <div>
-                <div className="label">メンバー（{team.players.length}）</div>
+                <div className="label">メンバー（{team.members.length}）</div>
                 <ul className="members">
-                  {team.players.map((p) => (
+                  {roster(team, players).map(({ member: m, player: p }) => (
                     <li key={p.id}>
-                      {p.leader && <Icon name="workspace_premium" filled className="leader" />}
-                      {p.featured && <Icon name="star" filled className="star" />}
+                      <Avatar name={p.name} src={p.avatar} color={team.color} size={24} />
+                      {m.leader && <Icon name="workspace_premium" filled className="leader" />}
+                      {m.featured && <Icon name="star" filled className="star" />}
                       {p.name || '(名前未入力)'}
                       <XBadge xp={p.xp} />
                     </li>
                   ))}
-                  {team.players.length === 0 && <li className="muted body-s">未登録</li>}
+                  {team.members.length === 0 && <li className="muted body-s">未登録</li>}
                 </ul>
               </div>
               <div className="card-actions">
