@@ -86,6 +86,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           <h1 className="headline">表彰</h1>
         </div>
         <Empty icon="emoji_events">チームを登録すると表彰画像を作れます</Empty>
+        <AwardTemplateGallery />
       </div>
     );
   }
@@ -212,6 +213,88 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           </section>
         </div>
       </div>
+
+      <AwardTemplateGallery selected={template} onSelect={setTemplate} />
     </div>
+  );
+}
+
+// ---- テンプレート見本 (いつでも確認できるよう、例のデータで常に表示する) ----
+
+const SAMPLE: Omit<AwardData, 'team'> = {
+  tournament: '第1回 BYブキ統一杯（見本）',
+  date: '2026/10/12',
+  title: '優勝',
+  rank: 1,
+  members: [
+    { name: 'イカスミ', avatar: '', xp: 3120, leader: false },
+    { name: 'タコワサ', avatar: '', xp: 2810, leader: true },
+    { name: 'ホタテ', avatar: '', xp: 2560, leader: false },
+    { name: 'サザエ', avatar: '', xp: 2300, leader: false },
+  ],
+  weaponCaption: '使用ブキ',
+  weapons: [
+    ['Shooter_Normal_00', 3],
+    ['Brush_Normal_00', 2],
+    ['Charger_Long_00', 1],
+  ].map(([id, count]) => ({
+    name: weaponName(id as string),
+    color: categoryOf(id as string)?.color ?? '#888888',
+    count: count as number,
+    icon: weaponIconUrl(id as string),
+  })),
+  showXp: true,
+};
+
+const SAMPLE_TEAMS: Record<AwardTemplate, { name: string; color: string }> = {
+  pop: { name: 'チームイカ', color: '#f2e14c' },
+  team: { name: 'チームタコ', color: '#7b5cff' },
+  simple: { name: 'チームクマ', color: '#ff5c8a' },
+};
+
+/** 3 種類のテンプレートの見本。selected / onSelect を渡すと、クリックでそのテンプレートを選べる */
+export function AwardTemplateGallery(props: { selected?: AwardTemplate; onSelect?: (t: AwardTemplate) => void }) {
+  return (
+    <section className="card">
+      <h2 className="card-title">テンプレート見本</h2>
+      <p className="muted body-s">
+        名前・ブキは例です。実際の画像には、選んだチームのメンバー・アイコン・Xパワー・使用ブキが入ります。
+        {props.onSelect && '見本をクリックすると、そのテンプレートに切り替わります。'}
+      </p>
+      <div className="template-gallery">
+        {AWARD_TEMPLATES.map(({ value, label }) => (
+          <TemplateSample
+            key={value}
+            template={value}
+            label={label}
+            selected={props.selected === value}
+            onClick={props.onSelect ? () => props.onSelect!(value) : undefined}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TemplateSample(props: { template: AwardTemplate; label: string; selected: boolean; onClick?: () => void }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (ref.current) drawAward(ref.current, { ...SAMPLE, team: SAMPLE_TEAMS[props.template] }, props.template);
+  }, [props.template]);
+  const body = (
+    <>
+      <canvas ref={ref} className="award-canvas" aria-label={`${props.label}テンプレートの見本`} />
+      <span className="template-label">
+        {props.selected && <Icon name="check" />}
+        {props.label}
+      </span>
+    </>
+  );
+  return props.onClick ? (
+    <button type="button" className={`template-sample ${props.selected ? 'selected' : ''}`} onClick={props.onClick} aria-pressed={props.selected}>
+      {body}
+    </button>
+  ) : (
+    <div className="template-sample">{body}</div>
   );
 }

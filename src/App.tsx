@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { signIn, signOut, STORAGE_MODE, useAuthView } from './backend';
+import { signIn, signOut, useAuthView } from './backend';
 import { Avatar, Icon, IconButton, SnackbarHost } from './components/ui';
 import { computeBracket } from './lib/bracket';
 import { AnnouncePage } from './pages/AnnouncePage';
-import { AwardPage } from './pages/AwardPage';
+import { AwardPage, AwardTemplateGallery } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
 import { PlayersPage } from './pages/PlayersPage';
@@ -12,7 +12,7 @@ import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { WeaponsPage } from './pages/WeaponsPage';
 import { useRoute } from './router';
-import { selectTournament, useApp, useCurrent, useSaveError, useStorageStatus } from './store';
+import { createTournament, selectTournament, useApp, useCanEdit, useCurrent, useSaveError, useStorageStatus } from './store';
 
 const NAV = [
   { path: '', label: 'ホーム', icon: 'home' },
@@ -24,6 +24,8 @@ const NAV = [
   { path: 'award', label: '表彰', icon: 'emoji_events' },
   { path: 'settings', label: '設定', icon: 'settings' },
 ];
+
+const NEW = '__new__';
 
 const SHARE_KEY = 'by-splatoon:share-mode';
 
@@ -55,12 +57,23 @@ export function App() {
   const [shareMode, setShareMode] = useShareMode();
   const authView = useAuthView();
   const storageStatus = useStorageStatus();
-  const rounds = useMemo(() => computeBracket(t), [t]);
+  const rounds = useMemo(() => (t ? computeBracket(t) : []), [t]);
   const [page, sub] = route;
   const current = page ?? '';
 
   let content;
-  switch (page) {
+  if (!t) {
+    // 大会がまだ 1 つもない (選手 DB と表彰テンプレートの見本だけは見られる)
+    content =
+      page === 'players' ? (
+        <PlayersPage playerId={sub} />
+      ) : (
+        <div className="page">
+          <NoTournament />
+          {page === 'award' && <AwardTemplateGallery />}
+        </div>
+      );
+  } else switch (page) {
     case 'teams':
       content = sub ? <TeamDetailPage t={t} teamId={sub} rounds={rounds} /> : <TeamsPage t={t} rounds={rounds} />;
       break;
@@ -113,29 +126,33 @@ export function App() {
             <span className="app-title-text">スプラ大会ツール</span>
           </span>
           <span className="spacer" />
-          <div className="select-wrap">
-            <select
-              className="input tournament-select"
-              value={app.currentId}
-              onChange={(e) => selectTournament(e.target.value)}
-              aria-label="表示する大会"
-            >
-              {app.tournaments.map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {t && (
+            <div className="select-wrap">
+              <select
+                className="input tournament-select"
+                value={t.id}
+                onChange={(e) => (e.target.value === NEW ? createTournament() : selectTournament(e.target.value))}
+                aria-label="表示する大会"
+              >
+                {[...app.tournaments].reverse().map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.name}
+                    {x.date ? `（${x.date}）` : ''}
+                  </option>
+                ))}
+                <option value={NEW}>＋ 新しい大会を作成…</option>
+              </select>
+            </div>
+          )}
           <IconButton
             icon="present_to_all"
             label={shareMode ? '画面共有モードを終了' : '画面共有モード（文字を大きく）'}
             selected={shareMode}
             onClick={() => setShareMode(!shareMode)}
           />
-          {STORAGE_MODE === 'firebase' && <AccountButton />}
+          <AccountButton />
         </header>
-        {STORAGE_MODE === 'firebase' && authView.status !== 'loading' && !authView.isEditor && (
+        {authView.status !== 'loading' && !authView.isEditor && (
           <div className="banner info">
             <Icon name="visibility" />
             {authView.status === 'signedIn'
@@ -188,5 +205,26 @@ function AccountButton() {
       <Avatar name={a.name ?? a.email ?? '?'} src={a.photoURL ?? ''} color={a.isEditor ? '#582eff' : '#787585'} size={36} />
       {a.isEditor && <Icon name="edit" className="account-badge" />}
     </button>
+  );
+}
+
+function NoTournament() {
+  const canEdit = useCanEdit();
+  return (
+    <section className="card empty-tournament">
+      <Icon name="emoji_events" />
+      <h1 className="headline">大会がまだありません</h1>
+      <p className="muted">
+        大会・選手 DB は全員で共通です。ここで作った大会は、ほかの運営メンバーの画面にもすぐ表示されます。
+      </p>
+      {canEdit ? (
+        <button className="btn filled" onClick={createTournament}>
+          <Icon name="add" />
+          大会を作成
+        </button>
+      ) : (
+        <p className="muted body-s">大会を作成するには、編集者のアカウントでログインしてください。</p>
+      )}
+    </section>
   );
 }

@@ -62,8 +62,7 @@ export function newGame(prev?: Game, keepWeapons = false): Game {
 }
 
 export function emptyData(): AppData {
-  const t = newTournament('ブキ統一杯');
-  return { version: 2, currentId: t.id, players: [], tournaments: [t] };
+  return { version: 2, currentId: '', players: [], tournaments: [] };
 }
 
 // ---- 補完用の小道具 ----
@@ -221,8 +220,8 @@ export function normalizeData(d: any, existingPlayers: Player[] = []): AppData {
   const tournaments: Tournament[] = rawTournaments.map((t: any) => normalizeTournament(t, index));
   // 存在しない選手を参照している所属は外す
   for (const t of tournaments) for (const team of t.teams) team.members = team.members.filter((m: Member) => index.players.has(m.playerId));
-  if (tournaments.length === 0) tournaments.push(newTournament('ブキ統一杯'));
-  const currentId = tournaments.some((t) => t.id === d?.currentId) ? d.currentId : tournaments[0].id;
+  // 表示する大会の既定は一番新しいもの (ID は作成時刻順に並ぶ)
+  const currentId = tournaments.some((t) => t.id === d?.currentId) ? d.currentId : (tournaments.at(-1)?.id ?? '');
   return { version: 2, currentId, players: [...index.players.values()], tournaments };
 }
 

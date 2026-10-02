@@ -1,15 +1,12 @@
-// 起動時に保存先を決めてつなぐ。
-// - 既定: Firebase (オンラインで共有。閲覧は誰でも、編集は編集者リストのアカウントだけ)
-// - VITE_STORAGE=local でビルドすると、従来どおりこのブラウザの localStorage だけを使う
+// 起動時に Firebase (Firestore) につなぐ。データは全員で共通の 1 つだけ。
+// 閲覧は誰でも、編集は編集者リスト (config/access.editors) のアカウントだけ。
 
 import { useSyncExternalStore } from 'react';
 import { showSnackbar } from './components/ui';
-import { connectStorage, markLoading, setEditGuard, startLocal } from './store';
-
-export const STORAGE_MODE: 'local' | 'firebase' = import.meta.env.VITE_STORAGE === 'local' ? 'local' : 'firebase';
+import { connectStorage, markLoading, setEditGuard } from './store';
 
 export interface AuthView {
-  status: 'loading' | 'signedOut' | 'signedIn' | 'unavailable';
+  status: 'loading' | 'signedOut' | 'signedIn';
   email: string | null;
   name: string | null;
   photoURL: string | null;
@@ -17,11 +14,11 @@ export interface AuthView {
 }
 
 let authView: AuthView = {
-  status: STORAGE_MODE === 'local' ? 'unavailable' : 'loading',
+  status: 'loading',
   email: null,
   name: null,
   photoURL: null,
-  isEditor: STORAGE_MODE === 'local',
+  isEditor: false,
 };
 const listeners = new Set<() => void>();
 
@@ -53,10 +50,6 @@ function applyGuard() {
 }
 
 export async function startBackend() {
-  if (STORAGE_MODE === 'local') {
-    startLocal();
-    return;
-  }
   markLoading();
   applyGuard();
   const [{ firebaseAdapter }, auth] = await Promise.all([import('./storage/firebase'), import('./firebase/auth')]);
