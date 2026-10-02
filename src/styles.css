@@ -1855,7 +1855,7 @@ textarea.input {
   vertical-align: middle;
 }
 .xbadge img {
-  width: 1.5rem;
+  width: 1.25rem;
   height: auto;
   display: block;
 }
@@ -2229,4 +2229,55 @@ textarea.input {
   .banner.info {
     margin: 0.75rem 1rem 0;
   }
+}
+
+/* ---------- 表彰テンプレート見本 ---------- */
+
+.template-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+.template-sample {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  border: 2px solid transparent;
+  background: var(--md-sys-color-surface-container-low);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.template-sample {
+  cursor: pointer;
+}
+button.template-sample:hover {
+  border-color: var(--md-sys-color-outline-variant);
+}
+.template-sample.selected {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+.template-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 700;
+  padding: 0 0.25rem;
+}
+
+/* ---------- 大会が無いとき ---------- */
+
+.empty-tournament {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.empty-tournament > .icon {
+  font-size: 2.5rem;
+  color: var(--md-sys-color-primary);
 }

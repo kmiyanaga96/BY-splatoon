@@ -1,14 +1,14 @@
-// アプリの状態管理。画面はこのメモリ上の状態を読み書きし、変更は保存先 (StorageAdapter) に送る。
-// いまの保存先は localStorage。Firebase 版ができたら connectStorage() で差し替える。
+// アプリの状態管理。画面はこのメモリ上の状態を読み書きし、変更は保存先 (StorageAdapter = Firestore) に送る。
+// データは全員で 1 つ (選手 DB・大会)。端末ごとに持つのは「どの大会を表示しているか」だけ。
 
 import { useMemo, useSyncExternalStore } from 'react';
-import { emptyData, normalizeData, referencedPlayerIds } from './model';
-import { loadLocalSync, localStorageAdapter } from './storage/local';
-
+import { emptyData, normalizeData } from './model';
 import type { Changes, StorageAdapter } from './storage/types';
 import type { AppData, Player, PlayerMap, Tournament } from './types';
 
 export type { PlayerMap };
+
+import { newTournament } from './model';
 
 export { newGame, newId, newMember, newPlayer, newTeam, newTournament } from './model';
 
@@ -66,8 +66,7 @@ const isEmpty = (c: Changes) =>
 
 // ---- 状態 ----
 
-const hasStorage = typeof localStorage !== 'undefined';
-let adapter: StorageAdapter = localStorageAdapter;
+let adapter: StorageAdapter | null = null;
 let state: AppData = emptyData();
 /** 最後に保存先へ送った (または保存先から受け取った) 内容。差分の基準 */
 let snapshot: Snapshot = new Map();
@@ -79,7 +78,7 @@ let inFlight = 0;
 /** 自分の保存中に届いた他所からの更新。保存が終わってから反映する */
 let deferredRemote: unknown | null = null;
 export type StorageStatus = 'loading' | 'ready' | 'error';
-let status: StorageStatus = 'ready';
+let status: StorageStatus = 'loading';
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -95,11 +94,12 @@ const hasPendingSave = () => inFlight > 0 || flushTimer !== undefined;
 
 function flush() {
   flushTimer = undefined;
+  const target = adapter;
+  if (!target) return; // 保存先の準備前 (読み込み中は編集できないので通常は来ない)
   const changes = diff(snapshot, state);
   if (isEmpty(changes)) return;
   snapshot = snapshotOf(state);
   const data = state;
-  const target = adapter;
   inFlight++;
   saving = saving
     .then(() => target.save(data, changes))
@@ -132,7 +132,7 @@ function flush() {
 }
 
 function persist() {
-  if (adapter.debounceMs) {
+  if (adapter?.debounceMs) {
     clearTimeout(flushTimer);
     flushTimer = setTimeout(flush, adapter.debounceMs);
   } else {
@@ -173,19 +173,6 @@ export async function connectStorage(next: StorageAdapter) {
 /** 保存先の準備中 (読み込みが終わるまで編集できないようにする) */
 export function markLoading() {
   status = 'loading';
-  emit();
-}
-
-/** localStorage 版で起動する (同期的に読めるので画面が空で出ない) */
-export function startLocal() {
-  const raw = hasStorage ? loadLocalSync() : null;
-  adapter = localStorageAdapter;
-  state = withLocalCurrent(raw ? normalizeData(raw) : emptyData());
-  snapshot = new Map(); // 空から始めると初回は全件が「変更」になり、v1 データも v2 で保存し直される
-  if (hasStorage) {
-    persist();
-    unsubscribeRemote = adapter.subscribe?.(receiveRemote);
-  }
   emit();
 }
 
@@ -275,9 +262,10 @@ export function useApp(): AppData {
   return useSyncExternalStore(subscribe, getState);
 }
 
-export function useCurrent(): Tournament {
+/** 表示中の大会。大会が 1 つもなければ undefined */
+export function useCurrent(): Tournament | undefined {
   const app = useApp();
-  return app.tournaments.find((t) => t.id === app.currentId) ?? app.tournaments[0];
+  return app.tournaments.find((t) => t.id === app.currentId) ?? app.tournaments.at(-1);
 }
 
 export function usePlayers(): PlayerMap {
@@ -290,52 +278,26 @@ export function useSaveError(): string | null {
   return saveError;
 }
 
-export function storageName(): string {
-  return adapter.name;
-}
-
-export function isLocalStorage(): boolean {
-  return adapter === localStorageAdapter;
-}
-
-// ---- エクスポート / インポート ----
-
-/** 大会と、その大会に出ている選手をまとめて書き出す */
-export function exportJson(tournaments: Tournament[], allPlayers = false): string {
-  const ids = referencedPlayerIds(tournaments);
-  const players = state.players.filter((p) => allPlayers || ids.has(p.id));
-  const data: AppData = { version: 2, currentId: tournaments[0]?.id ?? '', players, tournaments };
-  return JSON.stringify(data, null, 2);
-}
-
-/**
- * JSON を読み込んで大会と選手を追加する。同じ ID の大会・選手は上書き。
- * 旧形式 (選手 DB 導入前) の JSON は、名前が同じ選手を既存の選手にまとめる。
- * 読み込んだ大会の ID 一覧を返す。
- */
-export function importJson(text: string): string[] {
-  return importData(JSON.parse(text));
-}
-
-/** 読み込んだデータ (JSON・このブラウザの旧データ) を取り込む */
-export function importData(parsed: any): string[] {
-  if (!canEdit()) throw new Error('閲覧モードでは取り込めません。編集者のアカウントでログインしてください');
-  if (!Array.isArray(parsed?.tournaments) && !Array.isArray(parsed?.teams)) {
-    throw new Error('このツールの大会データではないようです');
+/** 大会を新しく作って表示を切り替える。名前を聞く (キャンセルなら何もしない) */
+export function createTournament(): void {
+  if (!canEdit()) {
+    onBlocked();
+    return;
   }
-  const incoming = normalizeData(parsed, state.players);
+  const n = state.tournaments.length + 1;
+  const name = prompt('新しい大会の名前（全員で共通の大会として作成されます）', `第${n}回 ブキ統一杯`);
+  if (!name?.trim()) return;
+  const t = newTournament(name.trim());
   update((d) => {
-    const players = new Map(d.players.map((p) => [p.id, p]));
-    for (const p of incoming.players) players.set(p.id, p);
-    d.players = [...players.values()];
-    // 初期状態の空の大会しかなければ、取り込んだ大会で置き換える
-    if (d.tournaments.length === 1 && d.tournaments[0].teams.length === 0 && !d.tournaments[0].description) d.tournaments = [];
-    for (const t of incoming.tournaments) {
-      const i = d.tournaments.findIndex((x) => x.id === t.id);
-      if (i >= 0) d.tournaments[i] = t;
-      else d.tournaments.push(t);
-    }
-    d.currentId = incoming.tournaments[0].id;
+    d.tournaments.push(t);
+    d.currentId = t.id;
   });
-  return incoming.tournaments.map((t) => t.id);
+}
+
+// ---- バックアップ ----
+
+/** 全データ (選手 DB と全大会) を JSON にする。万一に備えた控え用 */
+export function backupJson(): string {
+  const data: AppData = { version: 2, currentId: '', players: state.players, tournaments: state.tournaments };
+  return JSON.stringify(data, null, 2);
 }
