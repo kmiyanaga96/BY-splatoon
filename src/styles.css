@@ -1906,12 +1906,6 @@ textarea.input {
 .avatar-actions {
   display: flex;
 }
-.preset-group + .preset-group {
-  margin-top: 1rem;
-}
-.preset-group .overline {
-  margin: 0 0 0.5rem;
-}
 .preset-avatars {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
@@ -1930,10 +1924,6 @@ textarea.input {
 }
 .preset-avatar:hover {
   background: var(--md-sys-color-surface-container-high);
-}
-.preset-avatar.selected {
-  border-color: var(--md-sys-color-primary);
-  background: var(--md-sys-color-secondary-container);
 }
 .player-identity {
   display: flex;
