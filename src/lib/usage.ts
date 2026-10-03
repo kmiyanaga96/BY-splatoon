@@ -1,9 +1,11 @@
 // ブキ統一杯の「どのチームがどのブキを使った/まだ使えるか」の計算。
 
+import { unitKey } from '../data/weapons';
 import type { Tournament } from '../types';
 import { sideId, type MatchView } from './bracket';
 
 export interface WeaponUse {
+  /** 実際に使ったブキ */
   weaponId: string;
   matchKey: string;
   gameIndex: number;
@@ -36,8 +38,19 @@ export function teamUses(rounds: MatchView[][], teamId: string): WeaponUse[] {
   return uses;
 }
 
+/** チームの使用回数 (key: 候補の単位にそろえたキー。メイン単位ならメイン ID) */
+export function usageCounts(t: Tournament, rounds: MatchView[][], teamId: string): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const u of teamUses(rounds, teamId)) {
+    const key = unitKey(t.rules.poolUnit, u.weaponId);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+}
+
 /**
- * ルール上、指定した試合・ゲームでそのチームが選べなくなっているブキ。
+ * ルール上、指定した試合・ゲームでそのチームが選べなくなっているもの。
+ * キーは候補の単位にそろえる (メイン単位ならメイン ID。照合には unitKey を使う)。
  * (そのゲーム自身で選択中のブキは含めない)
  */
 export function blockedWeapons(
@@ -53,11 +66,12 @@ export function blockedWeapons(
     teamUses(rounds, teamId)
       .filter((u) => !(u.matchKey === matchKey && u.gameIndex === gameIndex))
       .filter((u) => rule === 'tournament' || u.matchKey === matchKey)
-      .map((u) => u.weaponId),
+      .map((u) => unitKey(t.rules.poolUnit, u.weaponId)),
   );
 }
 
 export interface PoolStatus {
+  /** 候補 (ブキ ID またはメイン ID) */
   weaponId: string;
   /** 何回使ったか */
   used: number;
@@ -68,8 +82,7 @@ export interface PoolStatus {
 export function poolStatus(t: Tournament, rounds: MatchView[][], teamId: string): PoolStatus[] {
   const team = t.teams.find((x) => x.id === teamId);
   if (!team) return [];
-  const counts = new Map<string, number>();
-  for (const u of teamUses(rounds, teamId)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
+  const counts = usageCounts(t, rounds, teamId);
   return team.pool.map((weaponId) => {
     const used = counts.get(weaponId) ?? 0;
     return { weaponId, used, available: t.rules.reuse !== 'tournament' || used === 0 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeData } from './model';
+import { convertPool, newTournament, normalizeData } from './model';
 
 // 選手 DB 導入前 (v1) の保存データ
 const v1 = {
@@ -62,5 +62,29 @@ describe('v1 → v2 の移行', () => {
   it('存在しない選手への所属は外す', () => {
     const broken = normalizeData({ version: 2, players: [], tournaments: [{ id: 't', teams: [{ id: 'a', members: [{ playerId: 'ghost' }] }] }] });
     expect(broken.tournaments[0].teams[0].members).toEqual([]);
+  });
+});
+
+describe('候補の単位', () => {
+  it('単位の設定がない旧データはブキ単位として読み込む', () => {
+    const d = normalizeData({ tournaments: [{ id: 'x', teams: [{ id: 'a', pool: ['Shooter_Short_00'] }], rules: { poolMax: 3 } }] });
+    expect(d.tournaments[0].rules.poolUnit).toBe('weapon');
+    expect(d.tournaments[0].teams[0].pool).toEqual(['Shooter_Short_00']);
+  });
+
+  it('新しい大会はメイン単位・2 種まで', () => {
+    expect(newTournament().rules).toMatchObject({ poolUnit: 'main', poolMax: 2 });
+  });
+
+  it('ブキ→メインはマイナーチェンジをまとめ、メイン→ブキは代表ブキにする', () => {
+    expect(convertPool(['Shooter_Short_00', 'Shooter_Short_01', 'Charger_Normal_O'], 'main')).toEqual(['Shooter_Short', 'Charger_Normal']);
+    expect(convertPool(['Shooter_Short', 'Charger_Normal'], 'weapon')).toEqual(['Shooter_Short_00', 'Charger_Normal_00']);
+  });
+
+  it('メイン単位のデータに残ったブキ ID はメインにそろえる', () => {
+    const d = normalizeData({
+      tournaments: [{ id: 'x', teams: [{ id: 'a', pool: ['Shooter_Short_01', 'Shooter_Short'] }], rules: { poolUnit: 'main' } }],
+    });
+    expect(d.tournaments[0].teams[0].pool).toEqual(['Shooter_Short']);
   });
 });

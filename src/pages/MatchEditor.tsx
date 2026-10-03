@@ -1,12 +1,12 @@
 import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponTag } from '../components/ui';
-import { CATEGORIES, WEAPONS, weaponName } from '../data/weapons';
+import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
 import { roundName, sideId, winsNeeded, type MatchView } from '../lib/bracket';
 import { lineupIds, roster } from '../lib/roster';
 import { blockedWeapons, poolStatus } from '../lib/usage';
 import { newGame, updateCurrent, usePlayers } from '../store';
-import type { Game, GameMode, MatchRecord, PlayerMap, Team, Tournament } from '../types';
+import type { Game, GameMode, MatchRecord, PlayerMap, PoolUnit, Team, Tournament } from '../types';
 
 const MODES: GameMode[] = ['', 'ナワバリ', 'エリア', 'ヤグラ', 'ホコ', 'アサリ'];
 
@@ -113,6 +113,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
             <div className="game-side">
               <WeaponSelect
                 team={a}
+                unit={t.rules.poolUnit}
                 value={g.weaponA}
                 blocked={blockedWeapons(t, rounds, a.id, m.key, i)}
                 onChange={(v) => editGame(i, (x) => void (x.weaponA = v))}
@@ -138,6 +139,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
             <div className="game-side">
               <WeaponSelect
                 team={b}
+                unit={t.rules.poolUnit}
                 value={g.weaponB}
                 blocked={blockedWeapons(t, rounds, b.id, m.key, i)}
                 onChange={(v) => editGame(i, (x) => void (x.weaponB = v))}
@@ -259,11 +261,21 @@ function PoolSummary({ t, rounds, team }: { t: Tournament; rounds: MatchView[][]
   );
 }
 
-function WeaponSelect(props: { team: Team; value: string; blocked: Set<string>; onChange: (v: string) => void }) {
-  const { team, value, blocked } = props;
-  const others = WEAPONS.filter((w) => !team.pool.includes(w.id) && (!w.replica || w.id === value));
-  const invalid = !!value && blocked.has(value);
-  const offPool = !!value && !team.pool.includes(value);
+/**
+ * 使用ブキの選択。候補を先頭に、候補外のブキはカテゴリ別に並べる。
+ * メイン単位のルールでは、候補のメインに含まれるブキ (マイナーチェンジ) をどれでも選べる。
+ * メンバーが別々のマイナーチェンジを使ったときは、メインそのもの (「〇〇系（混在）」) を選ぶ。
+ */
+function WeaponSelect(props: { team: Team; unit: PoolUnit; value: string; blocked: Set<string>; onChange: (v: string) => void }) {
+  const { team, unit, value, blocked } = props;
+  const key = (id: string) => unitKey(unit, id);
+  const pool = new Set(team.pool);
+  const isBlocked = (id: string) => blocked.has(key(id)) && id !== value;
+  const visible = (w: { id: string; replica: boolean }) => !w.replica || w.id === value;
+  const others = WEAPONS.filter((w) => !pool.has(key(w.id)) && visible(w));
+  const invalid = !!value && blocked.has(key(value));
+  const offPool = !!value && !pool.has(key(value));
+  const used = (id: string) => (blocked.has(key(id)) ? '（使用済み）' : '');
   return (
     <select
       className={`input weapon-select ${invalid ? 'invalid' : offPool ? 'offpool' : ''}`}
@@ -273,14 +285,32 @@ function WeaponSelect(props: { team: Team; value: string; blocked: Set<string>; 
       title={invalid ? 'ルール上このブキはすでに使用済みです' : offPool ? '候補ブキに登録されていないブキです' : undefined}
     >
       <option value="">ブキ未選択</option>
-      <optgroup label="候補ブキ">
-        {team.pool.map((id) => (
-          <option key={id} value={id} disabled={blocked.has(id) && id !== value}>
-            {weaponName(id)}
-            {blocked.has(id) ? '（使用済み）' : ''}
-          </option>
-        ))}
-      </optgroup>
+      {unit === 'main' ? (
+        team.pool.map((id) => (
+          <optgroup key={id} label={`候補: ${weaponName(id)}${used(id)}`}>
+            {/* マイナーチェンジを混ぜて使ったとき (メンバーごとに違うブキ) はメインで記録する */}
+            <option value={id} disabled={isBlocked(id)}>
+              {weaponName(id)}（混在）
+            </option>
+            {(getMain(id)?.variants ?? [])
+              .filter(visible)
+              .map((w) => (
+                <option key={w.id} value={w.id} disabled={isBlocked(w.id)}>
+                  {w.name}
+                </option>
+              ))}
+          </optgroup>
+        ))
+      ) : (
+        <optgroup label="候補ブキ">
+          {team.pool.map((id) => (
+            <option key={id} value={id} disabled={isBlocked(id)}>
+              {weaponName(id)}
+              {used(id)}
+            </option>
+          ))}
+        </optgroup>
+      )}
       {CATEGORIES.map((c) => (
         <optgroup key={c.id} label={`候補外: ${c.name}`}>
           {others

@@ -230,6 +230,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
           title={`${team.name} の候補ブキ`}
           selected={team.pool}
           max={t.rules.poolMax}
+          unit={t.rules.poolUnit}
           notes={new Map([...others].map(([w, names]) => [w, `登録済: ${names}`]))}
           disabled={t.rules.allowDuplicate ? undefined : new Set(others.keys())}
           onChange={(ids) => edit((x) => void (x.pool = ids))}

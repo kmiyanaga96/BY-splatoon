@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { CATEGORIES, WEAPONS, matchesQuery } from '../data/weapons';
+import { CATEGORIES, MAINS, WEAPONS, mainMatchesQuery, matchesQuery, weaponKit } from '../data/weapons';
+import type { PoolUnit } from '../types';
 import { FilterChip, Icon, Modal, Switch, WeaponIcon, WeaponTag } from './ui';
 
 interface Props {
@@ -13,24 +14,28 @@ interface Props {
   notes?: Map<string, string>;
   /** 選択できないブキ */
   disabled?: Set<string>;
+  /** main ならメイン (マイナーチェンジをまとめたもの) を選ぶ */
+  unit?: PoolUnit;
 }
 
-/** 検索・カテゴリ絞り込み付きのブキ複数選択 */
+/** 検索・カテゴリ絞り込み付きのブキ (メイン) 複数選択 */
 export function WeaponPicker(props: Props) {
-  const { selected, max = 0 } = props;
+  const { selected, max = 0, unit = 'weapon' } = props;
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState<string | null>(null);
   const [showReplica, setShowReplica] = useState(false);
 
   const list = useMemo(
     () =>
-      WEAPONS.filter(
-        (w) =>
-          (showReplica || !w.replica || selected.includes(w.id)) &&
-          (!cat || w.category === cat) &&
-          matchesQuery(w, query),
-      ),
-    [query, cat, showReplica, selected],
+      unit === 'main'
+        ? MAINS.filter((m) => (!cat || m.category === cat) && mainMatchesQuery(m, query))
+        : WEAPONS.filter(
+            (w) =>
+              (showReplica || !w.replica || selected.includes(w.id)) &&
+              (!cat || w.category === cat) &&
+              matchesQuery(w, query),
+          ),
+    [unit, query, cat, showReplica, selected],
   );
 
   const full = max > 0 && selected.length >= max;
@@ -70,7 +75,7 @@ export function WeaponPicker(props: Props) {
             autoFocus
           />
         </div>
-        <Switch label="レプリカも表示" checked={showReplica} onChange={setShowReplica} />
+        {unit === 'weapon' && <Switch label="レプリカも表示" checked={showReplica} onChange={setShowReplica} />}
       </div>
       <div className="chips">
         <FilterChip label="すべて" selected={cat === null} onClick={() => setCat(null)} />
@@ -89,6 +94,7 @@ export function WeaponPicker(props: Props) {
           <Icon name="info" /> 登録上限（{max}）に達しています。外してから選び直してください。
         </p>
       )}
+      {unit === 'main' && <p className="supporting">メイン単位で選びます。マイナーチェンジ（同じメインのブキ）はどれでも使えます。</p>}
       <div className="picker-grid">
         {list.map((w) => {
           const on = selected.includes(w.id);
@@ -110,9 +116,7 @@ export function WeaponPicker(props: Props) {
                   {on && <Icon name="check" />}
                   {w.name}
                 </span>
-                <span className="picker-kit">
-                  {w.sub} / {w.special}
-                </span>
+                <span className="picker-kit">{weaponKit(w.id)}</span>
                 {note && <span className="picker-note">{note}</span>}
               </span>
             </button>

@@ -1,7 +1,7 @@
 // Material Design 3 に沿った共通 UI 部品
 
 import { useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
-import { categoryOf, getWeapon, weaponIconUrl, weaponName } from '../data/weapons';
+import { categoryOf, getMain, getWeapon, weaponIconUrl, weaponName } from '../data/weapons';
 import { xBadgeUrl, xTier } from '../lib/xbadge';
 
 /** Material Symbols のアイコン。使う名前は index.html の icon_names にも追加すること */
@@ -69,8 +69,13 @@ export function Modal(props: {
 
 export function WeaponTag(props: { id: string; state?: 'used' | 'out' | 'warn'; note?: string; onRemove?: () => void }) {
   const w = getWeapon(props.id);
+  const main = getMain(props.id);
   const cat = categoryOf(props.id);
-  const title = w ? `${w.name}\nサブ: ${w.sub}\nスペシャル: ${w.special} (${w.sp}p)` : props.id;
+  const title = w
+    ? `${w.name}\nサブ: ${w.sub}\nスペシャル: ${w.special} (${w.sp}p)`
+    : main
+      ? `${main.name}（どれでも使用可）\n${main.variants.map((v) => v.name).join('\n')}`
+      : props.id;
   return (
     <span className={`wtag ${props.state ?? ''}`} style={{ '--c': cat?.color ?? '#888' } as CSSProperties} title={title}>
       <WeaponIcon id={props.id} />

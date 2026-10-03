@@ -123,3 +123,51 @@ describe('ブキ使用ルール', () => {
     expect(blockedWeapons(t, computeBracket(t), 't1', '1-0', 0).size).toBe(0);
   });
 });
+
+describe('ブキ使用ルール (メイン単位)', () => {
+  // ボールドマーカー系に登録し、1 戦目はボールドマーカー、2 戦目はわかばシューターを使用
+  function withMainGames(reuse: Tournament['rules']['reuse']) {
+    const t = setup(4);
+    t.rules.poolUnit = 'main';
+    t.rules.reuse = reuse;
+    t.teams[0].pool = ['Shooter_Short', 'Shooter_First'];
+    t.bracket.matches['0-0'] = {
+      a: 't1',
+      b: 't4',
+      games: [game('A', 'Shooter_Short_00', ''), game('B', 'Shooter_First_00', '')],
+      override: null,
+      note: '',
+    };
+    return t;
+  }
+
+  it('マイナーチェンジに持ち替えても同じメインとして使用済みになる', () => {
+    const t = withMainGames('match');
+    const rounds = computeBracket(t);
+    // 3 戦目: ボールドマーカーネオ (Shooter_Short_01) も使えない
+    expect([...blockedWeapons(t, rounds, 't1', '0-0', 2)].sort()).toEqual(['Shooter_First', 'Shooter_Short']);
+  });
+
+  it('使用回数はメインごとに数える', () => {
+    const t = withMainGames('tournament');
+    t.bracket.matches['0-0'].games.push(game('A', 'Shooter_Short_01', ''));
+    const rounds = computeBracket(t);
+    expect(poolStatus(t, rounds, 't1')).toEqual([
+      { weaponId: 'Shooter_Short', used: 2, available: false },
+      { weaponId: 'Shooter_First', used: 1, available: false },
+    ]);
+  });
+});
+
+describe('マイナーチェンジの混在 (メインで記録)', () => {
+  it('メイン ID で記録したゲームもそのメインの使用として数える', () => {
+    const t = setup(4);
+    t.rules.poolUnit = 'main';
+    t.rules.reuse = 'match';
+    t.teams[0].pool = ['Shooter_Short'];
+    t.bracket.matches['0-0'] = { a: 't1', b: 't4', games: [game('A', 'Shooter_Short', '')], override: null, note: '' };
+    const rounds = computeBracket(t);
+    expect([...blockedWeapons(t, rounds, 't1', '0-0', 1)]).toEqual(['Shooter_Short']);
+    expect(poolStatus(t, rounds, 't1')[0].used).toBe(1);
+  });
+});
