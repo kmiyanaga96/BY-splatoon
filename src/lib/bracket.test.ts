@@ -158,3 +158,16 @@ describe('ブキ使用ルール (メイン単位)', () => {
     ]);
   });
 });
+
+describe('マイナーチェンジの混在 (メインで記録)', () => {
+  it('メイン ID で記録したゲームもそのメインの使用として数える', () => {
+    const t = setup(4);
+    t.rules.poolUnit = 'main';
+    t.rules.reuse = 'match';
+    t.teams[0].pool = ['Shooter_Short'];
+    t.bracket.matches['0-0'] = { a: 't1', b: 't4', games: [game('A', 'Shooter_Short', '')], override: null, note: '' };
+    const rounds = computeBracket(t);
+    expect([...blockedWeapons(t, rounds, 't1', '0-0', 1)]).toEqual(['Shooter_Short']);
+    expect(poolStatus(t, rounds, 't1')[0].used).toBe(1);
+  });
+});

@@ -264,6 +264,7 @@ function PoolSummary({ t, rounds, team }: { t: Tournament; rounds: MatchView[][]
 /**
  * 使用ブキの選択。候補を先頭に、候補外のブキはカテゴリ別に並べる。
  * メイン単位のルールでは、候補のメインに含まれるブキ (マイナーチェンジ) をどれでも選べる。
+ * メンバーが別々のマイナーチェンジを使ったときは、メインそのもの (「〇〇系（混在）」) を選ぶ。
  */
 function WeaponSelect(props: { team: Team; unit: PoolUnit; value: string; blocked: Set<string>; onChange: (v: string) => void }) {
   const { team, unit, value, blocked } = props;
@@ -287,6 +288,10 @@ function WeaponSelect(props: { team: Team; unit: PoolUnit; value: string; blocke
       {unit === 'main' ? (
         team.pool.map((id) => (
           <optgroup key={id} label={`候補: ${weaponName(id)}${used(id)}`}>
+            {/* マイナーチェンジを混ぜて使ったとき (メンバーごとに違うブキ) はメインで記録する */}
+            <option value={id} disabled={isBlocked(id)}>
+              {weaponName(id)}（混在）
+            </option>
             {(getMain(id)?.variants ?? [])
               .filter(visible)
               .map((w) => (

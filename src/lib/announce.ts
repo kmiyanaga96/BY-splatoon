@@ -36,7 +36,9 @@ function sideLabel(t: Tournament, m: MatchView, which: 'a' | 'b'): string {
 export function rulesText(t: Tournament): string {
   const r = t.rules;
   const lines = [
-    `・1チーム ${r.teamSize} 人、チーム全員が同じブキを使用`,
+    r.poolUnit === 'main'
+      ? `・1チーム ${r.teamSize} 人、チーム全員が同じメインのブキを使用（マイナーチェンジは混在可）`
+      : `・1チーム ${r.teamSize} 人、チーム全員が同じブキを使用`,
     r.poolUnit === 'main'
       ? `・候補ブキはメインを ${r.poolMax > 0 ? `${r.poolMax} 種まで` : '制限なし'}で事前登録（同じメインのマイナーチェンジはどれでも使用可）`
       : `・候補ブキは ${r.poolMax > 0 ? `最大 ${r.poolMax} 種` : '制限なし'}で事前登録`,
