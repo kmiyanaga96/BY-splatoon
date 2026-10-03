@@ -2,7 +2,7 @@
 // 保存先 (localStorage / Firebase) や JSON の読み込みから来たデータは、必ずここを通してから使う。
 
 import { unitKey } from './data/weapons';
-import type { AppData, Bracket, Game, Member, Player, PoolUnit, Rules, Team, Tournament } from './types';
+import type { AppData, Bracket, Game, League, LeagueGroup, Member, MatchRecord, Player, PoolUnit, Rules, Team, Tiebreaker, Tournament } from './types';
 
 export function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -27,8 +27,32 @@ export function newTournament(name = '新しい大会'): Tournament {
     description: '',
     rules: defaultRules(),
     teams: [],
+    league: null,
     bracket: { slots: [], matches: {} },
   };
+}
+
+export const TIEBREAKERS: Tiebreaker[] = ['wins', 'gameDiff', 'gamesWon', 'headToHead'];
+
+const GROUP_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+/**
+ * チームをグループに振り分ける。並び順 (シード順) にジグザグで配り、強いチームが偏らないようにする。
+ * 例: 8 チーム・2 グループ → A: 1,4,5,8 / B: 2,3,6,7
+ */
+export function makeGroups(teamIds: string[], count: number): LeagueGroup[] {
+  const n = Math.max(1, Math.min(count, GROUP_NAMES.length, teamIds.length || 1));
+  const groups: LeagueGroup[] = Array.from({ length: n }, (_, i) => ({ id: GROUP_NAMES[i], name: `${GROUP_NAMES[i]}グループ`, teamIds: [] }));
+  teamIds.forEach((id, i) => {
+    const lap = Math.floor(i / n);
+    const pos = i % n;
+    groups[lap % 2 === 0 ? pos : n - 1 - pos].teamIds.push(id);
+  });
+  return groups;
+}
+
+export function newLeague(teamIds: string[], groupCount = 2): League {
+  return { groups: makeGroups(teamIds, groupCount), advance: 2, bestOf: 3, tiebreakers: [...TIEBREAKERS], matches: {} };
 }
 
 const TEAM_COLORS = ['#f2e14c', '#7b5cff', '#ff5c8a', '#3fd2c7', '#ff9b3d', '#5c9dff', '#9be15d', '#e66cff'];
@@ -123,28 +147,54 @@ function picks(v: unknown): Record<string, string> | null {
   return entries.length ? Object.fromEntries(entries) : null;
 }
 
+function normalizeRecord(m: any): MatchRecord {
+  return {
+    a: str(m?.a),
+    b: str(m?.b),
+    games: arr(m?.games, (g) => ({
+      weaponA: str(g?.weaponA),
+      weaponB: str(g?.weaponB),
+      mode: str(g?.mode) as Game['mode'],
+      stage: str(g?.stage),
+      winner: g?.winner === 'A' || g?.winner === 'B' ? g.winner : null,
+      lineupA: lineup(g?.lineupA),
+      lineupB: lineup(g?.lineupB),
+      picksA: picks(g?.picksA),
+      picksB: picks(g?.picksB),
+    })),
+    override: typeof m?.override === 'string' ? m.override : null,
+    note: str(m?.note),
+  };
+}
+
+function normalizeMatches(v: unknown): Record<string, MatchRecord> {
+  const matches: Record<string, MatchRecord> = {};
+  for (const [key, m] of Object.entries<any>(v && typeof v === 'object' ? v : {})) matches[key] = normalizeRecord(m);
+  return matches;
+}
+
+function normalizeLeague(l: any, teamIds: Set<string>): League | null {
+  if (!l || typeof l !== 'object') return null;
+  const seen = new Set<string>();
+  const groups = arr(l.groups, (g, i): LeagueGroup => ({
+    id: str(g?.id) || GROUP_NAMES[i] || newId(),
+    name: str(g?.name) || `${GROUP_NAMES[i] ?? i + 1}グループ`,
+    // 存在しないチームと、複数グループへの重複所属は外す
+    teamIds: strArr(g?.teamIds).filter((id) => teamIds.has(id) && !seen.has(id) && !!seen.add(id)),
+  }));
+  const tiebreakers = strArr(l.tiebreakers).filter((x): x is Tiebreaker => (TIEBREAKERS as string[]).includes(x));
+  return {
+    groups,
+    advance: Math.max(1, num(l.advance) ?? 2),
+    bestOf: Math.max(1, num(l.bestOf) ?? 3),
+    tiebreakers: tiebreakers.length ? [...new Set(tiebreakers)] : [...TIEBREAKERS],
+    matches: normalizeMatches(l.matches),
+  };
+}
+
 function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
   const slots = arr(b?.slots, (x) => (typeof x === 'string' && teamIds.has(x) ? x : null));
-  const matches: Bracket['matches'] = {};
-  for (const [key, m] of Object.entries<any>(b?.matches ?? {})) {
-    matches[key] = {
-      a: str(m?.a),
-      b: str(m?.b),
-      games: arr(m?.games, (g) => ({
-        weaponA: str(g?.weaponA),
-        weaponB: str(g?.weaponB),
-        mode: str(g?.mode) as Game['mode'],
-        stage: str(g?.stage),
-        winner: g?.winner === 'A' || g?.winner === 'B' ? g.winner : null,
-        lineupA: lineup(g?.lineupA),
-        lineupB: lineup(g?.lineupB),
-        picksA: picks(g?.picksA),
-        picksB: picks(g?.picksB),
-      })),
-      override: typeof m?.override === 'string' ? m.override : null,
-      note: str(m?.note),
-    };
-  }
+  const matches = normalizeMatches(b?.matches);
   // 枠数は 2 の累乗のみ有効
   const valid = slots.length >= 2 && (slots.length & (slots.length - 1)) === 0;
   return valid ? { slots, matches } : { slots: [], matches: {} };
@@ -225,6 +275,7 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
     description: str(t?.description),
     rules,
     teams,
+    league: normalizeLeague(t?.league, new Set(teams.map((x) => x.id))),
     bracket: normalizeBracket(t?.bracket, new Set(teams.map((x) => x.id))),
   };
 }

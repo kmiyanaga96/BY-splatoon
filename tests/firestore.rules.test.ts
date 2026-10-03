@@ -88,6 +88,13 @@ describe('書き込み', () => {
     await assertFails(setDoc(doc(db, 'players/p8'), { ...player('p8', { avatar: 'data:image/jpeg;base64,' + 'A'.repeat(300001) }), ...stamp(EDITOR) }));
     await assertFails(setDoc(doc(db, 'players/p9'), { ...player('p9', { xp: 'many' }), ...stamp(EDITOR) }));
     await assertFails(setDoc(doc(db, 'tournaments/t2'), { ...tournament('t2'), teams: 'x', ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'tournaments/t3'), { ...tournament('t3'), league: 'x', ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'tournaments/t4'), { ...tournament('t4'), league: { groups: 'x', matches: {} }, ...stamp(EDITOR) }));
+  });
+
+  it('予選リーグを持つ大会を保存できる', async () => {
+    const league = { groups: [{ id: 'A', name: 'Aグループ', teamIds: ['t'] }], advance: 2, bestOf: 3, tiebreakers: ['wins'], matches: {} };
+    await assertSucceeds(setDoc(doc(editor(), 'tournaments/t5'), { ...tournament('t5'), league, ...stamp(EDITOR) }));
   });
 
   it('その他のコレクションには書き込めない', async () => {

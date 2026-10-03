@@ -2366,6 +2366,37 @@ button.template-sample:hover {
   color: var(--md-sys-color-primary);
 }
 
+/* ---------- 予選リーグ ---------- */
+
+.league-grid {
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+}
+.standings tr.advance {
+  background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+}
+.standings tr.advance td:first-child {
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+}
+.tiebreakers {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.5rem;
+}
+.tiebreakers li > span {
+  display: inline-block;
+  min-width: 8rem;
+}
+.league-round {
+  margin-top: 0.75rem;
+}
+.league-round .list-item.done {
+  opacity: 0.75;
+}
+.card-title .badge {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
 /* ---------- 記録 (選手ごとのブキ集計) ---------- */
 
 .usage-table {

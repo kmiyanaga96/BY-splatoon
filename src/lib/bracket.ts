@@ -8,6 +8,11 @@ export type Side = { kind: 'team'; id: string } | { kind: 'bye' } | { kind: 'tbd
 
 export interface MatchView {
   key: string;
+  /** 予選リーグの試合か本選トーナメントの試合か */
+  stage: 'league' | 'bracket';
+  /** 表示用の見出し (例: 準決勝 第1試合 / Aグループ 第2節) */
+  label: string;
+  /** トーナメントは回戦、リーグは節 (0 始まり) */
   round: number;
   index: number;
   a: Side;
@@ -72,7 +77,7 @@ export function roundName(round: number, total: number): string {
 
 export const winsNeeded = (bestOf: number) => Math.floor(Math.max(1, bestOf) / 2) + 1;
 
-function decide(a: Side, b: Side, record: MatchRecord | null, bestOf: number, winsA: number, winsB: number): Side {
+export function decide(a: Side, b: Side, record: MatchRecord | null, bestOf: number, winsA: number, winsB: number): Side {
   if (a.kind === 'tbd' || b.kind === 'tbd') return TBD;
   if (a.kind === 'bye') return b; // 両方不戦勝枠なら bye が勝ち上がる
   if (b.kind === 'bye') return a;
@@ -108,6 +113,8 @@ export function computeBracket(t: Tournament): MatchView[][] {
       const bestOf = r === total - 1 ? rules.finalBestOf : rules.bestOf;
       views.push({
         key,
+        stage: 'bracket',
+        label: `${roundName(r, total)} 第${i + 1}試合`,
         round: r,
         index: i,
         a,

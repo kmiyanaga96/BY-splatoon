@@ -4,6 +4,7 @@ import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
 import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
 import { kindOf } from './kinds';
+import { computeLeague, tieAtCutoff } from './league';
 import { allPicks, percent, usageBy } from './records';
 import { poolStatus, teamUses } from './usage';
 import { roster } from './roster';
@@ -109,8 +110,7 @@ export function featuredText(t: Tournament, players: PlayerMap): string {
 
 /** これから行う試合のカード紹介 */
 export function matchCardText(t: Tournament, players: PlayerMap, rounds: MatchView[][], m: MatchView): string {
-  const total = rounds.length;
-  const lines = [`# ${roundName(m.round, total)} 第${m.index + 1}試合 (BO${m.bestOf})`];
+  const lines = [`# ${m.label} (BO${m.bestOf})`];
   lines.push(`## ${sideLabel(t, m, 'a')} 🆚 ${sideLabel(t, m, 'b')}`);
   for (const which of ['a', 'b'] as const) {
     const id = sideId(m[which]);
@@ -143,27 +143,47 @@ function scoreLine(t: Tournament, m: MatchView): string {
 
 export function resultsText(t: Tournament, rounds: MatchView[][], withWeapons = true): string {
   const lines = [`# ${t.name} 試合結果`];
+  const pushMatch = (m: MatchView) => {
+    lines.push(`・${scoreLine(t, m)}`);
+    if (!withWeapons || !kindOf(t).teamWeapon || !m.record) return;
+    m.record.games.forEach((g, i) => {
+      if (!g.weaponA && !g.weaponB && !g.winner) return;
+      const mark = g.winner === 'A' ? '◯-✕' : g.winner === 'B' ? '✕-◯' : '-';
+      const where = [g.mode, g.stage].filter(Boolean).join(' ');
+      lines.push(`　${i + 1}戦目 ${weaponName(g.weaponA) || '?'} ${mark} ${weaponName(g.weaponB) || '?'}${where ? `（${where}）` : ''}`);
+    });
+  };
+  for (const g of computeLeague(t)) {
+    const done = g.matches.filter((m) => m.winner.kind === 'team');
+    if (!done.length) continue;
+    lines.push(`## 予選 ${g.group.name}`);
+    done.forEach(pushMatch);
+  }
   rounds.forEach((round, r) => {
     const done = round.filter((m) => isPlayable(m) && m.winner.kind === 'team');
     if (!done.length) return;
     lines.push(`## ${roundName(r, rounds.length)}`);
-    for (const m of done) {
-      lines.push(`・${scoreLine(t, m)}`);
-      if (withWeapons && kindOf(t).teamWeapon && m.record) {
-        m.record.games.forEach((g, i) => {
-          if (!g.weaponA && !g.weaponB && !g.winner) return;
-          const mark = g.winner === 'A' ? '◯-✕' : g.winner === 'B' ? '✕-◯' : '-';
-          const where = [g.mode, g.stage].filter(Boolean).join(' ');
-          lines.push(
-            `　${i + 1}戦目 ${weaponName(g.weaponA) || '?'} ${mark} ${weaponName(g.weaponB) || '?'}${where ? `（${where}）` : ''}`,
-          );
-        });
-      }
-    }
+    done.forEach(pushMatch);
   });
   const champ = champion(rounds);
   if (champ) lines.push(`\n🏆 **優勝: ${teamName(t, champ)}**`);
   if (lines.length === 1) lines.push('（まだ結果がありません）');
+  return lines.join('\n');
+}
+
+/** 予選リーグの順位表 */
+export function standingsText(t: Tournament): string {
+  const league = t.league;
+  const lines = [`# ${t.name} 予選リーグ順位`];
+  if (!league) return [...lines, '（予選リーグはありません）'].join('\n');
+  for (const g of computeLeague(t)) {
+    lines.push(`## ${g.group.name}${g.complete ? '（確定）' : ''}`);
+    for (const r of g.standings) {
+      const through = g.complete && r.rank <= league.advance ? ' → 本選' : '';
+      lines.push(`${r.rank}位 **${teamName(t, r.teamId)}** ${r.wins}勝${r.losses}敗（ゲーム ${r.gamesWon}-${r.gamesLost}）${through}`);
+    }
+    if (g.complete && tieAtCutoff(g, league.advance)) lines.push('※ 進出ラインで同順位のため、運営が決定します');
+  }
   return lines.join('\n');
 }
 
@@ -172,7 +192,7 @@ export function weaponStatsText(t: Tournament, rounds: MatchView[][]): string {
   if (kindOf(t).playerWeapons) return playerWeaponStatsText(t, rounds);
   const stats = new Map<string, { used: number; won: number }>();
   for (const team of t.teams) {
-    for (const u of teamUses(rounds, team.id)) {
+    for (const u of teamUses(t, rounds, team.id)) {
       const s = stats.get(u.weaponId) ?? { used: 0, won: 0 };
       s.used++;
       if (u.won) s.won++;

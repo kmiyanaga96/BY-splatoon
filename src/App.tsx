@@ -7,6 +7,7 @@ import { AnnouncePage } from './pages/AnnouncePage';
 import { AwardPage, AwardTemplateGallery } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
+import { LeaguePage } from './pages/LeaguePage';
 import { PlayersPage } from './pages/PlayersPage';
 import { RecordsPage } from './pages/RecordsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -14,9 +15,10 @@ import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { WeaponsPage } from './pages/WeaponsPage';
 import { useRoute } from './router';
+import type { Tournament } from './types';
 import { createTournament, selectTournament, useApp, useCanEdit, useCurrent, useSaveError, useStorageStatus } from './store';
 
-type NavItem = { path: string; label: string; icon: string; show?: (k: KindInfo) => boolean };
+type NavItem = { path: string; label: string; icon: string; show?: (k: KindInfo, t: Tournament) => boolean };
 
 const NAV: NavItem[] = [
   { path: '', label: 'ホーム', icon: 'home' },
@@ -25,6 +27,8 @@ const NAV: NavItem[] = [
   // ブキ表は候補ブキを登録する大会 (ブキ統一杯)、記録は選手ごとのブキを入力する大会 (通常ルール) だけ
   { path: 'weapons', label: 'ブキ表', icon: 'table_view', show: (k) => k.hasPool },
   { path: 'records', label: '記録', icon: 'bar_chart', show: (k) => k.playerWeapons },
+  // 予選リーグは設定で追加した大会だけ
+  { path: 'league', label: '予選', icon: 'leaderboard', show: (_, t) => !!t.league },
   { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
   { path: 'announce', label: '告知', icon: 'campaign' },
   { path: 'award', label: '表彰', icon: 'emoji_events' },
@@ -92,6 +96,9 @@ export function App() {
     case 'records':
       content = kindOf(t).playerWeapons ? <RecordsPage t={t} rounds={rounds} /> : <HomePage t={t} rounds={rounds} />;
       break;
+    case 'league':
+      content = <LeaguePage t={t} rounds={rounds} />;
+      break;
     case 'bracket':
       content = <BracketPage t={t} rounds={rounds} />;
       break;
@@ -108,7 +115,7 @@ export function App() {
       content = <HomePage t={t} rounds={rounds} />;
   }
 
-  const navItems = NAV.filter((n) => !n.show || !t || n.show(kindOf(t))).map((n) => {
+  const navItems = NAV.filter((n) => !n.show || !t || n.show(kindOf(t), t)).map((n) => {
     const active = current === n.path;
     return (
       <a key={n.path} href={`#/${n.path}`} className={`nav-item ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined}>

@@ -3,7 +3,8 @@ import { AvatarInput } from '../components/AvatarInput';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
 import { categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
-import { placements, type MatchView } from '../lib/bracket';
+import { type MatchView } from '../lib/bracket';
+import { allPlacements } from '../lib/league';
 import { kindOf } from '../lib/kinds';
 import { allPicks, usageBy } from '../lib/records';
 import { roster } from '../lib/roster';
@@ -30,7 +31,7 @@ function download(blob: Blob, filename: string) {
 
 /** 大会後の表彰画像を、テンプレートにチームの情報を流し込んで作る */
 export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
-  const places = useMemo(() => placements(rounds), [rounds]);
+  const places = useMemo(() => allPlacements(t, rounds), [t, rounds]);
   const players = usePlayers();
   // 成績順 (未確定のチームはシード順で後ろ)
   const teams = useMemo(
@@ -58,10 +59,22 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       const mine = allPicks(t, rounds).filter((p) => p.teamId === team.id);
       for (const r of usageBy(mine, 'weapon')) counts.set(r.id, r.uses);
     } else {
-      for (const u of teamUses(rounds, team.id)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
+      for (const u of teamUses(t, rounds, team.id)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
     }
     // 候補ブキのない大会 (通常ルール) は記録したブキだけ
     const useRecorded = !kindOf(t).hasPool || (source === 'used' && counts.size > 0);
+    // 選手ごとの記録がある大会は、メンバーごとに一番使ったブキをアイコンに添える
+    const topWeapon = new Map<string, string>();
+    if (kindOf(t).playerWeapons) {
+      const mine = allPicks(t, rounds).filter((p) => p.teamId === team.id);
+      for (const { player } of roster(team, players)) {
+        const top = usageBy(
+          mine.filter((p) => p.playerId === player.id),
+          'weapon',
+        )[0];
+        if (top) topWeapon.set(player.id, weaponIconUrl(top.id));
+      }
+    }
     const ids = useRecorded ? [...counts.keys()] : team.pool;
     return {
       tournament: t.name,
@@ -69,7 +82,13 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       title: customTitle || place?.label || '出場',
       rank: place?.rank ?? null,
       team: { name: team.name, color: team.color },
-      members: roster(team, players).map(({ member: m, player: p }) => ({ name: p.name, avatar: p.avatar, xp: p.xp, leader: m.leader })),
+      members: roster(team, players).map(({ member: m, player: p }) => ({
+        name: p.name,
+        avatar: p.avatar,
+        xp: p.xp,
+        leader: m.leader,
+        weapon: topWeapon.get(p.id),
+      })),
       weaponCaption: useRecorded ? '使用ブキ' : '候補ブキ',
       weapons: ids.map((id) => ({
         name: weaponName(id),
@@ -78,6 +97,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         icon: weaponIconUrl(id),
       })),
       showXp,
+      kind: { label: kindOf(t).label, motif: t.rules.kind },
     };
   };
 
@@ -257,6 +277,7 @@ const SAMPLE: Omit<AwardData, 'team'> = {
     icon: weaponIconUrl(id as string),
   })),
   showXp: true,
+  kind: { label: 'ブキ統一杯', motif: 'unified' },
 };
 
 const SAMPLE_TEAMS: Record<AwardTemplate, { name: string; color: string }> = {

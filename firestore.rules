@@ -39,7 +39,7 @@ service cloud.firestore {
     }
 
     function validTournament(d, id) {
-      return d.keys().hasOnly(['id', 'name', 'date', 'description', 'rules', 'teams', 'bracket', 'updatedAt', 'updatedBy'])
+      return d.keys().hasOnly(['id', 'name', 'date', 'description', 'rules', 'teams', 'league', 'bracket', 'updatedAt', 'updatedBy'])
         && d.keys().hasAll(['id', 'name', 'teams', 'bracket', 'rules'])
         && d.id == id
         && isShortString(d.name, 200)
@@ -47,7 +47,9 @@ service cloud.firestore {
         && (!('description' in d) || isShortString(d.description, 5000))
         && d.rules is map
         && d.teams is list && d.teams.size() <= 64
-        && d.bracket is map;
+        && d.bracket is map
+        // 予選リーグ (なければキーごと省く)
+        && (!('league' in d) || (d.league is map && d.league.groups is list && d.league.groups.size() <= 26 && d.league.matches is map));
     }
 
     match /config/access {
