@@ -1,7 +1,8 @@
 import { Field, Icon, Switch } from '../components/ui';
 import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
+import { convertPool } from '../model';
 import { backupJson, createTournament, newId, update, updateCurrent, useApp } from '../store';
-import type { ReuseRule, Rules, Tournament } from '../types';
+import type { PoolUnit, ReuseRule, Rules, Tournament } from '../types';
 
 function download(filename: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -19,6 +20,12 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function SettingsPage({ t }: { t: Tournament }) {
   const app = useApp();
   const setRule = <K extends keyof Rules>(k: K, v: Rules[K]) => updateCurrent((d) => void (d.rules[k] = v));
+  // 単位を変えたら登録済みの候補もそろえる (ブキ→メインはまとめる、メイン→ブキは代表ブキにする)
+  const setPoolUnit = (unit: PoolUnit) =>
+    updateCurrent((d) => {
+      d.rules.poolUnit = unit;
+      for (const team of d.teams) team.pool = convertPool(team.pool, unit);
+    });
 
   const duplicate = () => {
     // チーム・ルールはそのまま、トーナメント表は空にして複製 (次回大会の下準備用)
@@ -67,6 +74,12 @@ export function SettingsPage({ t }: { t: Tournament }) {
       <section className="card">
         <h2 className="card-title">ブキ統一ルール</h2>
         <div className="form-row">
+          <Field label="候補の単位" hint="メイン単位ならマイナーチェンジも同じメインとして使える">
+            <select className="input" value={t.rules.poolUnit} onChange={(e) => setPoolUnit(e.target.value as PoolUnit)}>
+              <option value="main">メイン単位（例: ボールドマーカー系）</option>
+              <option value="weapon">ブキ単位（マイナーチェンジは別ブキ）</option>
+            </select>
+          </Field>
           <Field label="候補ブキの登録上限" hint="0 で無制限">
             <input
               className="input"

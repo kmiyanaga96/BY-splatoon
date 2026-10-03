@@ -1,8 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Empty, FilterChip, Icon, Segmented, Switch, TeamName, WeaponIcon } from '../components/ui';
-import { CATEGORIES, WEAPONS, getWeapon, matchesQuery, type Weapon } from '../data/weapons';
+import { CATEGORIES, MAINS, WEAPONS, categoryOf, mainMatchesQuery, matchesQuery, weaponKit, weaponName } from '../data/weapons';
 import type { MatchView } from '../lib/bracket';
-import { teamUses } from '../lib/usage';
+import { usageCounts } from '../lib/usage';
 import type { Team, Tournament } from '../types';
 
 type View = 'teams' | 'weapons' | 'table';
@@ -15,7 +15,22 @@ const STATE_LABEL: Record<Exclude<CellState, null>, string> = {
   offpool: '候補外で使用',
 };
 
-const catColor = (w: Weapon) => CATEGORIES.find((c) => c.id === w.category)?.color;
+/** 表の 1 行 (ブキ単位ならブキ、メイン単位ならメイン) */
+interface Item {
+  id: string;
+  name: string;
+  category: string;
+  kit: string;
+  replica: boolean;
+  matches: (query: string) => boolean;
+}
+
+const ITEMS: Record<Tournament['rules']['poolUnit'], Item[]> = {
+  weapon: WEAPONS.map((w) => ({ ...w, kit: weaponKit(w.id), matches: (q: string) => matchesQuery(w, q) })),
+  main: MAINS.map((m) => ({ ...m, kit: weaponKit(m.id), replica: false, matches: (q: string) => mainMatchesQuery(m, q) })),
+};
+
+const catColor = (id: string) => categoryOf(id)?.color;
 
 /** どのチームがどのブキを持っていて、どれを使ったかを一覧する。画面共有で見やすいようカード表示が基本 */
 export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
@@ -24,16 +39,8 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
   const [cat, setCat] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
-  // teamId -> weaponId -> 使用回数
-  const usage = useMemo(() => {
-    const m = new Map<string, Map<string, number>>();
-    for (const team of t.teams) {
-      const c = new Map<string, number>();
-      for (const u of teamUses(rounds, team.id)) c.set(u.weaponId, (c.get(u.weaponId) ?? 0) + 1);
-      m.set(team.id, c);
-    }
-    return m;
-  }, [t, rounds]);
+  // teamId -> ブキ (メイン単位ならメイン) -> 使用回数
+  const usage = useMemo(() => new Map(t.teams.map((team) => [team.id, usageCounts(t, rounds, team.id)])), [t, rounds]);
 
   const stateOf = (team: Team, weaponId: string): { state: CellState; used: number } => {
     const inPool = team.pool.includes(weaponId);
@@ -47,8 +54,8 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
 
   const rows = useMemo(() => {
     const relevant = (id: string) => t.teams.some((x) => x.pool.includes(id) || usage.get(x.id)?.has(id));
-    return WEAPONS.filter(
-      (w) => (showAll ? !w.replica || relevant(w.id) : relevant(w.id)) && (!cat || w.category === cat) && matchesQuery(w, query),
+    return ITEMS[t.rules.poolUnit].filter(
+      (w) => (showAll ? !w.replica || relevant(w.id) : relevant(w.id)) && (!cat || w.category === cat) && w.matches(query),
     )
       .map((w) => ({ w, count: t.teams.filter((x) => x.pool.includes(w.id)).length }))
       .sort((a, b) => b.count - a.count);
@@ -109,7 +116,7 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
                 <article
                   key={w.id}
                   className={`card weapon-card ${count >= 2 && !t.rules.allowDuplicate ? 'dup' : ''}`}
-                  style={{ '--c': catColor(w) } as CSSProperties}
+                  style={{ '--c': catColor(w.id) } as CSSProperties}
                 >
                   <div className="weapon-card-head">
                     <WeaponIcon id={w.id} size={48} />
@@ -117,9 +124,7 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
                     <span className="spacer" />
                     <span className="count-badge">{count}</span>
                   </div>
-                  <span className="picker-kit">
-                    {w.sub} / {w.special}
-                  </span>
+                  <span className="picker-kit">{w.kit}</span>
                   <div className="team-chips">
                     {t.teams.map((team) => {
                       const { state, used } = stateOf(team, w.id);
@@ -175,17 +180,14 @@ function TeamsView(props: {
             </div>
             <ul className="pool-list">
               {[...team.pool, ...offPool].map((id) => {
-                const w = getWeapon(id);
                 const { state, used } = stateOf(team, id);
-                if (!w || !state) return null;
+                if (!state) return null;
                 return (
-                  <li key={id} className={`pool-row ${state}`} style={{ '--c': catColor(w) } as CSSProperties}>
+                  <li key={id} className={`pool-row ${state}`} style={{ '--c': catColor(id) } as CSSProperties}>
                     <WeaponIcon id={id} size={48} />
                     <span className="pool-row-name">
-                      <b>{w.name}</b>
-                      <span className="picker-kit">
-                        {w.sub} / {w.special}
-                      </span>
+                      <b>{weaponName(id)}</b>
+                      <span className="picker-kit">{weaponKit(id)}</span>
                     </span>
                     <span className={`status-pill ${state}`}>
                       {state === 'used' ? `${used}回使用` : STATE_LABEL[state]}
@@ -204,7 +206,7 @@ function TeamsView(props: {
 
 function MatrixView(props: {
   t: Tournament;
-  rows: { w: Weapon; count: number }[];
+  rows: { w: Item; count: number }[];
   stateOf: (team: Team, weaponId: string) => { state: CellState; used: number };
 }) {
   const { t, rows, stateOf } = props;
@@ -229,14 +231,12 @@ function MatrixView(props: {
         <tbody>
           {rows.map(({ w, count }) => (
             <tr key={w.id} className={count >= 2 && !t.rules.allowDuplicate ? 'dup' : ''}>
-              <th className="sticky-col weapon-cell" style={{ '--c': catColor(w) } as CSSProperties}>
+              <th className="sticky-col weapon-cell" style={{ '--c': catColor(w.id) } as CSSProperties}>
                 <span className="weapon-cell-inner">
                   <WeaponIcon id={w.id} size={36} />
                   <span>
                     <span className="weapon-name">{w.name}</span>
-                    <span className="picker-kit">
-                      {w.sub} / {w.special}
-                    </span>
+                    <span className="picker-kit">{w.kit}</span>
                   </span>
                 </span>
               </th>

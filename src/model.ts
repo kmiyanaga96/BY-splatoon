@@ -1,14 +1,16 @@
 // データの生成・読み込み時の補完・旧形式からの移行。
 // 保存先 (localStorage / Firebase) や JSON の読み込みから来たデータは、必ずここを通してから使う。
 
-import type { AppData, Bracket, Game, Member, Player, Rules, Team, Tournament } from './types';
+import { unitKey } from './data/weapons';
+import type { AppData, Bracket, Game, Member, Player, PoolUnit, Rules, Team, Tournament } from './types';
 
 export function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
 export const defaultRules = (): Rules => ({
-  poolMax: 3,
+  poolUnit: 'main',
+  poolMax: 2,
   reuse: 'match',
   allowDuplicate: true,
   bestOf: 3,
@@ -198,6 +200,10 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
     const v = t?.rules?.[k];
     if (typeof v === typeof rules[k] && (typeof v !== 'number' || Number.isFinite(v))) (rules as any)[k] = v;
   }
+  // 単位の設定がない旧データはブキ単位のまま
+  const unit = t?.rules?.poolUnit;
+  rules.poolUnit = unit === 'main' || unit === 'weapon' ? unit : 'weapon';
+  for (const team of teams) team.pool = convertPool(team.pool, rules.poolUnit);
   return {
     id: str(t?.id) || base.id,
     name: str(t?.name, base.name),
@@ -223,6 +229,11 @@ export function normalizeData(d: any, existingPlayers: Player[] = []): AppData {
   // 表示する大会の既定は一番新しいもの (ID は作成時刻順に並ぶ)
   const currentId = tournaments.some((t) => t.id === d?.currentId) ? d.currentId : (tournaments.at(-1)?.id ?? '');
   return { version: 2, currentId, players: [...index.players.values()], tournaments };
+}
+
+/** 候補を指定した単位にそろえる (ブキ→メインはまとめ、メイン→ブキは代表ブキにする)。重複は除く */
+export function convertPool(pool: string[], unit: PoolUnit): string[] {
+  return [...new Set(pool.map((id) => unitKey(unit, id)))];
 }
 
 /** 大会で参照している選手 ID */

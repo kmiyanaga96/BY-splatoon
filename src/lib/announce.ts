@@ -14,6 +14,13 @@ const REUSE_TEXT = {
   tournament: '大会を通して一度使ったブキは再使用不可',
 } as const;
 
+/** メイン単位では「同じメイン」の再使用を制限する */
+const REUSE_TEXT_MAIN = {
+  free: '同じメインを何度でも使用可能',
+  match: '同じ試合(セット)内では同じメインを再使用不可（マイナーチェンジに持ち替えても不可）',
+  tournament: '大会を通して一度使ったメインは再使用不可（マイナーチェンジに持ち替えても不可）',
+} as const;
+
 function teamName(t: Tournament, id: string | null): string {
   if (!id) return '未定';
   return t.teams.find((x) => x.id === id)?.name ?? '不明なチーム';
@@ -30,9 +37,11 @@ export function rulesText(t: Tournament): string {
   const r = t.rules;
   const lines = [
     `・1チーム ${r.teamSize} 人、チーム全員が同じブキを使用`,
-    `・候補ブキは ${r.poolMax > 0 ? `最大 ${r.poolMax} 種` : '制限なし'}で事前登録`,
-    `・${REUSE_TEXT[r.reuse]}`,
-    r.allowDuplicate ? null : '・他チームと同じ候補ブキは登録不可',
+    r.poolUnit === 'main'
+      ? `・候補ブキはメインを ${r.poolMax > 0 ? `${r.poolMax} 種まで` : '制限なし'}で事前登録（同じメインのマイナーチェンジはどれでも使用可）`
+      : `・候補ブキは ${r.poolMax > 0 ? `最大 ${r.poolMax} 種` : '制限なし'}で事前登録`,
+    `・${(r.poolUnit === 'main' ? REUSE_TEXT_MAIN : REUSE_TEXT)[r.reuse]}`,
+    r.allowDuplicate ? null : `・他チームと同じ候補${r.poolUnit === 'main' ? 'メイン' : 'ブキ'}は登録不可`,
     `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`,
   ];
   return lines.filter(Boolean).join('\n');

@@ -33,7 +33,7 @@ export interface Team {
   /** 意気込み・チーム紹介 */
   comment: string;
   members: Member[];
-  /** 登録した候補ブキ (Weapon.id) */
+  /** 登録した候補 (rules.poolUnit が weapon なら Weapon.id、main ならメイン ID) */
   pool: string[];
 }
 
@@ -76,7 +76,15 @@ export interface Bracket {
  */
 export type ReuseRule = 'free' | 'match' | 'tournament';
 
+/**
+ * 候補の単位
+ * - weapon: ブキ 1 つずつ (ボールドマーカーとボールドマーカーネオは別)
+ * - main: メイン単位 (マイナーチェンジも同じメインとして使える)。Team.pool にはメイン ID が入る
+ */
+export type PoolUnit = 'weapon' | 'main';
+
 export interface Rules {
+  poolUnit: PoolUnit;
   /** 候補ブキの登録上限 (0 で無制限) */
   poolMax: number;
   reuse: ReuseRule;
