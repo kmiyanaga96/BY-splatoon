@@ -9,6 +9,7 @@ export function newId(): string {
 }
 
 export const defaultRules = (): Rules => ({
+  kind: 'unified',
   poolUnit: 'main',
   poolMax: 2,
   reuse: 'match',
@@ -200,6 +201,8 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
     const v = t?.rules?.[k];
     if (typeof v === typeof rules[k] && (typeof v !== 'number' || Number.isFinite(v))) (rules as any)[k] = v;
   }
+  // 種類の設定がない旧データはブキ統一杯
+  if (!['unified', 'free'].includes(rules.kind)) rules.kind = 'unified';
   // 単位の設定がない旧データはブキ単位のまま
   const unit = t?.rules?.poolUnit;
   rules.poolUnit = unit === 'main' || unit === 'weapon' ? unit : 'weapon';

@@ -276,53 +276,56 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     }
   });
 
-  // 使用ブキ (アイコン + 名前)
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  const IS = 72; // アイコンの直径
-  const iy = 758;
-  ctx.font = `700 24px ${BODY}`;
-  ctx.fillStyle = SUB;
-  ctx.fillText(d.weaponCaption, x0, iy + IS / 2);
-  const slot = 150;
-  let x = x0 + ctx.measureText(d.weaponCaption).width + 32;
-  const limit = template === 'pop' ? W - 250 : W - x0;
-  const maxSlots = Math.max(1, Math.floor((limit - x) / slot));
-  const shown = d.weapons.length > maxSlots ? d.weapons.slice(0, maxSlots - 1) : d.weapons;
-  shown.forEach((w, i) => {
-    const cx = x + slot / 2;
-    const cy = iy + IS / 2;
-    ctx.fillStyle = tint(w.color, 0.7);
-    ctx.beginPath();
-    ctx.arc(cx, cy, IS / 2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = w.color;
-    ctx.stroke();
-    const icon = weaponIcons[i];
-    if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
-    if (w.count > 1) {
-      ctx.fillStyle = INK;
-      ctx.beginPath();
-      ctx.arc(cx + IS * 0.38, cy - IS * 0.36, 17, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `700 18px ${BODY}`;
-      ctx.textAlign = 'center';
-      ctx.fillText(`×${w.count}`, cx + IS * 0.38, cy - IS * 0.36 + 1);
-    }
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = INK;
-    ctx.fillText(fit(ctx, w.name, (s) => `700 ${s}px ${BODY}`, 18, 12, slot - 8), cx, iy + IS + 22);
-    ctx.textBaseline = 'middle';
-    x += slot;
-  });
-  if (shown.length < d.weapons.length) {
+  // 使用ブキ (アイコン + 名前)。ブキがなければ欄ごと描かない
+  if (d.weapons.length) drawWeapons();
+  function drawWeapons() {
     ctx.textAlign = 'left';
-    ctx.font = `700 26px ${BODY}`;
+    ctx.textBaseline = 'middle';
+    const IS = 72; // アイコンの直径
+    const iy = 758;
+    ctx.font = `700 24px ${BODY}`;
     ctx.fillStyle = SUB;
-    ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
+    ctx.fillText(d.weaponCaption, x0, iy + IS / 2);
+    const slot = 150;
+    let x = x0 + ctx.measureText(d.weaponCaption).width + 32;
+    const limit = template === 'pop' ? W - 250 : W - x0;
+    const maxSlots = Math.max(1, Math.floor((limit - x) / slot));
+    const shown = d.weapons.length > maxSlots ? d.weapons.slice(0, maxSlots - 1) : d.weapons;
+    shown.forEach((w, i) => {
+      const cx = x + slot / 2;
+      const cy = iy + IS / 2;
+      ctx.fillStyle = tint(w.color, 0.7);
+      ctx.beginPath();
+      ctx.arc(cx, cy, IS / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = w.color;
+      ctx.stroke();
+      const icon = weaponIcons[i];
+      if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
+      if (w.count > 1) {
+        ctx.fillStyle = INK;
+        ctx.beginPath();
+        ctx.arc(cx + IS * 0.38, cy - IS * 0.36, 17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `700 18px ${BODY}`;
+        ctx.textAlign = 'center';
+        ctx.fillText(`×${w.count}`, cx + IS * 0.38, cy - IS * 0.36 + 1);
+      }
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = INK;
+      ctx.fillText(fit(ctx, w.name, (s) => `700 ${s}px ${BODY}`, 18, 12, slot - 8), cx, iy + IS + 22);
+      ctx.textBaseline = 'middle';
+      x += slot;
+    });
+    if (shown.length < d.weapons.length) {
+      ctx.textAlign = 'left';
+      ctx.font = `700 26px ${BODY}`;
+      ctx.fillStyle = SUB;
+      ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
+    }
   }
 
   // フッター (右上に白い札で表示。どの背景でも読めるように)

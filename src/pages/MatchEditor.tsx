@@ -3,6 +3,7 @@ import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName } from '../data/weapo
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
 import { roundName, sideId, winsNeeded, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
 import { lineupIds, roster } from '../lib/roster';
 import { blockedWeapons, poolStatus } from '../lib/usage';
 import { newGame, updateCurrent, usePlayers } from '../store';
@@ -29,6 +30,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
     );
   }
 
+  const kind = kindOf(t);
   const games = m.record?.games ?? [];
   const decided = m.winner.kind === 'team';
   const winner = decided ? t.teams.find((x) => x.id === sideId(m.winner)) : null;
@@ -81,10 +83,12 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
       </div>
       {winner && <p className="result-banner"><Icon name="emoji_events" filled /> {winner.name} の勝ち抜け{m.record?.override ? '（勝者を直接指定）' : ''}</p>}
 
-      <div className="two-col">
-        <PoolSummary t={t} rounds={rounds} team={a} />
-        <PoolSummary t={t} rounds={rounds} team={b} />
-      </div>
+      {kind.hasPool && (
+        <div className="two-col">
+          <PoolSummary t={t} rounds={rounds} team={a} />
+          <PoolSummary t={t} rounds={rounds} team={b} />
+        </div>
+      )}
 
       <h3 className="title-m">ゲーム記録</h3>
       <div className="games">
@@ -111,13 +115,13 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
               onChange={(e) => editGame(i, (x) => void (x.stage = e.target.value))}
             />
             <div className="game-side">
-              <WeaponSelect
+              {kind.teamWeapon && <WeaponSelect
                 team={a}
                 unit={t.rules.poolUnit}
                 value={g.weaponA}
                 blocked={blockedWeapons(t, rounds, a.id, m.key, i)}
                 onChange={(v) => editGame(i, (x) => void (x.weaponA = v))}
-              />
+              />}
               <button
                 className={`btn win-btn ${g.winner === 'A' ? 'on' : ''}`}
                 aria-pressed={g.winner === 'A'}
@@ -137,13 +141,13 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
               )}
             </div>
             <div className="game-side">
-              <WeaponSelect
+              {kind.teamWeapon && <WeaponSelect
                 team={b}
                 unit={t.rules.poolUnit}
                 value={g.weaponB}
                 blocked={blockedWeapons(t, rounds, b.id, m.key, i)}
                 onChange={(v) => editGame(i, (x) => void (x.weaponB = v))}
-              />
+              />}
               <button
                 className={`btn win-btn ${g.winner === 'B' ? 'on' : ''}`}
                 aria-pressed={g.winner === 'B'}

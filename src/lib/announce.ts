@@ -3,6 +3,7 @@
 import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
 import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
+import { kindOf } from './kinds';
 import { poolStatus, teamUses } from './usage';
 import { roster } from './roster';
 
@@ -35,6 +36,8 @@ function sideLabel(t: Tournament, m: MatchView, which: 'a' | 'b'): string {
 
 export function rulesText(t: Tournament): string {
   const r = t.rules;
+  const bestOf = `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`;
+  if (!kindOf(t).hasPool) return [`・1チーム ${r.teamSize} 人、ブキは自由`, bestOf].join('\n');
   const lines = [
     r.poolUnit === 'main'
       ? `・1チーム ${r.teamSize} 人、チーム全員が同じメインのブキを使用（マイナーチェンジは混在可）`
@@ -44,7 +47,7 @@ export function rulesText(t: Tournament): string {
       : `・候補ブキは ${r.poolMax > 0 ? `最大 ${r.poolMax} 種` : '制限なし'}で事前登録`,
     `・${(r.poolUnit === 'main' ? REUSE_TEXT_MAIN : REUSE_TEXT)[r.reuse]}`,
     r.allowDuplicate ? null : `・他チームと同じ候補${r.poolUnit === 'main' ? 'メイン' : 'ブキ'}は登録不可`,
-    `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`,
+    bestOf,
   ];
   return lines.filter(Boolean).join('\n');
 }
@@ -64,7 +67,7 @@ export function teamText(t: Tournament, team: Team, players: PlayerMap, rounds?:
   const lines = [`## ${team.name}`];
   if (team.comment) lines.push(`> ${team.comment.replace(/\n/g, '\n> ')}`);
   const status = rounds ? poolStatus(t, rounds, team.id) : null;
-  if (team.pool.length) {
+  if (kindOf(t).hasPool && team.pool.length) {
     const pool = team.pool.map((w) => {
       const s = status?.find((x) => x.weaponId === w);
       if (s && t.rules.reuse === 'tournament' && !s.available) return `~~${weaponName(w)}~~`;
@@ -112,12 +115,14 @@ export function matchCardText(t: Tournament, players: PlayerMap, rounds: MatchVi
     const id = sideId(m[which]);
     const team = t.teams.find((x) => x.id === id);
     if (!team) continue;
-    const status = poolStatus(t, rounds, team.id);
-    const avail = status.filter((s) => s.available).map((s) => weaponName(s.weaponId));
-    const used = status.filter((s) => !s.available).map((s) => weaponName(s.weaponId));
     lines.push(`**${team.name}**`);
-    lines.push(`・選べるブキ: ${avail.join(' / ') || 'なし'}`);
-    if (used.length) lines.push(`・使用済み: ${used.join(' / ')}`);
+    if (kindOf(t).hasPool) {
+      const status = poolStatus(t, rounds, team.id);
+      const avail = status.filter((s) => s.available).map((s) => weaponName(s.weaponId));
+      const used = status.filter((s) => !s.available).map((s) => weaponName(s.weaponId));
+      lines.push(`・選べるブキ: ${avail.join(' / ') || 'なし'}`);
+      if (used.length) lines.push(`・使用済み: ${used.join(' / ')}`);
+    }
     const featured = roster(team, players)
       .filter((x) => x.member.featured)
       .map((x) => x.player.name);
@@ -143,7 +148,7 @@ export function resultsText(t: Tournament, rounds: MatchView[][], withWeapons = 
     lines.push(`## ${roundName(r, rounds.length)}`);
     for (const m of done) {
       lines.push(`・${scoreLine(t, m)}`);
-      if (withWeapons && m.record) {
+      if (withWeapons && kindOf(t).teamWeapon && m.record) {
         m.record.games.forEach((g, i) => {
           if (!g.weaponA && !g.weaponB && !g.winner) return;
           const mark = g.winner === 'A' ? '◯-✕' : g.winner === 'B' ? '✕-◯' : '-';

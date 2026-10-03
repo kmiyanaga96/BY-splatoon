@@ -1,5 +1,6 @@
 import { Avatar, Empty, Icon, IconButton, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { isAlive, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { poolStatus } from '../lib/usage';
 import { navigate } from '../router';
@@ -43,6 +44,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                 {inBracket && <span className={`badge ${alive ? 'ok' : 'out'}`}>{alive ? '勝ち残り' : '敗退'}</span>}
               </div>
               {team.comment && <p className="pre body-s clamp muted">{team.comment}</p>}
+              {kindOf(t).hasPool && (
               <div>
                 <div className="label">候補ブキ</div>
                 <div className="tags">
@@ -57,6 +59,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                   {team.pool.length === 0 && <span className="muted body-s">未登録</span>}
                 </div>
               </div>
+              )}
               <div>
                 <div className="label">メンバー（{team.members.length}）</div>
                 <ul className="members">

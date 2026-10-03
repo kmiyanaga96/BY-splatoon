@@ -5,6 +5,7 @@ import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag
 import { WeaponPicker } from '../components/WeaponPicker';
 import { teamText } from '../lib/announce';
 import { roundName, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { poolStatus, teamUses } from '../lib/usage';
 import { navigate } from '../router';
@@ -64,6 +65,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
     if (o.id === teamId) continue;
     for (const w of o.pool) others.set(w, others.has(w) ? `${others.get(w)}, ${o.name}` : o.name);
   }
+  const kind = kindOf(t);
   const status = poolStatus(t, rounds, teamId);
   const uses = teamUses(rounds, teamId);
   const members = roster(team, players);
@@ -111,6 +113,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
             </Field>
           </section>
 
+          {kind.hasPool && (
           <section className="card">
             <div className="card-head">
               <h2 className="card-title">
@@ -138,7 +141,9 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
               {team.pool.length === 0 && <span className="muted">まだ登録されていません</span>}
             </div>
           </section>
+          )}
 
+          {kind.teamWeapon && (
           <section className="card">
             <h2 className="card-title">使用ブキの記録</h2>
             {uses.length === 0 ? (
@@ -164,6 +169,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
               </ul>
             )}
           </section>
+          )}
         </div>
 
         <section className="detail-main">
