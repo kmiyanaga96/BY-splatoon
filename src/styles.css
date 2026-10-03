@@ -1906,6 +1906,25 @@ textarea.input {
 .avatar-actions {
   display: flex;
 }
+.preset-avatars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+  gap: 0.25rem;
+}
+.preset-avatar {
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: inherit;
+  cursor: pointer;
+}
+.preset-avatar:hover {
+  background: var(--md-sys-color-surface-container-high);
+}
 .player-identity {
   display: flex;
   align-items: center;

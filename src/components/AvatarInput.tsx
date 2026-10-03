@@ -1,14 +1,16 @@
 import { useRef, useState, type ClipboardEvent } from 'react';
 import { blobToAvatar, urlToAvatar } from '../lib/avatar';
-import { Avatar, IconButton, showSnackbar } from './ui';
+import { PRESET_AVATARS } from '../lib/presetAvatars';
+import { Avatar, IconButton, Modal, showSnackbar } from './ui';
 
 /**
- * 選手アイコンの設定。ファイル選択・クリップボードからの貼り付け・画像 URL に対応。
+ * 選手アイコンの設定。ファイル選択・クリップボードからの貼り付け・画像 URL・デフォルト画像からの選択に対応。
  * Discord では プロフィール → アイコンをクリック → 「画像をコピー」/「リンクをコピー」で取り出せる。
  */
 export function AvatarInput(props: { name: string; color: string; value: string; onChange: (v: string) => void; size?: number }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   const run = async (task: () => Promise<string>) => {
     setBusy(true);
@@ -54,6 +56,7 @@ export function AvatarInput(props: { name: string; color: string; value: string;
       <div className="avatar-actions">
         <IconButton icon="add_photo_alternate" label="画像ファイルを選ぶ" onClick={() => fileRef.current?.click()} />
         <IconButton icon="link" label="画像URLから設定" onClick={fromUrl} />
+        <IconButton icon="palette" label="デフォルト画像から選ぶ" onClick={() => setPicking(true)} />
         {props.value && <IconButton icon="delete" label="アイコンを削除" onClick={() => props.onChange('')} />}
       </div>
       <input
@@ -67,6 +70,26 @@ export function AvatarInput(props: { name: string; color: string; value: string;
           e.target.value = '';
         }}
       />
+      {picking && (
+        <Modal title="デフォルト画像から選ぶ" onClose={() => setPicking(false)} wide>
+          <div className="preset-avatars">
+            {PRESET_AVATARS.map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                className="preset-avatar"
+                aria-label={`デフォルト画像 ${i + 1}`}
+                onClick={() => {
+                  setPicking(false);
+                  run(() => urlToAvatar(p.url));
+                }}
+              >
+                <Avatar name={props.name} src={p.url} color={props.color} size={64} />
+              </button>
+            ))}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
