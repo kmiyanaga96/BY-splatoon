@@ -1,7 +1,7 @@
 // データの生成・読み込み時の補完・旧形式からの移行。
 // 保存先 (localStorage / Firebase) や JSON の読み込みから来たデータは、必ずここを通してから使う。
 
-import { unitKey } from './data/weapons';
+import { CATEGORIES, unitKey } from './data/weapons';
 import type { AppData, Bracket, Game, League, LeagueGroup, Member, MatchRecord, Player, PoolUnit, Rules, Team, Tiebreaker, Tournament } from './types';
 
 export function newId(): string {
@@ -10,6 +10,8 @@ export function newId(): string {
 
 export const defaultRules = (): Rules => ({
   kind: 'unified',
+  categories: [],
+  randomTiming: 'game',
   poolUnit: 'main',
   poolMax: 2,
   reuse: 'match',
@@ -32,7 +34,11 @@ export function newTournament(name = '新しい大会'): Tournament {
   };
 }
 
-export const TIEBREAKERS: Tiebreaker[] = ['wins', 'gameDiff', 'gamesWon', 'headToHead'];
+/** 選べる順位の決め方 (設定画面での並び) */
+export const TIEBREAKERS: Tiebreaker[] = ['wins', 'gamesWon', 'gamesLost', 'gameDiff', 'headToHead', 'entry'];
+
+/** タイカイサポートの優先勝利条件: 勝利試合数 > 勝利バトル数 > 負けバトル数の少なさ > 直接対決 > エントリーナンバー順 */
+export const TAIKAI_SUPPORT_TIEBREAKERS: Tiebreaker[] = ['wins', 'gamesWon', 'gamesLost', 'headToHead', 'entry'];
 
 const GROUP_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -52,7 +58,7 @@ export function makeGroups(teamIds: string[], count: number): LeagueGroup[] {
 }
 
 export function newLeague(teamIds: string[], groupCount = 2): League {
-  return { groups: makeGroups(teamIds, groupCount), advance: 2, bestOf: 3, tiebreakers: [...TIEBREAKERS], matches: {} };
+  return { groups: makeGroups(teamIds, groupCount), advance: 2, bestOf: 3, tiebreakers: [...TAIKAI_SUPPORT_TIEBREAKERS], matches: {} };
 }
 
 const TEAM_COLORS = ['#f2e14c', '#7b5cff', '#ff5c8a', '#3fd2c7', '#ff9b3d', '#5c9dff', '#9be15d', '#e66cff'];
@@ -65,6 +71,7 @@ export function newTeam(index: number): Team {
     comment: '',
     members: [],
     pool: [],
+    draws: {},
   };
 }
 
@@ -89,6 +96,38 @@ export function newGame(prev?: Game, keepWeapons = false): Game {
     picksA: prev?.picksA ? { ...prev.picksA } : null,
     picksB: prev?.picksB ? { ...prev.picksB } : null,
   };
+}
+
+/**
+ * 勝利本数 (A の勝ち数・B の勝ち数) から試合のゲーム記録をそろえる。入力済みのゲームはなるべく残す。
+ * - 勝ちが足りない側: 勝敗未入力のゲームに割り当て、足りなければゲームを追加する
+ * - 勝ちが多すぎる側: 後ろのゲームから、記録 (ブキ・ステージ) がなければ削除、あれば勝敗だけ未入力に戻す
+ */
+export function applyScore(games: Game[], winsA: number, winsB: number): Game[] {
+  const out = games.map((g) => ({ ...g }));
+  const hasData = (g: Game) => !!(g.weaponA || g.weaponB || g.picksA || g.picksB || g.stage);
+  for (const side of ['A', 'B'] as const) {
+    const want = Math.max(0, side === 'A' ? winsA : winsB);
+    let have = out.filter((g) => g.winner === side).length;
+    for (let i = out.length - 1; i >= 0 && have > want; i--) {
+      if (out[i].winner !== side) continue;
+      if (hasData(out[i])) out[i].winner = null;
+      else out.splice(i, 1);
+      have--;
+    }
+    for (const g of out) {
+      if (have >= want) break;
+      if (g.winner === null) {
+        g.winner = side;
+        have++;
+      }
+    }
+    while (have < want) {
+      out.push({ ...newGame(out.at(-1)), winner: side });
+      have++;
+    }
+  }
+  return out;
 }
 
 export function emptyData(): AppData {
@@ -187,7 +226,7 @@ function normalizeLeague(l: any, teamIds: Set<string>): League | null {
     groups,
     advance: Math.max(1, num(l.advance) ?? 2),
     bestOf: Math.max(1, num(l.bestOf) ?? 3),
-    tiebreakers: tiebreakers.length ? [...new Set(tiebreakers)] : [...TIEBREAKERS],
+    tiebreakers: tiebreakers.length ? [...new Set(tiebreakers)] : [...TAIKAI_SUPPORT_TIEBREAKERS],
     matches: normalizeMatches(l.matches),
   };
 }
@@ -251,6 +290,7 @@ function normalizeTeam(t: any, i: number, index: PlayerIndex): Team {
     comment: str(t?.comment),
     members: members.filter((m) => !seen.has(m.playerId) && seen.add(m.playerId)),
     pool: strArr(t?.pool),
+    draws: picks(t?.draws) ?? {},
   };
 }
 
@@ -263,7 +303,9 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
     if (typeof v === typeof rules[k] && (typeof v !== 'number' || Number.isFinite(v))) (rules as any)[k] = v;
   }
   // 種類の設定がない旧データはブキ統一杯
-  if (!['unified', 'free'].includes(rules.kind)) rules.kind = 'unified';
+  if (!['unified', 'free', 'category', 'random'].includes(rules.kind)) rules.kind = 'unified';
+  rules.categories = strArr(t?.rules?.categories).filter((c) => CATEGORIES.some((x) => x.id === c));
+  if (!['game', 'match', 'tournament'].includes(rules.randomTiming)) rules.randomTiming = 'game';
   // 単位の設定がない旧データはブキ単位のまま
   const unit = t?.rules?.poolUnit;
   rules.poolUnit = unit === 'main' || unit === 'weapon' ? unit : 'weapon';

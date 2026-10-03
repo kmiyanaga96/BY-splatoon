@@ -15,6 +15,7 @@ function setup(teamCount: number): Tournament {
     comment: '',
     members: [],
     pool: [],
+    draws: {},
   }));
   t.bracket.slots = createSlots(t.teams.map((x) => x.id));
   return t;

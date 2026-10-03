@@ -28,10 +28,12 @@ export interface GroupView {
 }
 
 export const TIEBREAKER_LABEL: Record<Tiebreaker, string> = {
-  wins: '勝ち数',
-  gameDiff: 'ゲーム得失差',
-  gamesWon: 'ゲーム取得数',
+  wins: '勝利試合数',
+  gamesWon: '勝利バトル数',
+  gamesLost: '負けバトル数の少なさ',
+  gameDiff: 'バトル得失差',
   headToHead: '直接対決',
+  entry: 'エントリー番号順（チーム一覧の順）',
 };
 
 export const leagueKey = (groupId: string, a: string, b: string) => `L:${groupId}:${a}:${b}`;
@@ -60,6 +62,8 @@ export function roundRobin(ids: string[]): [string, string][][] {
 export function computeLeague(t: Tournament): GroupView[] {
   const league = t.league;
   if (!league) return [];
+  // エントリー番号 = チーム一覧の並び
+  const entry = new Map(t.teams.map((x, i) => [x.id, i]));
   // グループ × 総当たりで数十試合程度なので、キャッシュせず毎回計算する
   return league.groups.map((group) => {
     const rounds = roundRobin(group.teamIds).map((pairs, r) =>
@@ -91,13 +95,13 @@ export function computeLeague(t: Tournament): GroupView[] {
       group,
       rounds,
       matches,
-      standings: standings(group.teamIds, matches, league.tiebreakers),
+      standings: standings(group.teamIds, matches, league.tiebreakers, entry),
       complete: matches.every((m) => m.winner.kind === 'team'),
     };
   });
 }
 
-function standings(teamIds: string[], matches: MatchView[], tiebreakers: Tiebreaker[]): StandingRow[] {
+function standings(teamIds: string[], matches: MatchView[], tiebreakers: Tiebreaker[], entry: Map<string, number>): StandingRow[] {
   const rows = new Map(teamIds.map((teamId) => [teamId, { teamId, played: 0, wins: 0, losses: 0, gamesWon: 0, gamesLost: 0, rank: 0 }]));
   const decided = matches.filter((m) => m.winner.kind === 'team');
   for (const m of decided) {
@@ -113,7 +117,7 @@ function standings(teamIds: string[], matches: MatchView[], tiebreakers: Tiebrea
     b.gamesWon += m.winsB;
     b.gamesLost += m.winsA;
   }
-  const ordered = rankGroups([...rows.values()], tiebreakers, decided);
+  const ordered = rankGroups([...rows.values()], tiebreakers, decided, entry);
   const result: StandingRow[] = [];
   for (const tie of ordered) {
     const rank = result.length + 1;
@@ -122,8 +126,8 @@ function standings(teamIds: string[], matches: MatchView[], tiebreakers: Tiebrea
   return result;
 }
 
-/** 決め方を上から順に適用して、同順位のまとまりを順に返す。最後まで並んだチームは元の並び (シード順) のまま同順位 */
-function rankGroups(rows: StandingRow[], keys: Tiebreaker[], decided: MatchView[]): StandingRow[][] {
+/** 決め方を上から順に適用して、同順位のまとまりを順に返す。最後まで並んだチームは元の並び (グループ内の順) のまま同順位 */
+function rankGroups(rows: StandingRow[], keys: Tiebreaker[], decided: MatchView[], entry: Map<string, number>): StandingRow[][] {
   if (rows.length <= 1 || keys.length === 0) return [rows];
   const [key, ...rest] = keys;
   const tied = new Set(rows.map((r) => r.teamId));
@@ -135,6 +139,12 @@ function rankGroups(rows: StandingRow[], keys: Tiebreaker[], decided: MatchView[
         return r.gamesWon - r.gamesLost;
       case 'gamesWon':
         return r.gamesWon;
+      case 'gamesLost':
+        // 少ないほうが上位
+        return -r.gamesLost;
+      case 'entry':
+        // チーム一覧で上にあるほど上位 (エントリー番号順)
+        return -(entry.get(r.teamId) ?? 9999);
       case 'headToHead':
         // 並んでいるチーム同士の試合だけで数えた勝ち数
         return decided.filter((m) => tied.has(sideId(m.a)!) && tied.has(sideId(m.b)!) && sideId(m.winner) === r.teamId).length;
@@ -148,7 +158,7 @@ function rankGroups(rows: StandingRow[], keys: Tiebreaker[], decided: MatchView[
     if (i === sorted.length || values.get(sorted[i].teamId) !== values.get(sorted[start].teamId)) {
       const tie = sorted.slice(start, i);
       // 1 つの決め方で差がつかなかったときだけ次の決め方へ (全員同じなら次へ進めないと無限に回る)
-      out.push(...(tie.length === rows.length ? rankGroups(tie, rest, decided) : rankGroups(tie, keys, decided)));
+      out.push(...(tie.length === rows.length ? rankGroups(tie, rest, decided, entry) : rankGroups(tie, keys, decided, entry)));
       start = i;
     }
   }

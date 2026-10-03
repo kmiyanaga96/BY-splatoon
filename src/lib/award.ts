@@ -43,12 +43,15 @@ export interface AwardData {
   weaponCaption: string;
   weapons: AwardWeapon[];
   showXp: boolean;
-  /** 大会の種類 (リボンの文字と背景の柄)。なければ装飾なし */
-  kind?: { label: string; motif: AwardMotif };
+  /** 大会の種類 (リボンの文字と背景の柄)。なければ装飾なし。colors はカテゴリ縛りの柄に使う */
+  kind?: { label: string; motif: AwardMotif; colors?: string[] };
 }
 
-/** 背景の柄: unified = 使ったブキのアイコンを並べた柄 / free = インクの飛び散り */
-export type AwardMotif = 'unified' | 'free';
+/**
+ * 背景の柄: unified = 使ったブキのアイコンを並べた柄 / free = インクの飛び散り /
+ * category = 指定カテゴリの色の斜めストライプ / random = 「?」を散らした柄
+ */
+export type AwardMotif = 'unified' | 'free' | 'category' | 'random';
 
 const INK_COLORS = ['#e8e04a', '#5cc3f0', '#f25c8f', '#9be15d', '#c67cf2', '#f08a3c'];
 
@@ -214,6 +217,30 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       const icon = weaponIcons[0];
       for (let row = 0, y = -20; y < H; row++, y += 110) {
         for (let x = W * 0.5 + (row % 2) * 70; x < W + 70; x += 140) ctx.drawImage(icon, x, y, 84, 84);
+      }
+    } else if (d.kind.motif === 'category') {
+      // 指定カテゴリの色を順に使った斜めストライプ
+      const colors = d.kind.colors?.length ? d.kind.colors : [color];
+      ctx.globalAlpha = 0.12;
+      ctx.translate(W * 0.72, H / 2);
+      ctx.rotate(-Math.PI / 6);
+      for (let i = -12; i < 12; i++) {
+        ctx.fillStyle = colors[((i % colors.length) + colors.length) % colors.length];
+        ctx.fillRect(i * 70, -H, 34, H * 2);
+      }
+    } else if (d.kind.motif === 'random') {
+      // 抽選らしく「?」を大小ばらばらに散らす
+      ctx.globalAlpha = 0.14;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i < 18; i++) {
+        ctx.fillStyle = INK_COLORS[i % INK_COLORS.length];
+        ctx.font = `400 ${Math.round(48 + rand() * 90)}px ${DISPLAY}`;
+        ctx.save();
+        ctx.translate(W * 0.48 + rand() * W * 0.52, rand() * H);
+        ctx.rotate((rand() - 0.5) * 0.8);
+        ctx.fillText('?', 0, 0);
+        ctx.restore();
       }
     } else if (d.kind.motif === 'free') {
       // いろんなブキ = いろんな色のインクが飛び散った柄

@@ -1,11 +1,13 @@
 import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponIcon, WeaponTag } from '../components/ui';
-import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName } from '../data/weapons';
+import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName, type Weapon } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
 import { sideId, winsNeeded, type MatchView } from '../lib/bracket';
-import { kindOf } from '../lib/kinds';
+import { kindOf, selectableWeapons } from '../lib/kinds';
+import { drawWeapons } from '../lib/random';
 import { lineupIds, roster } from '../lib/roster';
 import { blockedWeapons, poolStatus } from '../lib/usage';
+import { applyScore } from '../model';
 import { newGame, updateCurrent, usePlayers } from '../store';
 import type { Game, GameMode, MatchRecord, PlayerMap, PoolUnit, Team, Tournament } from '../types';
 
@@ -31,6 +33,23 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
   }
 
   const kind = kindOf(t);
+  const selectable = selectableWeapons(t);
+  // ランダムブキの抽選のタイミング (ランダムブキの大会以外は null)
+  const random = t.rules.kind === 'random' ? t.rules.randomTiming : null;
+  /** 新しいゲームのブキ: ゲームごとに抽選する大会は前のゲームから引き継がず、大会で 1 回なら抽選結果を入れる */
+  const prepareRandom = (g: Game) => {
+    if (random === 'game') {
+      g.picksA = null;
+      g.picksB = null;
+    } else if (random === 'tournament') {
+      g.picksA = drawnFor(a!, g.lineupA);
+      g.picksB = drawnFor(b!, g.lineupB);
+    }
+  };
+  const drawnFor = (team: Team, lineup: string[] | null) => {
+    const picks = Object.fromEntries(lineupIds(team, lineup).flatMap((id) => (team.draws[id] ? [[id, team.draws[id]]] : [])));
+    return Object.keys(picks).length ? picks : null;
+  };
   const games = m.record?.games ?? [];
   const decided = m.winner.kind === 'team';
   const winner = decided ? t.teams.find((x) => x.id === sideId(m.winner)) : null;
@@ -50,11 +69,37 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
     });
   const editGame = (i: number, fn: (g: Game) => void) => edit((rec) => fn(rec.games[i]));
 
+  const setScore = (winsA: number, winsB: number) =>
+    edit((rec) => {
+      const before = rec.games.length;
+      rec.games = applyScore(rec.games, winsA, winsB);
+      // 足されたゲームは「ゲームを追加」と同じく、抽選のタイミングに合わせてブキを入れ直す
+      for (const g of rec.games.slice(before)) prepareRandom(g);
+    });
+
   const addGame = () =>
     edit((rec) => {
       // 前のゲームと同じブキで始める (再使用不可ルールなら空欄)
-      rec.games.push(newGame(rec.games.at(-1), t.rules.reuse === 'free'));
+      const g = newGame(rec.games.at(-1), t.rules.reuse === 'free');
+      prepareRandom(g);
+      rec.games.push(g);
     });
+
+  /** ランダムブキ: ゲーム i (省略時は試合のすべてのゲーム) の両チームのブキを抽選する */
+  const draw = (i?: number) => {
+    const targets = i === undefined ? games : [games[i]];
+    if (targets.some((g) => g?.picksA || g?.picksB) && !confirm('入力済みのブキを抽選し直しますか？')) return;
+    edit((rec) => {
+      if (rec.games.length === 0) rec.games.push(newGame());
+      const lineup = rec.games[i ?? 0];
+      const picksA = drawWeapons(lineupIds(a, lineup.lineupA));
+      const picksB = drawWeapons(lineupIds(b, lineup.lineupB));
+      for (const g of i === undefined ? rec.games : [rec.games[i]]) {
+        g.picksA = { ...picksA };
+        g.picksB = { ...picksB };
+      }
+    });
+  };
 
   return (
     <Modal
@@ -79,8 +124,11 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
     >
       <div className="scoreboard">
         <TeamName name={a.name} color={a.color} big />
+        {/* 勝利本数を直接入れると、ゲーム記録の勝敗をそろえる (ブキなどは各ゲームで入力) */}
         <span className="score">
-          {m.winsA} - {m.winsB}
+          <ScoreInput label={`${a.name}の勝利本数`} value={m.winsA} max={m.bestOf} onChange={(v) => setScore(v, m.winsB)} />
+          -
+          <ScoreInput label={`${b.name}の勝利本数`} value={m.winsB} max={m.bestOf} onChange={(v) => setScore(m.winsA, v)} />
         </span>
         <TeamName name={b.name} color={b.color} big />
       </div>
@@ -93,6 +141,18 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
         </div>
       )}
 
+      {random === 'match' && (
+        <div className="card-actions draw-actions">
+          <button className="btn filled" onClick={() => draw()}>
+            <Icon name="shuffle" />
+            この試合のブキを抽選（選手ごと）
+          </button>
+        </div>
+      )}
+      {random === 'tournament' && (
+        <p className="muted body-s">ブキは大会で 1 回抽選した結果を使います（チーム画面で抽選）。</p>
+      )}
+      {random === 'game' && <p className="muted body-s">各ゲームの抽選ボタンで、そのゲームのブキを選手ごとに抽選します。</p>}
       <h3 className="title-m">ゲーム記録</h3>
       <div className="games">
         {games.map((g, i) => (
@@ -148,6 +208,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                   players={players}
                   lineup={g.lineupA}
                   value={g.picksA}
+                  weapons={selectable}
                   onChange={(v) => editGame(i, (x) => void (x.picksA = v))}
                 />
               )}
@@ -183,11 +244,19 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                   players={players}
                   lineup={g.lineupB}
                   value={g.picksB}
+                  weapons={selectable}
                   onChange={(v) => editGame(i, (x) => void (x.picksB = v))}
                 />
               )}
             </div>
-            <IconButton icon="delete" label={`${i + 1}戦目を削除`} onClick={() => edit((rec) => void rec.games.splice(i, 1))} />
+            {random === 'game' ? (
+              <span className="game-actions">
+                <IconButton icon="shuffle" label={`${i + 1}戦目のブキを抽選`} onClick={() => draw(i)} />
+                <IconButton icon="delete" label={`${i + 1}戦目を削除`} onClick={() => edit((rec) => void rec.games.splice(i, 1))} />
+              </span>
+            ) : (
+              <IconButton icon="delete" label={`${i + 1}戦目を削除`} onClick={() => edit((rec) => void rec.games.splice(i, 1))} />
+            )}
           </div>
         ))}
         <datalist id="stage-list">
@@ -274,6 +343,8 @@ function PlayerWeapons(props: {
   lineup: string[] | null;
   value: Record<string, string> | null;
   onChange: (v: Record<string, string> | null) => void;
+  /** 選べるブキ (カテゴリ縛りなら指定カテゴリだけ) */
+  weapons: Weapon[];
 }) {
   const { team, value } = props;
   const ids = lineupIds(team, props.lineup);
@@ -299,7 +370,7 @@ function PlayerWeapons(props: {
               <option value="">ブキ未入力</option>
               {CATEGORIES.map((c) => (
                 <optgroup key={c.id} label={c.name}>
-                  {WEAPONS.filter((w) => w.category === c.id && (!w.replica || w.id === weaponId)).map((w) => (
+                  {props.weapons.filter((w) => w.category === c.id && (!w.replica || w.id === weaponId)).map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.name}
                     </option>
@@ -311,6 +382,22 @@ function PlayerWeapons(props: {
         );
       })}
     </div>
+  );
+}
+
+function ScoreInput(props: { label: string; value: number; max: number; onChange: (v: number) => void }) {
+  return (
+    <input
+      className="score-input"
+      type="number"
+      inputMode="numeric"
+      min={0}
+      max={props.max}
+      value={props.value}
+      aria-label={props.label}
+      title={`${props.label}（入力するとゲーム記録の勝敗をそろえます）`}
+      onChange={(e) => props.onChange(Math.min(props.max, Math.max(0, Number(e.target.value) || 0)))}
+    />
   );
 }
 
