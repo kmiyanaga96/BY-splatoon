@@ -19,6 +19,8 @@ export interface AwardMember {
   avatar: string;
   xp: number | null;
   leader: boolean;
+  /** 一番使ったブキのアイコン URL (選手ごとにブキを記録する大会だけ) */
+  weapon?: string;
 }
 
 export interface AwardWeapon {
@@ -41,7 +43,14 @@ export interface AwardData {
   weaponCaption: string;
   weapons: AwardWeapon[];
   showXp: boolean;
+  /** 大会の種類 (リボンの文字と背景の柄)。なければ装飾なし */
+  kind?: { label: string; motif: AwardMotif };
 }
+
+/** 背景の柄: unified = 使ったブキのアイコンを並べた柄 / free = インクの飛び散り */
+export type AwardMotif = 'unified' | 'free';
+
+const INK_COLORS = ['#e8e04a', '#5cc3f0', '#f25c8f', '#9be15d', '#c67cf2', '#f08a3c'];
 
 const DISPLAY = '"Dela Gothic One", "Noto Sans JP", sans-serif';
 const BODY = '"Noto Sans JP", sans-serif';
@@ -153,7 +162,10 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       return tier ? loadImage(xBadgeUrl(tier)) : Promise.resolve(null);
     })),
   ]);
-  const weaponIcons = await Promise.all(d.weapons.map((w) => loadImage(w.icon)));
+  const [weaponIcons, memberWeapons] = await Promise.all([
+    Promise.all(d.weapons.map((w) => loadImage(w.icon))),
+    Promise.all(d.members.map((m) => loadImage(m.weapon ?? ''))),
+  ]);
 
   if (!isCurrent()) return;
   canvas.width = AWARD_W;
@@ -193,8 +205,51 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, W - 2, H - 2);
   }
+  // 大会の種類ごとの柄 (背景の上・文字の下に薄く)
+  if (d.kind) {
+    ctx.save();
+    if (d.kind.motif === 'unified' && weaponIcons[0]) {
+      // 同じブキを全員で使う大会らしく、同じアイコンを斜めに並べる
+      ctx.globalAlpha = 0.07;
+      const icon = weaponIcons[0];
+      for (let row = 0, y = -20; y < H; row++, y += 110) {
+        for (let x = W * 0.5 + (row % 2) * 70; x < W + 70; x += 140) ctx.drawImage(icon, x, y, 84, 84);
+      }
+    } else if (d.kind.motif === 'free') {
+      // いろんなブキ = いろんな色のインクが飛び散った柄
+      ctx.globalAlpha = 0.16;
+      for (let i = 0; i < 16; i++) {
+        const x = W * 0.45 + rand() * W * 0.55;
+        const y = rand() * H;
+        splat(ctx, x, y, 10 + rand() * 22, INK_COLORS[i % INK_COLORS.length], rand);
+      }
+    }
+    ctx.restore();
+  }
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
+
+  // 大会の種類のリボン (大会名の上)
+  if (d.kind) {
+    ctx.font = `700 22px ${BODY}`;
+    const label = d.kind.label;
+    const w = ctx.measureText(label).width + 40;
+    const ry = template === 'team' ? 50 : 36;
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    // 右端を矢羽根のように切り欠いたリボン
+    ctx.moveTo(x0, ry);
+    ctx.lineTo(x0 + w + 14, ry);
+    ctx.lineTo(x0 + w, ry + 17);
+    ctx.lineTo(x0 + w + 14, ry + 34);
+    ctx.lineTo(x0, ry + 34);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x0 + 18, ry + 18);
+    ctx.textBaseline = 'alphabetic';
+  }
 
   // 大会名・日付
   ctx.fillStyle = SUB;
@@ -251,6 +306,22 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     // Xバッジ (右上)
     const badge = badges[i];
     if (badge) ctx.drawImage(badge, cx + D * 0.22, cy - D / 2 - 10, 54, 61);
+
+    // 一番使ったブキ (左上)
+    const wicon = memberWeapons[i];
+    if (wicon) {
+      const r = 30;
+      const wx = cx - D * 0.36;
+      const wy = cy - D * 0.36;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(wx, wy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      ctx.drawImage(wicon, wx - r * 0.8, wy - r * 0.8, r * 1.6, r * 1.6);
+    }
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';

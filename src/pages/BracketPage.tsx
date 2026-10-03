@@ -13,6 +13,7 @@ import {
 import { navigate, useRoute } from '../router';
 import { updateCurrent } from '../store';
 import type { Tournament } from '../types';
+import { createBracketFromLeague } from './LeaguePage';
 import { MatchEditor } from './MatchEditor';
 
 function shuffle<T>(xs: T[]): T[] {
@@ -31,7 +32,9 @@ export function BracketPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
   const champ = t.teams.find((x) => x.id === champion(rounds));
   const stale = rounds.flat().filter((m) => m.stale);
   const placed = new Set(t.bracket.slots.filter(Boolean));
-  const unplaced = t.teams.filter((x) => !placed.has(x.id));
+  // 予選リーグがある大会では、表に入っていないのは予選敗退なので警告しない
+  const inLeague = new Set(t.league?.groups.flatMap((g) => g.teamIds) ?? []);
+  const unplaced = t.teams.filter((x) => !placed.has(x.id) && !inLeague.has(x.id));
 
   const generate = (random: boolean) => {
     const hasRecords = Object.keys(t.bracket.matches).length > 0;
@@ -65,11 +68,17 @@ export function BracketPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
             </Empty>
           ) : (
             <div className="card-actions">
+              {t.league && (
+                <button className="btn filled" onClick={() => createBracketFromLeague(t)}>
+                  <Icon name="leaderboard" />
+                  予選リーグの順位から作成
+                </button>
+              )}
               <button className="btn outlined" onClick={() => generate(true)}>
                 <Icon name="shuffle" />
                 ランダムに組み合わせて作成
               </button>
-              <button className="btn filled" onClick={() => generate(false)}>
+              <button className={`btn ${t.league ? 'outlined' : 'filled'}`} onClick={() => generate(false)}>
                 <Icon name="account_tree" />
                 チーム一覧の順（シード順）で作成
               </button>
@@ -89,6 +98,12 @@ export function BracketPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
           <Icon name={editingSlots ? 'check' : 'edit'} />
           {editingSlots ? '枠の編集を終える' : '1回戦の枠を編集'}
         </button>
+        {t.league && (
+          <button className="btn outlined" onClick={() => createBracketFromLeague(t)}>
+            <Icon name="leaderboard" />
+            予選の順位で作り直す
+          </button>
+        )}
         <button className="btn outlined" onClick={() => generate(false)}>
           <Icon name="restart_alt" />
           シード順で作り直す

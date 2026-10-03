@@ -4,7 +4,7 @@ import { PlayerSelect } from '../components/PlayerSelect';
 import { CopyButton, Empty, Field, Icon, IconButton, Switch, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { WeaponPicker } from '../components/WeaponPicker';
 import { teamText } from '../lib/announce';
-import { roundName, type MatchView } from '../lib/bracket';
+import { type MatchView } from '../lib/bracket';
 import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { poolStatus, teamUses } from '../lib/usage';
@@ -55,6 +55,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
     updateCurrent((d) => {
       d.teams = d.teams.filter((x) => x.id !== teamId);
       d.bracket.slots = d.bracket.slots.map((s) => (s === teamId ? null : s));
+      for (const g of d.league?.groups ?? []) g.teamIds = g.teamIds.filter((x) => x !== teamId);
     });
     navigate('teams');
   };
@@ -67,7 +68,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
   }
   const kind = kindOf(t);
   const status = poolStatus(t, rounds, teamId);
-  const uses = teamUses(rounds, teamId);
+  const uses = teamUses(t, rounds, teamId);
   const members = roster(team, players);
 
   return (
@@ -152,11 +153,10 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
               <ul className="list">
                 {uses.map((u) => {
                   const opp = t.teams.find((x) => x.id === u.opponentId);
-                  const [r, i] = u.matchKey.split('-').map(Number);
                   return (
                     <li key={`${u.matchKey}-${u.gameIndex}`} className="list-row">
                       <span className="overline">
-                        {roundName(r, rounds.length)} #{i + 1}・{u.gameIndex + 1}戦目
+                        {u.matchLabel}・{u.gameIndex + 1}戦目
                       </span>
                       <WeaponTag id={u.weaponId} />
                       <span>vs {opp ? <TeamName name={opp.name} color={opp.color} /> : '?'}</span>

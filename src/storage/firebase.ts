@@ -33,7 +33,11 @@ export const firebaseAdapter: StorageAdapter = {
     const ops: ((b: ReturnType<typeof writeBatch>) => void)[] = [];
     for (const p of changes.players.upserted) ops.push((b) => b.set(doc(db, 'players', p.id), { ...p, ...stamp }));
     for (const id of changes.players.deleted) ops.push((b) => b.delete(doc(db, 'players', id)));
-    for (const t of changes.tournaments.upserted) ops.push((b) => b.set(doc(db, 'tournaments', t.id), { ...t, ...stamp }));
+    for (const t of changes.tournaments.upserted) {
+      // 予選がない大会は league を書かない (league を許可するルールの反映前でも保存できるように)
+      const { league, ...rest } = t;
+      ops.push((b) => b.set(doc(db, 'tournaments', t.id), { ...(league ? t : rest), ...stamp }));
+    }
     for (const id of changes.tournaments.deleted) ops.push((b) => b.delete(doc(db, 'tournaments', id)));
     for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
       const batch = writeBatch(db);

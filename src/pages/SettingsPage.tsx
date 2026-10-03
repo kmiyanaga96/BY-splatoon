@@ -1,6 +1,7 @@
-import { Field, Icon, Switch } from '../components/ui';
+import { Field, Icon, IconButton, Switch } from '../components/ui';
 import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
-import { convertPool } from '../model';
+import { TIEBREAKER_LABEL } from '../lib/league';
+import { convertPool, newLeague } from '../model';
 import { backupJson, createTournament, newId, update, updateCurrent, useApp } from '../store';
 import { KIND_OPTIONS, kindOf } from '../lib/kinds';
 import type { PoolUnit, ReuseRule, Rules, Tournament, TournamentKind } from '../types';
@@ -31,7 +32,13 @@ export function SettingsPage({ t }: { t: Tournament }) {
 
   const duplicate = () => {
     // チーム・ルールはそのまま、トーナメント表は空にして複製 (次回大会の下準備用)
-    const copy: Tournament = { ...structuredClone(t), id: newId(), name: `${t.name} のコピー`, bracket: { slots: [], matches: {} } };
+    const copy: Tournament = {
+      ...structuredClone(t),
+      id: newId(),
+      name: `${t.name} のコピー`,
+      league: t.league ? { ...structuredClone(t.league), matches: {} } : null,
+      bracket: { slots: [], matches: {} },
+    };
     update((d) => {
       d.tournaments.push(copy);
       d.currentId = copy.id;
@@ -140,6 +147,8 @@ export function SettingsPage({ t }: { t: Tournament }) {
       </section>
       </div>
 
+      <LeagueSettings t={t} />
+
       <div className="cols-2">
 
       <section className="card">
@@ -196,5 +205,59 @@ function BestOfSelect({ value, onChange }: { value: number; onChange: (v: number
         </option>
       ))}
     </select>
+  );
+}
+
+/** 予選リーグの有無・進出数・BO 数・順位の決め方 (グループ分けは予選ページで編集) */
+function LeagueSettings({ t }: { t: Tournament }) {
+  const league = t.league;
+  const toggle = (on: boolean) => {
+    if (!on && league && Object.keys(league.matches).length && !confirm('予選リーグをなくしますか？\n予選の試合結果はすべて消えます。')) return;
+    updateCurrent((d) => void (d.league = on ? newLeague(d.teams.map((x) => x.id)) : null));
+  };
+  const set = (fn: (l: NonNullable<Tournament['league']>) => void) => updateCurrent((d) => void (d.league && fn(d.league)));
+  const moveTiebreaker = (i: number, delta: number) =>
+    set((l) => {
+      const j = i + delta;
+      if (j < 0 || j >= l.tiebreakers.length) return;
+      [l.tiebreakers[i], l.tiebreakers[j]] = [l.tiebreakers[j], l.tiebreakers[i]];
+    });
+  return (
+    <section className="card">
+      <h2 className="card-title">予選リーグ</h2>
+      <Switch label="予選リーグ（グループごとの総当たり）を行い、上位チームで本選トーナメントをする" checked={!!league} onChange={toggle} />
+      {league && (
+        <>
+          <div className="form-row">
+            <Field label="各グループから本選に進むチーム数">
+              <input
+                className="input"
+                type="number"
+                min={1}
+                value={league.advance}
+                onChange={(e) => set((l) => void (l.advance = Math.max(1, Number(e.target.value) || 1)))}
+              />
+            </Field>
+            <Field label="予選の試合">
+              <BestOfSelect value={league.bestOf} onChange={(v) => set((l) => void (l.bestOf = v))} />
+            </Field>
+          </div>
+          <span className="label">順位の決め方（上から順に比べる）</span>
+          <ol className="tiebreakers">
+            {league.tiebreakers.map((k, i) => (
+              <li key={k}>
+                <span>{TIEBREAKER_LABEL[k]}</span>
+                <IconButton icon="arrow_upward" label="上へ" onClick={() => moveTiebreaker(i, -1)} />
+                <IconButton icon="arrow_downward" label="下へ" onClick={() => moveTiebreaker(i, 1)} />
+              </li>
+            ))}
+          </ol>
+          <p className="muted body-s">
+            直接対決は、並んだチーム同士の試合だけで比べます。最後まで並んだ場合は同順位になります。
+            グループ分けは<a href="#/league">予選ページ</a>で編集できます。
+          </p>
+        </>
+      )}
+    </section>
   );
 }

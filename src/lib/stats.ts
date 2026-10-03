@@ -1,7 +1,8 @@
 // 選手ごとの集計 (大会成績・使用ブキ)。データが小さいのでブラウザ側で毎回計算する。
 
 import type { AppData, Tournament } from '../types';
-import { computeBracket, placements, sideId, type MatchView, type Placement } from './bracket';
+import { computeBracket, sideId, type MatchView, type Placement } from './bracket';
+import { allMatches, allPlacements } from './league';
 import { lineupIds } from './roster';
 
 export interface TournamentResult {
@@ -53,9 +54,9 @@ export function playerStats(data: AppData, playerId: string): PlayerStats {
       teamId: team.id,
       teamName: team.name,
       teamColor: team.color,
-      placement: placements(rounds).get(team.id) ?? null,
+      placement: allPlacements(t, rounds).get(team.id) ?? null,
     });
-    for (const m of rounds.flat()) {
+    for (const m of allMatches(t, rounds)) {
       if (!m.record) continue;
       const side = sideId(m.a) === team.id ? 'A' : sideId(m.b) === team.id ? 'B' : null;
       if (!side) continue;

@@ -7,15 +7,17 @@ import {
   matchCardText,
   overviewText,
   resultsText,
+  standingsText,
   teamText,
   weaponStatsText,
 } from '../lib/announce';
-import { roundName, sideId, type MatchView } from '../lib/bracket';
+import { sideId, type MatchView } from '../lib/bracket';
 import { kindOf } from '../lib/kinds';
+import { allMatches } from '../lib/league';
 import { usePlayers } from '../store';
 import type { Tournament } from '../types';
 
-type Kind = 'overview' | 'teams' | 'team' | 'featured' | 'match' | 'results' | 'weapons';
+type Kind = 'overview' | 'teams' | 'team' | 'featured' | 'match' | 'standings' | 'results' | 'weapons';
 
 const KINDS: { id: Kind; label: string; icon: string }[] = [
   { id: 'overview', label: '大会概要・ルール', icon: 'info' },
@@ -23,6 +25,7 @@ const KINDS: { id: Kind; label: string; icon: string }[] = [
   { id: 'team', label: 'チーム紹介（個別）', icon: 'groups' },
   { id: 'featured', label: '注目選手', icon: 'star' },
   { id: 'match', label: '対戦カード', icon: 'account_tree' },
+  { id: 'standings', label: '予選リーグ順位', icon: 'leaderboard' },
   { id: 'results', label: '試合結果', icon: 'emoji_events' },
   { id: 'weapons', label: 'ブキ使用状況', icon: 'table_view' },
 ];
@@ -48,7 +51,7 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
   const players = usePlayers();
   const [kind, setKind] = useState<Kind>('overview');
   const [teamId, setTeamId] = useState(t.teams[0]?.id ?? '');
-  const matches = rounds.flat().filter((m) => m.a.kind === 'team' && m.b.kind === 'team');
+  const matches = allMatches(t, rounds).filter((m) => m.a.kind === 'team' && m.b.kind === 'team');
   const [matchKey, setMatchKey] = useState(
     () => (matches.find((m) => m.winner.kind === 'tbd') ?? matches[0])?.key ?? '',
   );
@@ -70,6 +73,8 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
         const m = matches.find((x) => x.key === matchKey);
         return m ? matchCardText(t, players, rounds, m) : '対戦カードが決まっている試合がありません';
       }
+      case 'standings':
+        return standingsText(t);
       case 'results':
         return resultsText(t, rounds, withWeapons);
       case 'weapons':
@@ -95,7 +100,9 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
           <h2 className="card-title">種類</h2>
           <div className="nav-list" role="radiogroup">
             {/* ブキ使用状況はブキを記録する大会だけ */}
-            {KINDS.filter((k) => k.id !== 'weapons' || kindOf(t).teamWeapon || kindOf(t).playerWeapons).map((k) => (
+            {KINDS.filter(
+              (k) => (k.id !== 'weapons' || kindOf(t).teamWeapon || kindOf(t).playerWeapons) && (k.id !== 'standings' || !!t.league),
+            ).map((k) => (
               <button
                 key={k.id}
                 role="radio"
@@ -124,7 +131,7 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
               <select className="input" value={matchKey} onChange={(e) => setMatchKey(e.target.value)}>
                 {matches.map((m) => (
                   <option key={m.key} value={m.key}>
-                    {roundName(m.round, rounds.length)} #{m.index + 1}: {teamName(sideId(m.a))} vs {teamName(sideId(m.b))}
+                    {m.label}: {teamName(sideId(m.a))} vs {teamName(sideId(m.b))}
                     {m.winner.kind === 'team' ? '（終了）' : ''}
                   </option>
                 ))}

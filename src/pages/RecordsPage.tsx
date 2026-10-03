@@ -1,7 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Avatar, Empty, Segmented, TeamName, WeaponIcon, WeaponTag } from '../components/ui';
 import { CATEGORIES, categoryOf, weaponName } from '../data/weapons';
-import { roundName, sideId, type MatchView } from '../lib/bracket';
+import { sideId, type MatchView } from '../lib/bracket';
+import { allMatches } from '../lib/league';
 import { allPicks, gamePicks, percent, usageBy, type PlayerPick } from '../lib/records';
 import { roster } from '../lib/roster';
 import { usePlayers } from '../store';
@@ -134,7 +135,7 @@ function TeamPicks({ team, players, picks }: { team: Team; players: PlayerMap; p
 
 /** 試合 → ゲームごとに、両チームのメンバーが何を使ったか */
 function MatchLog({ t, rounds, players }: { t: Tournament; rounds: MatchView[][]; players: PlayerMap }) {
-  const matches = rounds.flat().filter((m) => m.record?.games.length);
+  const matches = allMatches(t, rounds).filter((m) => m.record?.games.length);
   return (
     <div className="match-log">
       {matches.map((m) => {
@@ -143,7 +144,7 @@ function MatchLog({ t, rounds, players }: { t: Tournament; rounds: MatchView[][]
         return (
           <section key={m.key} className="card">
             <h3 className="title-m">
-              {roundName(m.round, rounds.length)} #{m.index + 1}　{a?.name ?? '?'} {m.winsA} - {m.winsB} {b?.name ?? '?'}
+              {m.label}　{a?.name ?? '?'} {m.winsA} - {m.winsB} {b?.name ?? '?'}
             </h3>
             {m.record!.games.map((g, i) => (
               <div key={i} className="match-log-game">

@@ -4,6 +4,7 @@
 import { categoryOf } from '../data/weapons';
 import type { Game, Team, Tournament } from '../types';
 import { sideId, type MatchView } from './bracket';
+import { allMatches } from './league';
 import { lineupIds } from './roster';
 
 /** 1 人が 1 ゲームで使ったブキ */
@@ -35,7 +36,7 @@ export function gamePicks(team: Team | undefined, g: Game, side: 'A' | 'B'): Map
 /** 大会で記録されたすべての使用ブキ (試合順) */
 export function allPicks(t: Tournament, rounds: MatchView[][]): PlayerPick[] {
   const out: PlayerPick[] = [];
-  for (const m of rounds.flat()) {
+  for (const m of allMatches(t, rounds)) {
     if (!m.record) continue;
     const ids = { A: sideId(m.a), B: sideId(m.b) };
     m.record.games.forEach((g, gameIndex) => {

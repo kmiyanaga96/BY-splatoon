@@ -107,6 +107,26 @@ export interface Rules {
   teamSize: number;
 }
 
+/** 予選リーグの順位の決め方 (上から順に比べる) */
+export type Tiebreaker = 'wins' | 'gameDiff' | 'gamesWon' | 'headToHead';
+
+export interface LeagueGroup {
+  id: string;
+  name: string;
+  teamIds: string[];
+}
+
+/** 予選リーグ (グループごとの総当たり)。上位が本選トーナメントに進む */
+export interface League {
+  groups: LeagueGroup[];
+  /** 各グループから本選に進むチーム数 */
+  advance: number;
+  bestOf: number;
+  tiebreakers: Tiebreaker[];
+  /** key: "L:<グループID>:<チームID>:<チームID>" */
+  matches: Record<string, MatchRecord>;
+}
+
 export interface Tournament {
   id: string;
   name: string;
@@ -114,6 +134,9 @@ export interface Tournament {
   description: string;
   rules: Rules;
   teams: Team[];
+  /** 予選リーグ。予選なしは null */
+  league: League | null;
+  /** 本選トーナメント */
   bracket: Bracket;
 }
 

@@ -1,6 +1,7 @@
 import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { rulesText } from '../lib/announce';
-import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
+import { champion, isPlayable, sideId, type MatchView } from '../lib/bracket';
+import { allMatches } from '../lib/league';
 import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { navigate } from '../router';
@@ -9,7 +10,8 @@ import type { Tournament } from '../types';
 
 export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
   const team = (id: string | null) => t.teams.find((x) => x.id === id);
-  const playable = rounds.flat().filter(isPlayable);
+  // 予選リーグ → 本選トーナメントの順
+  const playable = allMatches(t, rounds).filter(isPlayable);
   const done = playable.filter((m) => m.winner.kind === 'team');
   const upcoming = playable.filter((m) => m.a.kind === 'team' && m.b.kind === 'team' && m.winner.kind === 'tbd');
   const champ = team(champion(rounds));
@@ -82,10 +84,8 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
                 const b = team(sideId(m.b))!;
                 return (
                   <li key={m.key}>
-                    <button className="list-item" onClick={() => navigate('bracket', m.key)}>
-                      <span className="overline">
-                        {roundName(m.round, rounds.length)} #{m.index + 1}
-                      </span>
+                    <button className="list-item" onClick={() => navigate(m.stage, m.key)}>
+                      <span className="overline">{m.label}</span>
                       <span className="match-line">
                         <TeamName name={a.name} color={a.color} />
                         <span className="vs">

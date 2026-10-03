@@ -2,7 +2,7 @@ import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponIco
 import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
-import { roundName, sideId, winsNeeded, type MatchView } from '../lib/bracket';
+import { sideId, winsNeeded, type MatchView } from '../lib/bracket';
 import { kindOf } from '../lib/kinds';
 import { lineupIds, roster } from '../lib/roster';
 import { blockedWeapons, poolStatus } from '../lib/usage';
@@ -38,10 +38,13 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
   /** 記録を書き換える。現在の対戦カードと違う古い記録は作り直す */
   const edit = (fn: (rec: MatchRecord) => void) =>
     updateCurrent((d) => {
-      let rec = d.bracket.matches[m.key];
+      // 予選リーグの試合は league.matches、本選は bracket.matches に記録する
+      const store = m.stage === 'league' ? d.league?.matches : d.bracket.matches;
+      if (!store) return;
+      let rec = store[m.key];
       if (!rec || rec.a !== a.id || rec.b !== b.id) {
         rec = { a: a.id, b: b.id, games: [], override: null, note: '' };
-        d.bracket.matches[m.key] = rec;
+        store[m.key] = rec;
       }
       fn(rec);
     });
@@ -59,7 +62,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
       onClose={onClose}
       title={
         <>
-          {roundName(m.round, rounds.length)} 第{m.index + 1}試合
+          {m.label}
           <span className="dialog-subtitle">
             BO{m.bestOf}（{winsNeeded(m.bestOf)}勝先取）
           </span>
