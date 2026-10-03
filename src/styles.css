@@ -1906,6 +1906,35 @@ textarea.input {
 .avatar-actions {
   display: flex;
 }
+.preset-avatars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.5rem;
+}
+.preset-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: inherit;
+  cursor: pointer;
+}
+.preset-avatar:hover {
+  background: var(--md-sys-color-surface-container-high);
+}
+.preset-avatar.selected {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-secondary-container);
+}
+.preset-avatar-label {
+  font-size: 0.75rem;
+  text-align: center;
+}
 .player-identity {
   display: flex;
   align-items: center;
