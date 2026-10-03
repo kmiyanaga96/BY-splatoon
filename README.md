@@ -116,7 +116,7 @@ npm run build      # dist/ に静的ファイルを出力
 - Firestore の構成：`players/{id}`（選手 DB）、`tournaments/{id}`（大会）、`config/access`（`editors`: 編集できるメールアドレスの配列。コンソールで編集）
 - 全員が同じデータを読み書きする（大会ごとの「共有」や JSON での受け渡しはない）。
 - アクセス制御は `firestore.rules`。変更したら `npm run test:rules`（エミュレーターでテスト）→ `npm run deploy:rules`（要 `npx firebase login`）
-  - ルールの反映は開発者の PC から手動で行います（GitHub Actions は画面だけを公開し、ルールは反映しません）
+  - main にマージすると GitHub Actions がルールを反映してから画面を公開します（シークレット `FIREBASE_SERVICE_ACCOUNT` に Firebase ルール管理者のサービスアカウントの鍵を登録済み）。手元から反映したいときだけ `npm run deploy:rules` を使います
 - エミュレーターで動かす：`npm run emulators` を起動したまま `VITE_FIREBASE_EMULATOR=1 npm run dev`
   （エミュレーターではログイン時にメールアドレスを入力するだけでログインできる。編集者にするには
   エミュレーターの Firestore に `config/access` を作る）
