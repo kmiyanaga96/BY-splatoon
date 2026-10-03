@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { signIn, signOut, useAuthView } from './backend';
 import { Avatar, Icon, IconButton, SnackbarHost } from './components/ui';
 import { computeBracket } from './lib/bracket';
+import { kindOf, type KindInfo } from './lib/kinds';
 import { AnnouncePage } from './pages/AnnouncePage';
 import { AwardPage, AwardTemplateGallery } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
 import { PlayersPage } from './pages/PlayersPage';
+import { RecordsPage } from './pages/RecordsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -14,11 +16,15 @@ import { WeaponsPage } from './pages/WeaponsPage';
 import { useRoute } from './router';
 import { createTournament, selectTournament, useApp, useCanEdit, useCurrent, useSaveError, useStorageStatus } from './store';
 
-const NAV = [
+type NavItem = { path: string; label: string; icon: string; show?: (k: KindInfo) => boolean };
+
+const NAV: NavItem[] = [
   { path: '', label: 'ホーム', icon: 'home' },
   { path: 'teams', label: 'チーム', icon: 'groups' },
   { path: 'players', label: '選手', icon: 'person' },
-  { path: 'weapons', label: 'ブキ表', icon: 'table_view' },
+  // ブキ表は候補ブキを登録する大会 (ブキ統一杯)、記録は選手ごとのブキを入力する大会 (通常ルール) だけ
+  { path: 'weapons', label: 'ブキ表', icon: 'table_view', show: (k) => k.hasPool },
+  { path: 'records', label: '記録', icon: 'bar_chart', show: (k) => k.playerWeapons },
   { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
   { path: 'announce', label: '告知', icon: 'campaign' },
   { path: 'award', label: '表彰', icon: 'emoji_events' },
@@ -81,7 +87,10 @@ export function App() {
       content = <PlayersPage playerId={sub} />;
       break;
     case 'weapons':
-      content = <WeaponsPage t={t} rounds={rounds} />;
+      content = kindOf(t).hasPool ? <WeaponsPage t={t} rounds={rounds} /> : <HomePage t={t} rounds={rounds} />;
+      break;
+    case 'records':
+      content = kindOf(t).playerWeapons ? <RecordsPage t={t} rounds={rounds} /> : <HomePage t={t} rounds={rounds} />;
       break;
     case 'bracket':
       content = <BracketPage t={t} rounds={rounds} />;
@@ -99,7 +108,7 @@ export function App() {
       content = <HomePage t={t} rounds={rounds} />;
   }
 
-  const navItems = NAV.map((n) => {
+  const navItems = NAV.filter((n) => !n.show || !t || n.show(kindOf(t))).map((n) => {
     const active = current === n.path;
     return (
       <a key={n.path} href={`#/${n.path}`} className={`nav-item ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined}>

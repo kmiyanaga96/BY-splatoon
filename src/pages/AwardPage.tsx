@@ -4,6 +4,8 @@ import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar }
 import { categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
 import { placements, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
+import { allPicks, usageBy } from '../lib/records';
 import { roster } from '../lib/roster';
 import { teamUses } from '../lib/usage';
 import { updatePlayer, usePlayers } from '../store';
@@ -51,8 +53,15 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
   const buildData = (team: Team, customTitle: string): AwardData => {
     const place = places.get(team.id) ?? null;
     const counts = new Map<string, number>();
-    for (const u of teamUses(rounds, team.id)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
-    const useRecorded = source === 'used' && counts.size > 0;
+    if (kindOf(t).playerWeapons) {
+      // 選手ごとの記録 (通常ルール) は、メンバーが使ったブキを使用回数の多い順に
+      const mine = allPicks(t, rounds).filter((p) => p.teamId === team.id);
+      for (const r of usageBy(mine, 'weapon')) counts.set(r.id, r.uses);
+    } else {
+      for (const u of teamUses(rounds, team.id)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
+    }
+    // 候補ブキのない大会 (通常ルール) は記録したブキだけ
+    const useRecorded = !kindOf(t).hasPool || (source === 'used' && counts.size > 0);
     const ids = useRecorded ? [...counts.keys()] : team.pool;
     return {
       tournament: t.name,
@@ -152,15 +161,19 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
 
           <span className="label">テンプレート</span>
           <Segmented value={template} onChange={setTemplate} options={AWARD_TEMPLATES} />
-          <span className="label">ブキの表示</span>
-          <Segmented
-            value={source}
-            onChange={setSource}
-            options={[
-              { value: 'used', label: '使用ブキ' },
-              { value: 'pool', label: '候補ブキ' },
-            ]}
-          />
+          {kindOf(t).hasPool && (
+            <>
+              <span className="label">ブキの表示</span>
+              <Segmented
+                value={source}
+                onChange={setSource}
+                options={[
+                  { value: 'used', label: '使用ブキ' },
+                  { value: 'pool', label: '候補ブキ' },
+                ]}
+              />
+            </>
+          )}
           <Field label="見出し" hint="空欄なら成績（優勝・準優勝・ベスト4 など）">
             <input
               className="input"

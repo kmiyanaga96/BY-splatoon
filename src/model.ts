@@ -9,6 +9,7 @@ export function newId(): string {
 }
 
 export const defaultRules = (): Rules => ({
+  kind: 'unified',
   poolUnit: 'main',
   poolMax: 2,
   reuse: 'match',
@@ -60,6 +61,9 @@ export function newGame(prev?: Game, keepWeapons = false): Game {
     winner: null,
     lineupA: prev?.lineupA ?? null,
     lineupB: prev?.lineupB ?? null,
+    // 選手ごとのブキは前のゲームから引き継ぎ、変わった人だけ直してもらう
+    picksA: prev?.picksA ? { ...prev.picksA } : null,
+    picksB: prev?.picksB ? { ...prev.picksB } : null,
   };
 }
 
@@ -113,6 +117,12 @@ function normalizeMember(m: any): Member {
 
 const lineup = (v: unknown): string[] | null => (Array.isArray(v) ? strArr(v) : null);
 
+function picks(v: unknown): Record<string, string> | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const entries = Object.entries(v).filter((e): e is [string, string] => typeof e[1] === 'string' && !!e[1]);
+  return entries.length ? Object.fromEntries(entries) : null;
+}
+
 function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
   const slots = arr(b?.slots, (x) => (typeof x === 'string' && teamIds.has(x) ? x : null));
   const matches: Bracket['matches'] = {};
@@ -128,6 +138,8 @@ function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
         winner: g?.winner === 'A' || g?.winner === 'B' ? g.winner : null,
         lineupA: lineup(g?.lineupA),
         lineupB: lineup(g?.lineupB),
+        picksA: picks(g?.picksA),
+        picksB: picks(g?.picksB),
       })),
       override: typeof m?.override === 'string' ? m.override : null,
       note: str(m?.note),
@@ -200,6 +212,8 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
     const v = t?.rules?.[k];
     if (typeof v === typeof rules[k] && (typeof v !== 'number' || Number.isFinite(v))) (rules as any)[k] = v;
   }
+  // 種類の設定がない旧データはブキ統一杯
+  if (!['unified', 'free'].includes(rules.kind)) rules.kind = 'unified';
   // 単位の設定がない旧データはブキ単位のまま
   const unit = t?.rules?.poolUnit;
   rules.poolUnit = unit === 'main' || unit === 'weapon' ? unit : 'weapon';

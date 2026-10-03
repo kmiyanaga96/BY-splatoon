@@ -2,7 +2,8 @@ import { Field, Icon, Switch } from '../components/ui';
 import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { convertPool } from '../model';
 import { backupJson, createTournament, newId, update, updateCurrent, useApp } from '../store';
-import type { PoolUnit, ReuseRule, Rules, Tournament } from '../types';
+import { KIND_OPTIONS, kindOf } from '../lib/kinds';
+import type { PoolUnit, ReuseRule, Rules, Tournament, TournamentKind } from '../types';
 
 function download(filename: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -19,6 +20,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export function SettingsPage({ t }: { t: Tournament }) {
   const app = useApp();
+  const kind = kindOf(t);
   const setRule = <K extends keyof Rules>(k: K, v: Rules[K]) => updateCurrent((d) => void (d.rules[k] = v));
   // 単位を変えたら登録済みの候補もそろえる (ブキ→メインはまとめる、メイン→ブキは代表ブキにする)
   const setPoolUnit = (unit: PoolUnit) =>
@@ -72,28 +74,15 @@ export function SettingsPage({ t }: { t: Tournament }) {
       </section>
 
       <section className="card">
-        <h2 className="card-title">ブキ統一ルール</h2>
+        <h2 className="card-title">ルール</h2>
         <div className="form-row">
-          <Field label="候補の単位" hint="メイン単位ならマイナーチェンジも同じメインとして使える">
-            <select className="input" value={t.rules.poolUnit} onChange={(e) => setPoolUnit(e.target.value as PoolUnit)}>
-              <option value="main">メイン単位（例: ボールドマーカー系）</option>
-              <option value="weapon">ブキ単位（マイナーチェンジは別ブキ）</option>
-            </select>
-          </Field>
-          <Field label="候補ブキの登録上限" hint="0 で無制限">
-            <input
-              className="input"
-              type="number"
-              min={0}
-              value={t.rules.poolMax}
-              onChange={(e) => setRule('poolMax', Math.max(0, Number(e.target.value) || 0))}
-            />
-          </Field>
-          <Field label="ブキの再使用">
-            <select className="input" value={t.rules.reuse} onChange={(e) => setRule('reuse', e.target.value as ReuseRule)}>
-              <option value="free">制限なし</option>
-              <option value="match">同じ試合内では再使用不可</option>
-              <option value="tournament">大会を通して再使用不可</option>
+          <Field label="大会の種類" hint={kind.description}>
+            <select className="input" value={t.rules.kind} onChange={(e) => setRule('kind', e.target.value as TournamentKind)}>
+              {KIND_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label="1チームの人数">
@@ -114,11 +103,40 @@ export function SettingsPage({ t }: { t: Tournament }) {
             <BestOfSelect value={t.rules.finalBestOf} onChange={(v) => setRule('finalBestOf', v)} />
           </Field>
         </div>
-        <Switch
-          label="他チームと同じ候補ブキを登録してよい"
-          checked={t.rules.allowDuplicate}
-          onChange={(v) => setRule('allowDuplicate', v)}
-        />
+        {kind.hasPool && (
+          <>
+            <h3 className="title-m">候補ブキ</h3>
+            <div className="form-row">
+              <Field label="候補の単位" hint="メイン単位: ボールドマーカー系のようにマイナーチェンジをまとめて登録">
+                <select className="input" value={t.rules.poolUnit} onChange={(e) => setPoolUnit(e.target.value as PoolUnit)}>
+                  <option value="main">メイン単位</option>
+                  <option value="weapon">ブキ単位</option>
+                </select>
+              </Field>
+              <Field label="候補ブキの登録上限" hint="0 で無制限">
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  value={t.rules.poolMax}
+                  onChange={(e) => setRule('poolMax', Math.max(0, Number(e.target.value) || 0))}
+                />
+              </Field>
+              <Field label="ブキの再使用">
+                <select className="input" value={t.rules.reuse} onChange={(e) => setRule('reuse', e.target.value as ReuseRule)}>
+                  <option value="free">制限なし</option>
+                  <option value="match">同じ試合内では再使用不可</option>
+                  <option value="tournament">大会を通して再使用不可</option>
+                </select>
+              </Field>
+            </div>
+            <Switch
+              label="他チームと同じ候補ブキを登録してよい"
+              checked={t.rules.allowDuplicate}
+              onChange={(v) => setRule('allowDuplicate', v)}
+            />
+          </>
+        )}
       </section>
       </div>
 

@@ -1,6 +1,7 @@
 import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { rulesText } from '../lib/announce';
 import { champion, isPlayable, roundName, sideId, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { navigate } from '../router';
 import { usePlayers } from '../store';
@@ -21,9 +22,9 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
 
   const steps = [
     { done: t.name !== '新しい大会' && t.name !== 'ブキ統一杯', label: '大会名・ルールを設定する', to: 'settings' },
-    { done: t.teams.length >= 2, label: 'チームとメンバー・候補ブキを登録する', to: 'teams' },
+    { done: t.teams.length >= 2, label: kindOf(t).hasPool ? 'チームとメンバー・候補ブキを登録する' : 'チームとメンバーを登録する', to: 'teams' },
     { done: t.bracket.slots.length > 0, label: 'トーナメント表を作成する', to: 'bracket' },
-    { done: done.length > 0, label: '試合結果とブキを記録し、告知文をコピーする', to: 'announce' },
+    { done: done.length > 0, label: kindOf(t).teamWeapon ? '試合結果とブキを記録し、告知文をコピーする' : '試合結果を記録し、告知文をコピーする', to: 'announce' },
   ];
 
   return (

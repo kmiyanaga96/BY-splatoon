@@ -88,3 +88,20 @@ describe('候補の単位', () => {
     expect(d.tournaments[0].teams[0].pool).toEqual(['Shooter_Short']);
   });
 });
+
+describe('大会の種類', () => {
+  it('種類の設定がない旧データはブキ統一杯として読み込む', () => {
+    const d = normalizeData({ tournaments: [{ id: 'x', teams: [], rules: { poolMax: 3 } }] });
+    expect(d.tournaments[0].rules.kind).toBe('unified');
+  });
+
+  it('通常ルールの設定はそのまま読み込み、知らない種類はブキ統一杯にする', () => {
+    const d = normalizeData({
+      tournaments: [
+        { id: 'x', teams: [], rules: { kind: 'free' } },
+        { id: 'y', teams: [], rules: { kind: 'unknown' } },
+      ],
+    });
+    expect(d.tournaments.map((t) => t.rules.kind)).toEqual(['free', 'unified']);
+  });
+});

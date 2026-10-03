@@ -11,6 +11,7 @@ import {
   weaponStatsText,
 } from '../lib/announce';
 import { roundName, sideId, type MatchView } from '../lib/bracket';
+import { kindOf } from '../lib/kinds';
 import { usePlayers } from '../store';
 import type { Tournament } from '../types';
 
@@ -93,7 +94,8 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
         <section className="card announce-side">
           <h2 className="card-title">種類</h2>
           <div className="nav-list" role="radiogroup">
-            {KINDS.map((k) => (
+            {/* ブキ使用状況はブキを記録する大会だけ */}
+            {KINDS.filter((k) => k.id !== 'weapons' || kindOf(t).teamWeapon || kindOf(t).playerWeapons).map((k) => (
               <button
                 key={k.id}
                 role="radio"
@@ -129,7 +131,7 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
               </select>
             </Field>
           )}
-          {kind === 'results' && (
+          {kind === 'results' && kindOf(t).teamWeapon && (
             <Switch label="各ゲームの使用ブキも載せる" checked={withWeapons} onChange={setWithWeapons} />
           )}
         </section>

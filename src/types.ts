@@ -48,6 +48,9 @@ export interface Game {
   /** そのゲームに出た選手 (Player.id)。null はチーム全員 (補欠がいないとき) */
   lineupA: string[] | null;
   lineupB: string[] | null;
+  /** 選手ごとの使用ブキ (Player.id -> Weapon.id)。通常ルールの大会で使う。未入力は null */
+  picksA: Record<string, string> | null;
+  picksB: Record<string, string> | null;
 }
 
 /** トーナメントの 1 試合の記録 */
@@ -83,7 +86,16 @@ export type ReuseRule = 'free' | 'match' | 'tournament';
  */
 export type PoolUnit = 'weapon' | 'main';
 
+/**
+ * 大会の種類 (ADR 0002)。種類ごとの違いは src/lib/kinds.ts にまとめる
+ * - unified: ブキ統一杯 (候補ブキを事前登録)
+ * - free: 通常ルール (ブキ自由)
+ */
+export type TournamentKind = 'unified' | 'free';
+
 export interface Rules {
+  kind: TournamentKind;
+  /** 以下 poolUnit〜allowDuplicate はブキ統一杯 (kind: unified) でだけ使う */
   poolUnit: PoolUnit;
   /** 候補ブキの登録上限 (0 で無制限) */
   poolMax: number;
