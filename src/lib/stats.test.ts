@@ -12,6 +12,8 @@ const game = (winner: 'A' | 'B', weaponA: string, lineupA: string[] | null = nul
   winner,
   lineupA,
   lineupB: null,
+  picksA: null,
+  picksB: null,
 });
 
 describe('playerStats', () => {

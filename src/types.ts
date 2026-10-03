@@ -48,6 +48,9 @@ export interface Game {
   /** そのゲームに出た選手 (Player.id)。null はチーム全員 (補欠がいないとき) */
   lineupA: string[] | null;
   lineupB: string[] | null;
+  /** 選手ごとの使用ブキ (Player.id -> Weapon.id)。通常ルールの大会で使う。未入力は null */
+  picksA: Record<string, string> | null;
+  picksB: Record<string, string> | null;
 }
 
 /** トーナメントの 1 試合の記録 */

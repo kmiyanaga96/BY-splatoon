@@ -1,4 +1,4 @@
-import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponTag } from '../components/ui';
+import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponIcon, WeaponTag } from '../components/ui';
 import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
@@ -93,7 +93,7 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
       <h3 className="title-m">ゲーム記録</h3>
       <div className="games">
         {games.map((g, i) => (
-          <div key={i} className="game-row">
+          <div key={i} className={`game-row ${kind.playerWeapons ? 'with-picks' : ''}`}>
             <span className="game-no">{i + 1}戦目</span>
             <select
               className="input"
@@ -139,6 +139,15 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                   onChange={(v) => editGame(i, (x) => void (x.lineupA = v))}
                 />
               )}
+              {kind.playerWeapons && (
+                <PlayerWeapons
+                  team={a}
+                  players={players}
+                  lineup={g.lineupA}
+                  value={g.picksA}
+                  onChange={(v) => editGame(i, (x) => void (x.picksA = v))}
+                />
+              )}
             </div>
             <div className="game-side">
               {kind.teamWeapon && <WeaponSelect
@@ -163,6 +172,15 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
                   size={t.rules.teamSize}
                   value={g.lineupB}
                   onChange={(v) => editGame(i, (x) => void (x.lineupB = v))}
+                />
+              )}
+              {kind.playerWeapons && (
+                <PlayerWeapons
+                  team={b}
+                  players={players}
+                  lineup={g.lineupB}
+                  value={g.picksB}
+                  onChange={(v) => editGame(i, (x) => void (x.picksB = v))}
                 />
               )}
             </div>
@@ -242,6 +260,53 @@ function LineupPicker(props: {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** 選手ごとの使用ブキ (通常ルールの大会)。出場メンバーだけ並べる */
+function PlayerWeapons(props: {
+  team: Team;
+  players: PlayerMap;
+  lineup: string[] | null;
+  value: Record<string, string> | null;
+  onChange: (v: Record<string, string> | null) => void;
+}) {
+  const { team, value } = props;
+  const ids = lineupIds(team, props.lineup);
+  const set = (playerId: string, weaponId: string) => {
+    const next = { ...(value ?? {}) };
+    if (weaponId) next[playerId] = weaponId;
+    else delete next[playerId];
+    props.onChange(Object.keys(next).length ? next : null);
+  };
+  if (ids.length === 0) return <span className="muted body-s">メンバー未登録</span>;
+  return (
+    <div className="player-weapons">
+      {ids.map((id) => {
+        const name = props.players.get(id)?.name ?? '(削除された選手)';
+        const weaponId = value?.[id] ?? '';
+        return (
+          <label key={id} className="player-weapon">
+            <span className="player-weapon-name" title={name}>
+              {name}
+            </span>
+            <span className="player-weapon-icon">{weaponId && <WeaponIcon id={weaponId} size={24} />}</span>
+            <select className="input" value={weaponId} onChange={(e) => set(id, e.target.value)} aria-label={`${name}の使用ブキ`}>
+              <option value="">ブキ未入力</option>
+              {CATEGORIES.map((c) => (
+                <optgroup key={c.id} label={c.name}>
+                  {WEAPONS.filter((w) => w.category === c.id && (!w.replica || w.id === weaponId)).map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        );
+      })}
     </div>
   );
 }

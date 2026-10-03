@@ -4,7 +4,7 @@ import type { Game, Tournament } from '../types';
 import { champion, computeBracket, createSlots, isAlive, placements, roundName, seedOrder, sideId } from './bracket';
 import { blockedWeapons, poolStatus } from './usage';
 
-const game = (winner: 'A' | 'B', weaponA = '', weaponB = ''): Game => ({ weaponA, weaponB, mode: '', stage: '', winner, lineupA: null, lineupB: null });
+const game = (winner: 'A' | 'B', weaponA = '', weaponB = ''): Game => ({ weaponA, weaponB, mode: '', stage: '', winner, lineupA: null, lineupB: null, picksA: null, picksB: null });
 
 function setup(teamCount: number): Tournament {
   const t = newTournament();

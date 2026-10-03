@@ -11,6 +11,8 @@ export interface KindInfo {
   hasPool: boolean;
   /** 試合記録でチームの使用ブキを 1 つ入力する */
   teamWeapon: boolean;
+  /** 試合記録で選手ごとの使用ブキを入力する (「記録」ページで集計) */
+  playerWeapons: boolean;
 }
 
 export const KINDS: Record<TournamentKind, KindInfo> = {
@@ -19,12 +21,14 @@ export const KINDS: Record<TournamentKind, KindInfo> = {
     description: 'チームで候補ブキを事前登録し、各ゲームでチーム全員が同じブキを使う',
     hasPool: true,
     teamWeapon: true,
+    playerWeapons: false,
   },
   free: {
     label: '通常ルール',
     description: 'ブキは自由。候補ブキの登録やブキ表は使わない',
     hasPool: false,
     teamWeapon: false,
+    playerWeapons: true,
   },
 };
 

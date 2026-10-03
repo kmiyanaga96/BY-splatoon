@@ -62,7 +62,8 @@ export function playerStats(data: AppData, playerId: string): PlayerStats {
       for (const g of m.record.games) {
         const lineup = side === 'A' ? g.lineupA : g.lineupB;
         if (!lineupIds(team, lineup).includes(playerId)) continue;
-        const weaponId = side === 'A' ? g.weaponA : g.weaponB;
+        // 選手ごとの記録 (通常ルール) があればそれを、なければチームのブキを使う
+        const weaponId = (side === 'A' ? g.picksA : g.picksB)?.[playerId] || (side === 'A' ? g.weaponA : g.weaponB);
         const won = g.winner === side;
         games++;
         if (won) wins++;

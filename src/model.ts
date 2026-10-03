@@ -61,6 +61,9 @@ export function newGame(prev?: Game, keepWeapons = false): Game {
     winner: null,
     lineupA: prev?.lineupA ?? null,
     lineupB: prev?.lineupB ?? null,
+    // 選手ごとのブキは前のゲームから引き継ぎ、変わった人だけ直してもらう
+    picksA: prev?.picksA ? { ...prev.picksA } : null,
+    picksB: prev?.picksB ? { ...prev.picksB } : null,
   };
 }
 
@@ -114,6 +117,12 @@ function normalizeMember(m: any): Member {
 
 const lineup = (v: unknown): string[] | null => (Array.isArray(v) ? strArr(v) : null);
 
+function picks(v: unknown): Record<string, string> | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const entries = Object.entries(v).filter((e): e is [string, string] => typeof e[1] === 'string' && !!e[1]);
+  return entries.length ? Object.fromEntries(entries) : null;
+}
+
 function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
   const slots = arr(b?.slots, (x) => (typeof x === 'string' && teamIds.has(x) ? x : null));
   const matches: Bracket['matches'] = {};
@@ -129,6 +138,8 @@ function normalizeBracket(b: any, teamIds: Set<string>): Bracket {
         winner: g?.winner === 'A' || g?.winner === 'B' ? g.winner : null,
         lineupA: lineup(g?.lineupA),
         lineupB: lineup(g?.lineupB),
+        picksA: picks(g?.picksA),
+        picksB: picks(g?.picksB),
       })),
       override: typeof m?.override === 'string' ? m.override : null,
       note: str(m?.note),

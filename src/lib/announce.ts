@@ -4,6 +4,7 @@ import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
 import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
 import { kindOf } from './kinds';
+import { allPicks, percent, usageBy } from './records';
 import { poolStatus, teamUses } from './usage';
 import { roster } from './roster';
 
@@ -168,6 +169,7 @@ export function resultsText(t: Tournament, rounds: MatchView[][], withWeapons = 
 
 /** ブキ別の使用回数・勝率 */
 export function weaponStatsText(t: Tournament, rounds: MatchView[][]): string {
+  if (kindOf(t).playerWeapons) return playerWeaponStatsText(t, rounds);
   const stats = new Map<string, { used: number; won: number }>();
   for (const team of t.teams) {
     for (const u of teamUses(rounds, team.id)) {
@@ -181,5 +183,16 @@ export function weaponStatsText(t: Tournament, rounds: MatchView[][]): string {
   const lines = [`# ${t.name} ブキ使用状況`];
   for (const [w, s] of sorted) lines.push(`・${weaponName(w)}: ${s.used}回使用 / ${s.won}勝`);
   if (sorted.length === 0) lines.push('（まだ記録がありません）');
+  return lines.join('\n');
+}
+
+/** 選手ごとの記録 (通常ルール) からのブキ別の使用率・勝率 */
+function playerWeaponStatsText(t: Tournament, rounds: MatchView[][]): string {
+  const picks = allPicks(t, rounds);
+  const lines = [`# ${t.name} ブキ使用状況`];
+  for (const r of usageBy(picks, 'weapon')) {
+    lines.push(`・${weaponName(r.id)}: ${r.uses}回（使用率 ${percent(r.uses, picks.length)}・勝率 ${percent(r.wins, r.decided)}）`);
+  }
+  if (picks.length === 0) lines.push('（まだ記録がありません）');
   return lines.join('\n');
 }

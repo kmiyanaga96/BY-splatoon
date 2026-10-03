@@ -94,8 +94,8 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
         <section className="card announce-side">
           <h2 className="card-title">種類</h2>
           <div className="nav-list" role="radiogroup">
-            {/* ブキ使用状況はチームのブキを記録する大会だけ */}
-            {KINDS.filter((k) => k.id !== 'weapons' || kindOf(t).teamWeapon).map((k) => (
+            {/* ブキ使用状況はブキを記録する大会だけ */}
+            {KINDS.filter((k) => k.id !== 'weapons' || kindOf(t).teamWeapon || kindOf(t).playerWeapons).map((k) => (
               <button
                 key={k.id}
                 role="radio"
