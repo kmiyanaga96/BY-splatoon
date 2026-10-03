@@ -1,5 +1,6 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { PRESET_AVATARS } from './presetAvatars';
+import { OFFICIAL_AVATARS, PRESET_AVATARS } from './presetAvatars';
 
 describe('PRESET_AVATARS', () => {
   it('id と画像が重複しない', () => {
@@ -12,6 +13,15 @@ describe('PRESET_AVATARS', () => {
       expect(p.url).toMatch(/^data:image\/svg\+xml/);
       expect(p.url.length).toBeLessThan(300000);
       expect(decodeURIComponent(p.url.split(',')[1])).not.toContain('NaN');
+    }
+  });
+});
+
+describe('OFFICIAL_AVATARS', () => {
+  it('一覧の画像がすべて public/avatars にある', () => {
+    expect(OFFICIAL_AVATARS).toHaveLength(32);
+    for (const p of OFFICIAL_AVATARS) {
+      expect(existsSync(new URL(`../../public/avatars/${p.id}.jpg`, import.meta.url))).toBe(true);
     }
   });
 });

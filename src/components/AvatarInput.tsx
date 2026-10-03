@@ -1,6 +1,6 @@
 import { useRef, useState, type ClipboardEvent } from 'react';
 import { blobToAvatar, urlToAvatar } from '../lib/avatar';
-import { PRESET_AVATARS } from '../lib/presetAvatars';
+import { OFFICIAL_AVATARS, PRESET_AVATARS, type PresetAvatar } from '../lib/presetAvatars';
 import { Avatar, IconButton, Modal, showSnackbar } from './ui';
 
 /**
@@ -71,28 +71,60 @@ export function AvatarInput(props: { name: string; color: string; value: string;
         }}
       />
       {picking && (
-        <Modal title="デフォルト画像から選ぶ" onClose={() => setPicking(false)}>
-          <div className="preset-avatars">
-            {PRESET_AVATARS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`preset-avatar ${props.value === p.url ? 'selected' : ''}`}
-                aria-pressed={props.value === p.url}
-                title={p.label}
-                onClick={() => {
-                  props.onChange(p.url);
-                  setPicking(false);
-                  showSnackbar('アイコンを設定しました');
-                }}
-              >
-                <Avatar name={props.name} src={p.url} color={props.color} size={64} />
-                <span className="preset-avatar-label">{p.label}</span>
-              </button>
-            ))}
-          </div>
+        <Modal title="デフォルト画像から選ぶ" onClose={() => setPicking(false)} wide>
+          <PresetGroup
+            title="公式アイコン"
+            items={OFFICIAL_AVATARS}
+            {...props}
+            onPick={(p) => {
+              setPicking(false);
+              run(() => urlToAvatar(p.url));
+            }}
+          />
+          <PresetGroup
+            title="オリジナル"
+            items={PRESET_AVATARS}
+            {...props}
+            selected={props.value}
+            onPick={(p) => {
+              setPicking(false);
+              props.onChange(p.url);
+              showSnackbar('アイコンを設定しました');
+            }}
+          />
         </Modal>
       )}
     </div>
+  );
+}
+
+function PresetGroup(props: {
+  title: string;
+  items: PresetAvatar[];
+  name: string;
+  color: string;
+  /** 選択中の表示に使う。公式アイコンは保存時に変換するので比較できない */
+  selected?: string;
+  onPick: (p: PresetAvatar) => void;
+}) {
+  return (
+    <section className="preset-group">
+      <h3 className="overline">{props.title}</h3>
+      <div className="preset-avatars">
+        {props.items.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`preset-avatar ${props.selected === p.url ? 'selected' : ''}`}
+            aria-pressed={props.selected === p.url}
+            aria-label={p.label}
+            title={p.label}
+            onClick={() => props.onPick(p)}
+          >
+            <Avatar name={props.name} src={p.url} color={props.color} size={64} />
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }

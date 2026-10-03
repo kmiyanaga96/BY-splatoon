@@ -1,12 +1,25 @@
-// 選手アイコンのデフォルト画像。画像を用意しない人向けに、オリジナルの SVG から選べるようにする。
-// 選手 DB にはほかのアイコンと同じく data URL (SVG のまま) で保存する。数百バイトなので Firestore の上限にも余裕がある。
-// 種類を増やすときは PRESET_AVATARS に足すだけでよい (id は保存しないので並べ替えも自由)。
+// 選手アイコンのデフォルト画像。画像を用意しない人向けに、次の 2 種類から選べるようにする。
+// - OFFICIAL_AVATARS: Nintendo Switch Online で配布された公式アイコン (public/avatars/w<週>-<番号>.jpg)。
+//   選んだときに読み込んで、取り込んだ画像と同じ 192px の JPEG data URL にして保存する
+// - PRESET_AVATARS: オリジナルの SVG。data URL (SVG のまま) で保存する。数百バイトなので Firestore の上限にも余裕がある
+// どちらも画像そのものを保存し id は保存しないので、あとから並べ替え・削除しても設定済みの選手には影響しない。
 
 export interface PresetAvatar {
   id: string;
   label: string;
   url: string;
 }
+
+/** 配布週ごとに 8 種。画像を足したら週の数を増やす */
+const OFFICIAL_WEEKS = ['第1週', '第2週', '第3週', '最終週'];
+
+export const OFFICIAL_AVATARS: PresetAvatar[] = OFFICIAL_WEEKS.flatMap((week, w) =>
+  Array.from({ length: 8 }, (_, i) => ({
+    id: `w${w + 1}-${i + 1}`,
+    label: `${week} ${i + 1}`,
+    url: `${import.meta.env.BASE_URL}avatars/w${w + 1}-${i + 1}.jpg`,
+  })),
+);
 
 const N = 96; // viewBox の一辺
 

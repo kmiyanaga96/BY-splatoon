@@ -1906,17 +1906,21 @@ textarea.input {
 .avatar-actions {
   display: flex;
 }
+.preset-group + .preset-group {
+  margin-top: 1rem;
+}
+.preset-group .overline {
+  margin: 0 0 0.5rem;
+}
 .preset-avatars {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(4.75rem, 1fr));
+  gap: 0.25rem;
 }
 .preset-avatar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.25rem;
+  justify-content: center;
+  padding: 0.25rem;
   border: 2px solid transparent;
   border-radius: 1rem;
   background: none;
@@ -1930,10 +1934,6 @@ textarea.input {
 .preset-avatar.selected {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-secondary-container);
-}
-.preset-avatar-label {
-  font-size: 0.75rem;
-  text-align: center;
 }
 .player-identity {
   display: flex;
