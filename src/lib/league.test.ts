@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeGroups, newGame, newLeague, newTournament, normalizeData } from '../model';
+import { applyScore, makeGroups, newGame, newLeague, newTournament, normalizeData } from '../model';
 import type { Game, Tournament } from '../types';
 import { computeBracket, createSlots } from './bracket';
 import { allPlacements, computeLeague, leagueKey, roundRobin, seedsFromLeague, tieAtCutoff } from './league';
@@ -16,6 +16,7 @@ function setup(teamCount: number, groupCount: number): Tournament {
     comment: '',
     members: [],
     pool: [],
+    draws: {},
   }));
   t.league = newLeague(
     t.teams.map((x) => x.id),
@@ -166,5 +167,66 @@ describe('読み込み', () => {
     expect(l.groups.map((g) => g.teamIds)).toEqual([['a'], ['b']]);
     expect(l.tiebreakers).toEqual(['wins']);
     expect(l.advance).toBe(2);
+  });
+});
+
+describe('タイカイサポートの優先勝利条件 (新しい予選の既定)', () => {
+  it('勝利試合数 → 勝利バトル数 → 負けバトル数の少なさ → 直接対決 → エントリー番号順', () => {
+    const t = setup(4, 1);
+    expect(t.league!.tiebreakers).toEqual(['wins', 'gamesWon', 'gamesLost', 'headToHead', 'entry']);
+    play(t, 't1', 't2', 2, 1); // t1 勝
+    play(t, 't3', 't4', 2, 0); // t3 勝
+    play(t, 't1', 't3', 0, 2); // t3 勝
+    play(t, 't2', 't4', 2, 0); // t2 勝
+    play(t, 't1', 't4', 2, 0); // t1 勝
+    play(t, 't2', 't3', 2, 1); // t2 勝
+    // t1: 2勝 4-3 / t2: 2勝 5-3 / t3: 2勝 5-2 / t4: 0勝
+    // 勝利バトル数で t2・t3 (5) > t1 (4)、負けバトル数の少なさで t3 (2) > t2 (3)
+    expect(computeLeague(t)[0].standings.map((r) => [r.teamId, r.rank])).toEqual([
+      ['t3', 1],
+      ['t2', 2],
+      ['t1', 3],
+      ['t4', 4],
+    ]);
+  });
+
+  it('最後はエントリー番号順で決まり、同順位は出ない', () => {
+    const t = setup(4, 1);
+    play(t, 't1', 't2', 2, 0);
+    play(t, 't1', 't3', 0, 2);
+    play(t, 't1', 't4', 2, 0);
+    play(t, 't2', 't3', 2, 0);
+    play(t, 't2', 't4', 2, 0);
+    play(t, 't3', 't4', 2, 0);
+    // t1・t2・t3 が 2勝 4-2 で並び、直接対決も 1 勝ずつ → チーム一覧の順
+    expect(computeLeague(t)[0].standings.map((r) => [r.teamId, r.rank])).toEqual([
+      ['t1', 1],
+      ['t2', 2],
+      ['t3', 3],
+      ['t4', 4],
+    ]);
+  });
+});
+
+describe('勝利本数の直接入力', () => {
+  const winners = (gs: Game[]) => gs.map((g) => g.winner).join('');
+
+  it('空の記録から勝ち数どおりのゲームを作る', () => {
+    expect(winners(applyScore([], 2, 1))).toBe('AAB');
+  });
+
+  it('勝敗未入力のゲームを先に埋め、記録のあるゲームは残す', () => {
+    const gs = [{ ...win('B'), weaponA: 'Shooter_Short_00' }, { ...newGame(), stage: 'ユノハナ大渓谷' }];
+    const out = applyScore(gs, 2, 1);
+    expect(winners(out)).toBe('BAA');
+    expect(out[0].weaponA).toBe('Shooter_Short_00');
+    expect(out[1].stage).toBe('ユノハナ大渓谷');
+  });
+
+  it('勝ちを減らすと、記録のないゲームは消し、記録のあるゲームは勝敗だけ外す', () => {
+    const gs = [win('A'), { ...win('A'), weaponA: 'Shooter_Short_00' }, win('A')];
+    const out = applyScore(gs, 1, 0);
+    expect(out.map((g) => g.winner)).toEqual(['A', null]);
+    expect(out[1].weaponA).toBe('Shooter_Short_00');
   });
 });

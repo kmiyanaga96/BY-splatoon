@@ -22,6 +22,7 @@ function setup(): Tournament {
     comment: '',
     members: [`${id}-p1`, `${id}-p2`].map((playerId) => ({ playerId, leader: false, featured: false, comment: '' })),
     pool: [],
+    draws: {},
   }));
   t.bracket.slots = createSlots(['t1', 't2']);
   t.bracket.matches['0-0'] = {

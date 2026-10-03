@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AvatarInput } from '../components/AvatarInput';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
-import { categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
+import { CATEGORIES, categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
 import { type MatchView } from '../lib/bracket';
 import { allPlacements } from '../lib/league';
@@ -97,7 +97,11 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         icon: weaponIconUrl(id),
       })),
       showXp,
-      kind: { label: kindOf(t).label, motif: t.rules.kind },
+      kind: {
+        label: kindOf(t).label,
+        motif: t.rules.kind,
+        colors: t.rules.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.color ?? '#888888'),
+      },
     };
   };
 

@@ -3,7 +3,7 @@
 import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
 import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
-import { kindOf } from './kinds';
+import { RANDOM_TIMING_LABEL, categoryNames, kindOf } from './kinds';
 import { computeLeague, tieAtCutoff } from './league';
 import { allPicks, percent, usageBy } from './records';
 import { poolStatus, teamUses } from './usage';
@@ -39,6 +39,13 @@ function sideLabel(t: Tournament, m: MatchView, which: 'a' | 'b'): string {
 export function rulesText(t: Tournament): string {
   const r = t.rules;
   const bestOf = `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`;
+  if (r.kind === 'category') {
+    const cats = r.categories.length ? `${categoryNames(r.categories)} のブキのみ` : '（カテゴリ未指定）';
+    return [`・1チーム ${r.teamSize} 人、使えるのは ${cats}（その中から各自自由に選択）`, bestOf].join('\n');
+  }
+  if (r.kind === 'random') {
+    return [`・1チーム ${r.teamSize} 人、ブキは選手ごとに抽選（${RANDOM_TIMING_LABEL[r.randomTiming]}）`, bestOf].join('\n');
+  }
   if (!kindOf(t).hasPool) return [`・1チーム ${r.teamSize} 人、ブキは自由`, bestOf].join('\n');
   const lines = [
     r.poolUnit === 'main'

@@ -1,6 +1,8 @@
-import { Avatar, Empty, Icon, IconButton, TeamName, WeaponTag, XBadge } from '../components/ui';
+import { Avatar, Empty, Icon, IconButton, TeamName, WeaponIcon, WeaponTag, XBadge } from '../components/ui';
+import { weaponName } from '../data/weapons';
 import { isAlive, type MatchView } from '../lib/bracket';
 import { kindOf } from '../lib/kinds';
+import { drawWeapons } from '../lib/random';
 import { roster } from '../lib/roster';
 import { poolStatus } from '../lib/usage';
 import { navigate } from '../router';
@@ -21,11 +23,30 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       [d.teams[i], d.teams[j]] = [d.teams[j], d.teams[i]];
     });
 
+  // ランダムブキ (大会で 1 回): チームのメンバーごとに抽選してチームに保存する
+  const drawOnce = t.rules.kind === 'random' && t.rules.randomTiming === 'tournament';
+  const draw = (teamIds: string[]) => {
+    const exists = t.teams.some((x) => teamIds.includes(x.id) && Object.keys(x.draws).length);
+    if (exists && !confirm('抽選済みのブキを抽選し直しますか？')) return;
+    updateCurrent((d) => {
+      for (const team of d.teams) if (teamIds.includes(team.id)) team.draws = drawWeapons(team.members.map((m) => m.playerId));
+    });
+  };
+
   return (
     <div className="page">
-      <div className="page-header">
-        <h1 className="headline">チーム（{t.teams.length}）</h1>
-        <p className="muted">並び順がトーナメント作成時のシード順になります。</p>
+      <div className="page-header row">
+        <div>
+          <h1 className="headline">チーム（{t.teams.length}）</h1>
+          <p className="muted">並び順がトーナメント作成時のシード順（エントリー番号）になります。</p>
+        </div>
+        <span className="spacer" />
+        {drawOnce && t.teams.length > 0 && (
+          <button className="btn filled" onClick={() => draw(t.teams.map((x) => x.id))}>
+            <Icon name="shuffle" />
+            全員のブキを抽選
+          </button>
+        )}
       </div>
       {t.teams.length === 0 && <Empty icon="groups">まだチームがありません。右下の「チームを追加」から登録してください。</Empty>}
       <div className="grid team-grid">
@@ -70,6 +91,12 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                       {m.featured && <Icon name="star" filled className="star" />}
                       {p.name || '(名前未入力)'}
                       <XBadge xp={p.xp} />
+                      {drawOnce && team.draws[p.id] && (
+                        <span className="drawn" title={weaponName(team.draws[p.id])}>
+                          <WeaponIcon id={team.draws[p.id]} size={22} />
+                          {weaponName(team.draws[p.id])}
+                        </span>
+                      )}
                     </li>
                   ))}
                   {team.members.length === 0 && <li className="muted body-s">未登録</li>}
@@ -84,6 +111,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                   disabled={i === t.teams.length - 1}
                 />
                 <span className="spacer" />
+                {drawOnce && <IconButton icon="shuffle" label="このチームのブキを抽選し直す" onClick={() => draw([team.id])} />}
                 <a className="btn tonal" href={`#/teams/${team.id}`}>
                   <Icon name="edit" />
                   編集

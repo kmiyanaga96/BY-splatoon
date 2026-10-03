@@ -35,6 +35,8 @@ export interface Team {
   members: Member[];
   /** 登録した候補 (rules.poolUnit が weapon なら Weapon.id、main ならメイン ID) */
   pool: string[];
+  /** ランダムブキで「大会で 1 回」抽選したときの結果 (Player.id -> Weapon.id) */
+  draws: Record<string, string>;
 }
 
 export type GameMode = '' | 'ナワバリ' | 'エリア' | 'ヤグラ' | 'ホコ' | 'アサリ';
@@ -90,11 +92,20 @@ export type PoolUnit = 'weapon' | 'main';
  * 大会の種類 (ADR 0002)。種類ごとの違いは src/lib/kinds.ts にまとめる
  * - unified: ブキ統一杯 (候補ブキを事前登録)
  * - free: 通常ルール (ブキ自由)
+ * - category: カテゴリ縛り (運営が指定したカテゴリのブキだけ)
+ * - random: ランダムブキ (アプリで選手ごとに抽選)
  */
-export type TournamentKind = 'unified' | 'free';
+export type TournamentKind = 'unified' | 'free' | 'category' | 'random';
+
+/** ランダムブキの抽選のタイミング */
+export type RandomTiming = 'game' | 'match' | 'tournament';
 
 export interface Rules {
   kind: TournamentKind;
+  /** カテゴリ縛りで使えるカテゴリ (CATEGORIES の id)。kind: category でだけ使う */
+  categories: string[];
+  /** ランダムブキの抽選のタイミング。kind: random でだけ使う */
+  randomTiming: RandomTiming;
   /** 以下 poolUnit〜allowDuplicate はブキ統一杯 (kind: unified) でだけ使う */
   poolUnit: PoolUnit;
   /** 候補ブキの登録上限 (0 で無制限) */
@@ -108,7 +119,7 @@ export interface Rules {
 }
 
 /** 予選リーグの順位の決め方 (上から順に比べる) */
-export type Tiebreaker = 'wins' | 'gameDiff' | 'gamesWon' | 'headToHead';
+export type Tiebreaker = 'wins' | 'gamesWon' | 'gamesLost' | 'gameDiff' | 'headToHead' | 'entry';
 
 export interface LeagueGroup {
   id: string;

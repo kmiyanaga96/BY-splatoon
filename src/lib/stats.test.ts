@@ -25,9 +25,10 @@ describe('playerStats', () => {
       color: '#f00',
       comment: '',
       pool: [],
+      draws: {},
       members: ['p1', 'p2', 'p3', 'p4', 'sub'].map((playerId) => ({ playerId, leader: false, featured: false, comment: '' })),
     },
-    { id: 'B', name: 'B', color: '#00f', comment: '', pool: [], members: [] },
+    { id: 'B', name: 'B', color: '#00f', comment: '', pool: [], draws: {}, members: [] },
   ];
   t.rules.finalBestOf = 3; // 2 チームなので 1 回戦が決勝
   t.bracket.slots = createSlots(['A', 'B']);

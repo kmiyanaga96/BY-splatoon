@@ -1,10 +1,11 @@
-import { Field, Icon, IconButton, Switch } from '../components/ui';
-import { WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
+import { DateTimeField } from '../components/DateTimePicker';
+import { Field, FilterChip, Icon, IconButton, Switch } from '../components/ui';
+import { CATEGORIES, WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { TIEBREAKER_LABEL } from '../lib/league';
-import { convertPool, newLeague } from '../model';
+import { TAIKAI_SUPPORT_TIEBREAKERS, TIEBREAKERS, convertPool, newLeague } from '../model';
 import { backupJson, createTournament, newId, update, updateCurrent, useApp } from '../store';
-import { KIND_OPTIONS, kindOf } from '../lib/kinds';
-import type { PoolUnit, ReuseRule, Rules, Tournament, TournamentKind } from '../types';
+import { KIND_OPTIONS, RANDOM_TIMING_LABEL, kindOf } from '../lib/kinds';
+import type { PoolUnit, RandomTiming, ReuseRule, Rules, Tiebreaker, Tournament, TournamentKind } from '../types';
 
 function download(filename: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -66,8 +67,8 @@ export function SettingsPage({ t }: { t: Tournament }) {
           <Field label="大会名">
             <input className="input" value={t.name} onChange={(e) => updateCurrent((d) => void (d.name = e.target.value))} />
           </Field>
-          <Field label="日時" hint="自由記述 (例: 10/12(日) 21:00〜)">
-            <input className="input" value={t.date} onChange={(e) => updateCurrent((d) => void (d.date = e.target.value))} />
+          <Field label="日時" hint="押すとスクロールで選べます">
+            <DateTimeField value={t.date} onChange={(v) => updateCurrent((d) => void (d.date = v))} />
           </Field>
         </div>
         <Field label="説明・告知文の冒頭">
@@ -110,6 +111,51 @@ export function SettingsPage({ t }: { t: Tournament }) {
             <BestOfSelect value={t.rules.finalBestOf} onChange={(v) => setRule('finalBestOf', v)} />
           </Field>
         </div>
+        {t.rules.kind === 'category' && (
+          <>
+            <h3 className="title-m">使えるカテゴリ</h3>
+            <div className="chips">
+              {CATEGORIES.map((c) => {
+                const on = t.rules.categories.includes(c.id);
+                return (
+                  <FilterChip
+                    key={c.id}
+                    label={c.name}
+                    color={c.color}
+                    selected={on}
+                    onClick={() =>
+                      setRule('categories', on ? t.rules.categories.filter((x) => x !== c.id) : [...t.rules.categories, c.id])
+                    }
+                  />
+                );
+              })}
+            </div>
+            {t.rules.categories.length === 0 && <p className="supporting warn-text">カテゴリを 1 つ以上選んでください。</p>}
+          </>
+        )}
+        {t.rules.kind === 'random' && (
+          <>
+            <h3 className="title-m">抽選</h3>
+            <div className="form-row">
+              <Field label="抽選のタイミング" hint="選手ごとに、レプリカを除く全ブキから抽選します">
+                <select
+                  className="input"
+                  value={t.rules.randomTiming}
+                  onChange={(e) => setRule('randomTiming', e.target.value as RandomTiming)}
+                >
+                  {(Object.keys(RANDOM_TIMING_LABEL) as RandomTiming[]).map((k) => (
+                    <option key={k} value={k}>
+                      {RANDOM_TIMING_LABEL[k]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <p className="muted body-s">
+              ゲームごと・試合ごとは試合記録の画面で、大会で 1 回はチーム画面で抽選します。抽選結果は全員の画面に共有されます。
+            </p>
+          </>
+        )}
         {kind.hasPool && (
           <>
             <h3 className="title-m">候補ブキ</h3>
@@ -216,6 +262,7 @@ function LeagueSettings({ t }: { t: Tournament }) {
     updateCurrent((d) => void (d.league = on ? newLeague(d.teams.map((x) => x.id)) : null));
   };
   const set = (fn: (l: NonNullable<Tournament['league']>) => void) => updateCurrent((d) => void (d.league && fn(d.league)));
+  const unused = TIEBREAKERS.filter((k) => !league?.tiebreakers.includes(k));
   const moveTiebreaker = (i: number, delta: number) =>
     set((l) => {
       const j = i + delta;
@@ -242,18 +289,51 @@ function LeagueSettings({ t }: { t: Tournament }) {
               <BestOfSelect value={league.bestOf} onChange={(v) => set((l) => void (l.bestOf = v))} />
             </Field>
           </div>
-          <span className="label">順位の決め方（上から順に比べる）</span>
+          <div className="row">
+            <span className="label">順位の決め方（上から順に比べる）</span>
+            <span className="spacer" />
+            <button
+              className="btn text"
+              disabled={league.tiebreakers.join() === TAIKAI_SUPPORT_TIEBREAKERS.join()}
+              onClick={() => set((l) => void (l.tiebreakers = [...TAIKAI_SUPPORT_TIEBREAKERS]))}
+            >
+              <Icon name="restart_alt" />
+              タイカイサポートと同じにする
+            </button>
+          </div>
           <ol className="tiebreakers">
             {league.tiebreakers.map((k, i) => (
               <li key={k}>
                 <span>{TIEBREAKER_LABEL[k]}</span>
                 <IconButton icon="arrow_upward" label="上へ" onClick={() => moveTiebreaker(i, -1)} />
                 <IconButton icon="arrow_downward" label="下へ" onClick={() => moveTiebreaker(i, 1)} />
+                <IconButton
+                  icon="close"
+                  label="使わない"
+                  onClick={() => set((l) => void (l.tiebreakers = l.tiebreakers.filter((x) => x !== k)))}
+                />
               </li>
             ))}
           </ol>
+          {unused.length > 0 && (
+            <Field label="決め方を追加">
+              <select
+                className="input"
+                value=""
+                onChange={(e) => e.target.value && set((l) => void l.tiebreakers.push(e.target.value as Tiebreaker))}
+              >
+                <option value="">（選ぶと一番下に追加）</option>
+                {unused.map((k) => (
+                  <option key={k} value={k}>
+                    {TIEBREAKER_LABEL[k]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
           <p className="muted body-s">
-            直接対決は、並んだチーム同士の試合だけで比べます。最後まで並んだ場合は同順位になります。
+            既定はタイカイサポートの優先勝利条件（勝利試合数 → 勝利バトル数 → 負けバトル数の少なさ → 直接対決 → エントリー番号順）です。
+            直接対決は、並んだチーム同士の試合だけで比べます。エントリー番号はチーム一覧の並び順です（これを入れると同順位は出ません）。
             グループ分けは<a href="#/league">予選ページ</a>で編集できます。
           </p>
         </>
