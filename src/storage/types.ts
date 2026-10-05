@@ -7,7 +7,7 @@ export interface Changes {
 }
 
 /**
- * データの保存先。いまは localStorage 版のみ。Firebase 版も同じ形で実装して差し替える。
+ * データの保存先。いまは Firebase (Firestore) 版のみ (src/storage/firebase.ts)。
  * 受け取ったデータは必ず normalizeData() を通してから使う (保存先のデータは信用しない)。
  */
 export interface StorageAdapter {

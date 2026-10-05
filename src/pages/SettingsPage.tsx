@@ -3,7 +3,7 @@ import { Field, FilterChip, Icon, IconButton, Switch } from '../components/ui';
 import { CATEGORIES, WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { TIEBREAKER_LABEL } from '../lib/league';
 import { TAIKAI_SUPPORT_TIEBREAKERS, TIEBREAKERS, convertPool, newLeague } from '../model';
-import { backupJson, createTournament, newId, update, updateCurrent, useApp } from '../store';
+import { backupJson, createTournament, getCanEdit, newId, update, updateCurrent, useApp } from '../store';
 import { KIND_OPTIONS, RANDOM_TIMING_LABEL, kindOf } from '../lib/kinds';
 import type { PoolUnit, RandomTiming, ReuseRule, Rules, Tiebreaker, Tournament, TournamentKind } from '../types';
 
@@ -47,11 +47,19 @@ export function SettingsPage({ t }: { t: Tournament }) {
   };
 
   const remove = () => {
-    if (!confirm(`大会「${t.name}」を削除しますか？\n全員の画面から消え、取り消せません。`)) return;
+    if (!confirm(`大会「${t.name}」を削除しますか？\n全員の画面から消え、取り消せません（表彰ページの動画も削除されます）。`)) return;
+    if (!getCanEdit()) {
+      update(() => {}); // 閲覧モードの案内を出す
+      return;
+    }
     update((d) => {
       d.tournaments = d.tournaments.filter((x) => x.id !== t.id);
       d.currentId = d.tournaments.at(-1)?.id ?? '';
     });
+    // 表彰ページの「優勝賞品の動画」も消す (Storage の容量を空けるため)
+    import('../firebase/videos')
+      .then((m) => m.deleteAllPrizeVideos(t.id))
+      .catch((e) => console.warn('大会の動画を削除できませんでした', e));
   };
 
   return (

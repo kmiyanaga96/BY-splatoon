@@ -1,5 +1,5 @@
 // Firebase の初期化。設定値はブラウザに配られる前提の公開情報 (秘密情報ではない)。
-// 実際のアクセス制御は firestore.rules で行う。
+// 実際のアクセス制御は firestore.rules / storage.rules で行う。
 
 import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';

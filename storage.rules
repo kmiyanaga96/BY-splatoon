@@ -1,0 +1,38 @@
+rules_version = '2';
+
+// BY スプラ大会ツールの Cloud Storage ルール
+// - 置くのは表彰ページの「優勝賞品の動画」だけ: prize-videos/{大会ID}/{ファイル}
+// - 閲覧・ダウンロード: 誰でも可 (ログイン不要)
+// - アップロード・削除: Firestore の config/access.editors にメールアドレスがある Google アカウントだけ
+//   (Firestore を参照するので、初回の反映時にコンソールで「権限を付与」を求められたら許可する)
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isEditor() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in firestore.get(/databases/(default)/documents/config/access).data.editors;
+    }
+
+    // 1〜3 分の動画を想定 (大きくても 1GB)。余裕をみて 2GB まで
+    function validVideo(r) {
+      return r.size > 0
+        && r.size <= 2 * 1024 * 1024 * 1024
+        && r.contentType.matches('video/.+')
+        && r.metadata != null
+        && r.metadata.title is string && r.metadata.title.size() <= 100
+        && r.metadata.uploadedBy == request.auth.token.email;
+    }
+
+    match /prize-videos/{tournamentId}/{fileName} {
+      allow read: if true;
+      // 上書きはしない (差し替えは削除してからアップロードし直す)
+      allow create: if resource == null && isEditor() && validVideo(request.resource);
+      allow delete: if isEditor();
+    }
+
+    // それ以外は全部拒否
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

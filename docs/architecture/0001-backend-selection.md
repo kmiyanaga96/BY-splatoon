@@ -153,6 +153,16 @@ Firestore の 1 つのデータだけを全員で使う形にした。
 - 表示する大会の既定は一番新しい大会。選択は端末ごと（他人の画面は変えない）。
 - バックアップ用の全データ書き出し（JSON）だけ残す。
 
+### 追記（2026-10-05）：優勝賞品の動画
+
+表彰ページに、主催が編集した優勝賞品の動画（1〜3 分、大きくても 1GB）を置き、ログインなしでダウンロードできるようにした。
+
+- 置き場は Cloud Storage（作成済みの us-central1 のバケット）の `prize-videos/{大会ID}/`。Firestore のドキュメント上限（1MB）には入らないため。
+- 一覧は Storage のファイル一覧とメタデータ（タイトル・アップロードした人）から作り、Firestore には何も書かない。
+- 読み取りは誰でも、作成・削除は `config/access.editors` の人だけ（`storage.rules` から Firestore を参照する）。上書きは不可、動画のみ、2GB まで。
+- ダウンロードは `Content-Disposition: attachment` を付けて保存するので、別オリジンでもリンクからそのまま保存できる（バケットの CORS 設定は不要）。
+- 費用：無料分（保存 5GB・ダウンロード月 100GB）を超えた分が従量課金。1GB の動画が月 100 回ダウンロードされると超える規模なので、予算アラートで見ておく。
+
 ## 9. 参考
 
 - Google AI Pro / Ultra への Google Developer Program 特典（Cloud クレジット）統合：https://blog.google/innovation-and-ai/technology/developers-tools/gdp-premium-ai-pro-ultra/

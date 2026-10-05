@@ -196,6 +196,10 @@ export function setEditGuard(allowed: () => boolean, blocked: () => void) {
   emit();
 }
 
+export function getCanEdit(): boolean {
+  return canEdit();
+}
+
 export function useCanEdit(): boolean {
   useApp();
   return canEdit();
