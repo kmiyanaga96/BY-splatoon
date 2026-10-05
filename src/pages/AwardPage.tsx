@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AvatarInput } from '../components/AvatarInput';
+import { PrizeVideos } from '../components/PrizeVideos';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
 import { CATEGORIES, categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
@@ -119,6 +120,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           <h1 className="headline">表彰</h1>
         </div>
         <Empty icon="emoji_events">チームを登録すると表彰画像を作れます</Empty>
+        <PrizeVideos t={t} />
         <AwardTemplateGallery />
       </div>
     );
@@ -250,6 +252,8 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           </section>
         </div>
       </div>
+
+      <PrizeVideos t={t} />
 
       <AwardTemplateGallery selected={template} onSelect={setTemplate} />
     </div>

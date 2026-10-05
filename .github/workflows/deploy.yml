@@ -1,7 +1,8 @@
 # main ブランチに push すると、Firestore のルールを反映してから GitHub Pages に公開する。
 # 初回のみ: リポジトリの Settings > Pages > Source を「GitHub Actions」にする。
-# ルールの反映には、Firebase ルール管理者のサービスアカウントの鍵 (JSON) を
+# Firestore のルールの反映には、Firebase ルール管理者のサービスアカウントの鍵 (JSON) を
 # リポジトリのシークレット FIREBASE_SERVICE_ACCOUNT に登録しておく。
+# storage.rules (優勝賞品の動画) はここでは反映しない。変更したら npm run deploy:rules で手元から反映する。
 name: Deploy to GitHub Pages
 
 on:
