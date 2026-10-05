@@ -1,5 +1,5 @@
 // データの生成・読み込み時の補完・旧形式からの移行。
-// 保存先 (localStorage / Firebase) や JSON の読み込みから来たデータは、必ずここを通してから使う。
+// 保存先 (Firestore) から来たデータは、必ずここを通してから使う。
 
 import { CATEGORIES, unitKey } from './data/weapons';
 import type { AppData, Bracket, Game, League, LeagueGroup, Member, MatchRecord, Player, PoolUnit, Rules, Team, Tiebreaker, Tournament } from './types';

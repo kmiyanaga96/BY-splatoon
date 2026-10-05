@@ -179,7 +179,7 @@ export function App() {
         {saveError && (
           <div className="banner error">
             <Icon name="warning" />
-            ブラウザへの保存に失敗しました。設定ページからデータを書き出して保管してください。({saveError})
+            データの保存・読み込みに失敗しました。通信状態と編集権限を確認してください（保存に失敗した変更は取り消され、サーバーの内容に戻ります）。({saveError})
           </div>
         )}
         <main className="main">

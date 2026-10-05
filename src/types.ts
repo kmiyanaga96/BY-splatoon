@@ -1,4 +1,4 @@
-// アプリ全体のデータ型。保存先 (localStorage / Firebase) と JSON エクスポートはこの形を扱う。
+// アプリ全体のデータ型。保存先 (Firestore) とバックアップの JSON はこの形を扱う。
 
 /** 選手 DB の 1 人。大会をまたいで共通 (アイコンや XP は一度登録すれば使い回せる) */
 export interface Player {
