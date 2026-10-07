@@ -10,6 +10,7 @@ export function newId(): string {
 
 export const defaultRules = (): Rules => ({
   kind: 'unified',
+  brand: 'league',
   categories: [],
   randomTiming: 'game',
   poolUnit: 'main',
@@ -304,6 +305,7 @@ export function normalizeTournament(t: any, index = new PlayerIndex()): Tourname
   }
   // 種類の設定がない旧データはブキ統一杯
   if (!['unified', 'free', 'category', 'random'].includes(rules.kind)) rules.kind = 'unified';
+  if (!['league', 'inkparty-yellow', 'inkparty-pink'].includes(rules.brand)) rules.brand = 'league';
   rules.categories = strArr(t?.rules?.categories).filter((c) => CATEGORIES.some((x) => x.id === c));
   if (!['game', 'match', 'tournament'].includes(rules.randomTiming)) rules.randomTiming = 'game';
   // 単位の設定がない旧データはブキ単位のまま

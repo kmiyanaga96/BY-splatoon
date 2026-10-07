@@ -100,8 +100,13 @@ export type TournamentKind = 'unified' | 'free' | 'category' | 'random';
 /** ランダムブキの抽選のタイミング */
 export type RandomTiming = 'game' | 'match' | 'tournament';
 
+/** 大会のロゴ: BYリーグ (競技) / BYリーグ InkParty (エンジョイ、配色 2 種) */
+export type Brand = 'league' | 'inkparty-yellow' | 'inkparty-pink';
+
 export interface Rules {
   kind: TournamentKind;
+  /** 大会のロゴ (表彰画像・ホームに表示) */
+  brand: Brand;
   /** カテゴリ縛りで使えるカテゴリ (CATEGORIES の id)。kind: category でだけ使う */
   categories: string[];
   /** ランダムブキの抽選のタイミング。kind: random でだけ使う */

@@ -128,7 +128,7 @@ tournaments/{id}       { name, date, description, rules, status,
 ## 7. 決定事項（2026-10-01）
 
 1. Firebase で進める。
-2. Firebase のセットアップは開発者が行う（手順: [firebase-setup-manual.md](../firebase-setup-manual.md)。完了後に削除）。
+2. Firebase のセットアップは開発者が行う（2026-10-01 に完了。手順書は 2026-10-07 に削除）。
 3. 閲覧のログインは当面不要。書き込みのみ編集者リストで制限する。
 4. ゲームごとの出場メンバーを記録する（補欠は基本いない）。
 5. ブキアイコンの取り込み（段階 1）を進める。

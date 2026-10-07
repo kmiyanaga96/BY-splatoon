@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="BYリーグ InkParty (ピンク×シアン)">
+  <!-- BYリーグ InkParty (ピンク×シアン)。イエロー×ブルー版と同じ構成で 3 色を差し替えたもの
+       アクセント (シアン) #19D3E0 / 地 (ピンク) #F0287F / 締め色 (ダークパープル) #2A0B2E -->
+  <style>@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800&amp;display=swap');</style>
+  <defs>
+    <mask id="ip-b" maskUnits="userSpaceOnUse" x="-20" y="-20" width="200" height="140">
+      <rect x="-20" y="-20" width="200" height="140" fill="#fff"/>
+      <rect x="34" y="20" width="14" height="16" rx="3" fill="#000"/>
+      <rect x="34" y="57" width="20" height="21" rx="4" fill="#000"/>
+      <path d="M58 8H82L96 46L110 8H134L108 60V92H84V60Z" fill="#000" stroke="#000" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M0 0H22L0 22Z" fill="#000"/>
+    </mask>
+    <mask id="ip-y" maskUnits="userSpaceOnUse" x="-20" y="-20" width="200" height="140">
+      <rect x="-20" y="-20" width="200" height="140" fill="#fff"/>
+      <rect x="111" y="27" width="30" height="3.5" fill="#000"/>
+      <path d="M98 94L112 80V100H98Z" fill="#000"/>
+    </mask>
+  </defs>
+  <clipPath id="ip-inner"><rect x="38" y="38" width="324" height="324" rx="56"/></clipPath>
+  <!-- ステッカー: ネイビーの外フチ → 太い白フチ → 中身 -->
+  <rect x="22" y="22" width="356" height="356" rx="72" fill="#2A0B2E"/>
+  <rect x="30" y="30" width="340" height="340" rx="64" fill="#FFFFFF"/>
+  <g clip-path="url(#ip-inner)">
+    <rect x="38" y="38" width="324" height="324" fill="#F0287F"/>
+    <!-- 文字の後ろを通る斜めの帯 (インクA、文字と同じ -6°) と、ドット (幾何学の円) -->
+    <path d="M38 282L362 248V326L38 360Z" fill="#19D3E0"/>
+    <g fill="#19D3E0">
+      <circle cx="318" cy="78" r="14"/><circle cx="344" cy="104" r="7"/><circle cx="292" cy="62" r="5"/>
+      <circle cx="72" cy="96" r="6"/>
+    </g>
+  </g>
+  <!-- シンボル: 影 (ネイビーを右下にずらす) → 本体。中心 (200,152)、1.5 倍 -->
+  <g transform="translate(86 77) scale(1.5)">
+    <g transform="translate(19.6 0) skewX(-12)">
+      <g transform="translate(4 4)" fill="#2A0B2E">
+        <g mask="url(#ip-b)">
+          <rect x="8" y="8" width="26" height="84" rx="4"/>
+          <rect x="8" y="8" width="54" height="40" rx="16"/>
+          <rect x="8" y="44" width="66" height="48" rx="18"/>
+        </g>
+        <path mask="url(#ip-y)" d="M58 8H82L96 46L110 8H134L108 60V92H84V60Z"/>
+      </g>
+      <g mask="url(#ip-b)" fill="#FFFFFF">
+        <rect x="8" y="8" width="26" height="84" rx="4"/>
+        <rect x="8" y="8" width="54" height="40" rx="16"/>
+        <rect x="8" y="44" width="66" height="48" rx="18"/>
+      </g>
+      <path mask="url(#ip-y)" d="M58 8H82L96 46L110 8H134L108 60V92H84V60Z" fill="#19D3E0"/>
+    </g>
+  </g>
+  <!-- 添え字: 丸ゴシックを白フチ + ネイビーの影で「ステッカーの文字」に -->
+  <g font-family="'M PLUS Rounded 1c', 'Arial Rounded MT Bold', sans-serif" font-weight="800" text-anchor="middle" transform="rotate(-6 200 300)">
+    <text x="200" y="250" font-size="22" letter-spacing="6" fill="#FFFFFF" stroke="#2A0B2E" stroke-width="6" stroke-linejoin="round" paint-order="stroke">BY LEAGUE</text>
+    <text x="203" y="318" font-size="58" fill="#2A0B2E" stroke="#2A0B2E" stroke-width="14" stroke-linejoin="round">InkParty</text>
+    <text x="200" y="315" font-size="58" fill="#F0287F" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round" paint-order="stroke">InkParty</text>
+  </g>
+</svg>
