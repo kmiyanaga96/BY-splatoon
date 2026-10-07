@@ -4,6 +4,7 @@ import { CATEGORIES, WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { TIEBREAKER_LABEL } from '../lib/league';
 import { TAIKAI_SUPPORT_TIEBREAKERS, TIEBREAKERS, convertPool, newLeague } from '../model';
 import { backupJson, createTournament, getCanEdit, newId, update, updateCurrent, useApp } from '../store';
+import { BRAND_OPTIONS } from '../lib/brand';
 import { KIND_OPTIONS, RANDOM_TIMING_LABEL, kindOf } from '../lib/kinds';
 import type { PoolUnit, RandomTiming, ReuseRule, Rules, Tiebreaker, Tournament, TournamentKind } from '../types';
 
@@ -87,6 +88,26 @@ export function SettingsPage({ t }: { t: Tournament }) {
             onChange={(e) => updateCurrent((d) => void (d.description = e.target.value))}
           />
         </Field>
+        <span className="label">ロゴ</span>
+        <p className="muted body-s">表彰画像の右上とホームに表示します。真剣勝負の大会は「BYリーグ」、エンジョイ大会は「InkParty」がおすすめです。</p>
+        <div className="brand-picker" role="radiogroup" aria-label="ロゴ">
+          {BRAND_OPTIONS.map((b) => (
+            <button
+              key={b.value}
+              type="button"
+              role="radio"
+              aria-checked={t.rules.brand === b.value}
+              className={`brand-option ${t.rules.brand === b.value ? 'selected' : ''}`}
+              onClick={() => setRule('brand', b.value)}
+            >
+              <img src={b.image} alt="" width={96} height={96} />
+              <span className="body-s">
+                {t.rules.brand === b.value && <Icon name="check" />}
+                {b.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="card">

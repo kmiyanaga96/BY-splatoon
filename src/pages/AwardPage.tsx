@@ -6,6 +6,7 @@ import { CATEGORIES, categoryOf, weaponIconUrl, weaponName } from '../data/weapo
 import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
 import { type MatchView } from '../lib/bracket';
 import { allPlacements } from '../lib/league';
+import { BRANDS, brandOf } from '../lib/brand';
 import { kindOf } from '../lib/kinds';
 import { allPicks, usageBy } from '../lib/records';
 import { roster } from '../lib/roster';
@@ -103,6 +104,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         motif: t.rules.kind,
         colors: t.rules.categories.map((c) => CATEGORIES.find((x) => x.id === c)?.color ?? '#888888'),
       },
+      logo: brandOf(t).image,
     };
   };
 
@@ -286,6 +288,7 @@ const SAMPLE: Omit<AwardData, 'team'> = {
   })),
   showXp: true,
   kind: { label: 'ブキ統一杯', motif: 'unified' },
+  logo: BRANDS.league.image,
 };
 
 const SAMPLE_TEAMS: Record<AwardTemplate, { name: string; color: string }> = {

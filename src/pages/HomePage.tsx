@@ -2,6 +2,7 @@ import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/
 import { rulesText } from '../lib/announce';
 import { champion, isPlayable, sideId, type MatchView } from '../lib/bracket';
 import { allMatches } from '../lib/league';
+import { brandOf } from '../lib/brand';
 import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
 import { navigate } from '../router';
@@ -32,6 +33,7 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
   return (
     <div className="page">
       <section className="hero card">
+        <img className="hero-logo" src={brandOf(t).image} alt={brandOf(t).label} width={120} height={120} />
         <h1 className="display">{t.name}</h1>
         {t.date && <p className="hero-date">{t.date}</p>}
         {t.description && <p className="pre body-l">{t.description}</p>}

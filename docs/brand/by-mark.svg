@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" role="img" aria-label="BY">
+  <!-- 正立グリッド (0..140 × 8..92) で作図し、最後に skewX(-12) で右へ傾ける (ベースライン y=92 は固定) -->
+  <defs>
+    <mask id="by-cut" maskUnits="userSpaceOnUse" x="-20" y="-20" width="200" height="140">
+      <rect x="-20" y="-20" width="200" height="140" fill="#fff"/>
+      <!-- B のカウンター -->
+      <rect x="34" y="20" width="14" height="16" rx="3" fill="#000"/>
+      <rect x="34" y="57" width="20" height="21" rx="4" fill="#000"/>
+      <!-- Y の外形を 3.5 太らせて抜く = 組み合わせ部のスリット -->
+      <path d="M58 8H82L96 46L110 8H134L108 60V92H84V60Z" fill="#000" stroke="#000" stroke-width="7" stroke-linejoin="round"/>
+      <!-- 左上の面取り (45°) -->
+      <path d="M0 0H22L0 22Z" fill="#000"/>
+    </mask>
+    <mask id="y-cut" maskUnits="userSpaceOnUse" x="-20" y="-20" width="200" height="140">
+      <rect x="-20" y="-20" width="200" height="140" fill="#fff"/>
+      <!-- 右アームに外側から入る水平スリット (アームは切り離さない) + 右下の面取り -->
+      <rect x="111" y="27" width="30" height="3.5" fill="#000"/>
+      <path d="M98 94L112 80V100H98Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g transform="translate(19.6 0) skewX(-12)">
+    <g mask="url(#by-cut)" fill="var(--b, currentColor)">
+      <rect x="8" y="8" width="26" height="84" rx="4"/>
+      <rect x="8" y="8" width="54" height="40" rx="16"/>
+      <rect x="8" y="44" width="66" height="48" rx="18"/>
+    </g>
+    <path mask="url(#y-cut)" d="M58 8H82L96 46L110 8H134L108 60V92H84V60Z" fill="var(--y, currentColor)"/>
+  </g>
+</svg>

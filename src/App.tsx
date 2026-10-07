@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { signIn, signOut, useAuthView } from './backend';
 import { Avatar, Icon, IconButton, SnackbarHost } from './components/ui';
 import { computeBracket } from './lib/bracket';
+import { BRAND_ICON } from './lib/brand';
 import { kindOf, type KindInfo } from './lib/kinds';
 import { AnnouncePage } from './pages/AnnouncePage';
 import { AwardPage, AwardTemplateGallery } from './pages/AwardPage';
@@ -131,14 +132,14 @@ export function App() {
     <div className="app">
       <nav className="nav-rail" aria-label="メニュー">
         <a href="#/" className="rail-brand" aria-label="ホーム">
-          BY
+          <img src={BRAND_ICON} alt="BY" width={56} height={56} />
         </a>
         {navItems}
       </nav>
       <div className="app-body">
         <header className="top-app-bar">
           <span className="app-title">
-            <span className="app-title-mark">BY</span>
+            <img className="app-title-mark" src={BRAND_ICON} alt="BY" width={36} height={36} />
             <span className="app-title-text">スプラ大会ツール</span>
           </span>
           <span className="spacer" />

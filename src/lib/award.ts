@@ -45,6 +45,8 @@ export interface AwardData {
   showXp: boolean;
   /** 大会の種類 (リボンの文字と背景の柄)。なければ装飾なし。colors はカテゴリ縛りの柄に使う */
   kind?: { label: string; motif: AwardMotif; colors?: string[] };
+  /** 大会のロゴ画像 (右上に表示)。なければ右上は「BY スプラ大会ツール」の札 */
+  logo?: string;
 }
 
 /**
@@ -165,9 +167,10 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       return tier ? loadImage(xBadgeUrl(tier)) : Promise.resolve(null);
     })),
   ]);
-  const [weaponIcons, memberWeapons] = await Promise.all([
+  const [weaponIcons, memberWeapons, logo] = await Promise.all([
     Promise.all(d.weapons.map((w) => loadImage(w.icon))),
     Promise.all(d.members.map((m) => loadImage(m.weapon ?? ''))),
+    loadImage(d.logo ?? ''),
   ]);
 
   if (!isCurrent()) return;
@@ -255,6 +258,12 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   }
   ctx.textBaseline = 'alphabetic';
   ctx.textAlign = 'left';
+
+  // ロゴ (右上)。大会名・見出し・チーム名はロゴにかからない幅に収める
+  const LOGO = 176;
+  const logoX = W - LOGO - (template === 'team' ? 64 : 32);
+  const logoY = template === 'team' ? 56 : 28;
+  if (logo) right = Math.min(right, logoX - 32);
 
   // 大会の種類のリボン (大会名の上)
   if (d.kind) {
@@ -424,6 +433,11 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       ctx.fillStyle = SUB;
       ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
     }
+  }
+
+  if (logo) {
+    ctx.drawImage(logo, logoX, logoY, LOGO, LOGO);
+    return;
   }
 
   // フッター (右上に白い札で表示。どの背景でも読めるように)
