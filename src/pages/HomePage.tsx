@@ -1,7 +1,7 @@
 import { Avatar, Empty, Icon, TeamName, WeaponTag, XBadge } from '../components/ui';
 import { rulesText } from '../lib/announce';
-import { champion, isPlayable, sideId, type MatchView } from '../lib/bracket';
-import { allMatches } from '../lib/league';
+import { isPlayable, sideId, type MatchView } from '../lib/bracket';
+import { allMatches, championOf } from '../lib/league';
 import { brandOf } from '../lib/brand';
 import { kindOf } from '../lib/kinds';
 import { roster } from '../lib/roster';
@@ -15,7 +15,7 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
   const playable = allMatches(t, rounds).filter(isPlayable);
   const done = playable.filter((m) => m.winner.kind === 'team');
   const upcoming = playable.filter((m) => m.a.kind === 'team' && m.b.kind === 'team' && m.winner.kind === 'tbd');
-  const champ = team(champion(rounds));
+  const champ = team(championOf(t, rounds));
   const players = usePlayers();
   const featured = t.teams.flatMap((tm) =>
     roster(tm, players)
@@ -26,7 +26,9 @@ export function HomePage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }
   const steps = [
     { done: t.name !== '新しい大会' && t.name !== 'ブキ統一杯', label: '大会名・ルールを設定する', to: 'settings' },
     { done: t.teams.length >= 2, label: kindOf(t).hasPool ? 'チームとメンバー・候補ブキを登録する' : 'チームとメンバーを登録する', to: 'teams' },
-    { done: t.bracket.slots.length > 0, label: 'トーナメント表を作成する', to: 'bracket' },
+    t.league?.only
+      ? { done: t.league.groups.some((g) => g.teamIds.length >= 2), label: 'リーグ戦の対戦表を確認する', to: 'league' }
+      : { done: t.bracket.slots.length > 0, label: 'トーナメント表を作成する', to: 'bracket' },
     { done: done.length > 0, label: kindOf(t).teamWeapon ? '試合結果とブキを記録し、告知文をコピーする' : '試合結果を記録し、告知文をコピーする', to: 'announce' },
   ];
 

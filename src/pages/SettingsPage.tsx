@@ -2,7 +2,7 @@ import { DateTimeField } from '../components/DateTimePicker';
 import { Field, FilterChip, Icon, IconButton, Switch } from '../components/ui';
 import { CATEGORIES, WEAPON_DATA_VERSION, WEAPONS } from '../data/weapons';
 import { TIEBREAKER_LABEL } from '../lib/league';
-import { TAIKAI_SUPPORT_TIEBREAKERS, TIEBREAKERS, convertPool, newLeague } from '../model';
+import { TAIKAI_SUPPORT_TIEBREAKERS, TIEBREAKERS, convertPool, makeGroups, newLeague } from '../model';
 import { backupJson, createTournament, getCanEdit, newId, update, updateCurrent, useApp } from '../store';
 import { BRAND_OPTIONS } from '../lib/brand';
 import { KIND_OPTIONS, RANDOM_TIMING_LABEL, kindOf } from '../lib/kinds';
@@ -132,14 +132,17 @@ export function SettingsPage({ t }: { t: Tournament }) {
             />
           </Field>
         </div>
-        <div className="form-row">
-          <Field label="通常の試合" hint="BO3 = 2本先取">
-            <BestOfSelect value={t.rules.bestOf} onChange={(v) => setRule('bestOf', v)} />
-          </Field>
-          <Field label="決勝">
-            <BestOfSelect value={t.rules.finalBestOf} onChange={(v) => setRule('finalBestOf', v)} />
-          </Field>
-        </div>
+        {/* 総当たりのみの大会はトーナメントがないので、BO 数は「大会の形式」のリーグ戦の試合で決める */}
+        {!t.league?.only && (
+          <div className="form-row">
+            <Field label="通常の試合" hint="BO3 = 2本先取">
+              <BestOfSelect value={t.rules.bestOf} onChange={(v) => setRule('bestOf', v)} />
+            </Field>
+            <Field label="決勝">
+              <BestOfSelect value={t.rules.finalBestOf} onChange={(v) => setRule('finalBestOf', v)} />
+            </Field>
+          </div>
+        )}
         {t.rules.kind === 'category' && (
           <>
             <h3 className="title-m">使えるカテゴリ</h3>
@@ -283,12 +286,33 @@ function BestOfSelect({ value, onChange }: { value: number; onChange: (v: number
   );
 }
 
-/** 予選リーグの有無・進出数・BO 数・順位の決め方 (グループ分けは予選ページで編集) */
+type Format = 'bracket' | 'league' | 'leagueOnly';
+
+const FORMATS: { value: Format; label: string; hint: string }[] = [
+  { value: 'bracket', label: 'トーナメントのみ', hint: 'シングルエリミネーションのトーナメント' },
+  { value: 'league', label: '予選リーグ → 本選トーナメント', hint: 'グループごとの総当たりの上位で本選トーナメントをする' },
+  { value: 'leagueOnly', label: '総当たりのみ（リーグ戦）', hint: '全チーム総当たりの順位で優勝を決める。チーム数が少ない大会向け' },
+];
+
+const formatOf = (t: Tournament): Format => (!t.league ? 'bracket' : t.league.only ? 'leagueOnly' : 'league');
+
+/** 大会の形式 (トーナメント / 予選リーグ → 本選 / 総当たりのみ) と、リーグの進出数・BO 数・順位の決め方 (グループ分けはリーグのページで編集) */
 function LeagueSettings({ t }: { t: Tournament }) {
   const league = t.league;
-  const toggle = (on: boolean) => {
-    if (!on && league && Object.keys(league.matches).length && !confirm('予選リーグをなくしますか？\n予選の試合結果はすべて消えます。')) return;
-    updateCurrent((d) => void (d.league = on ? newLeague(d.teams.map((x) => x.id)) : null));
+  const format = formatOf(t);
+  const setFormat = (next: Format) => {
+    if (next === format) return;
+    if (next === 'bracket' && league && Object.keys(league.matches).length && !confirm('リーグ戦をなくしますか？\nリーグ戦の試合結果はすべて消えます。')) return;
+    updateCurrent((d) => {
+      if (next === 'bracket') d.league = null;
+      // 予選リーグ ⇔ 総当たりのみ の切り替えは、グループ分けと試合結果をそのまま使う
+      else if (d.league) {
+        d.league.only = next === 'leagueOnly';
+        // まだ試合をしていなければ、総当たりのみは全チーム 1 グループにする
+        if (d.league.only && !Object.keys(d.league.matches).length) d.league.groups = makeGroups(d.teams.map((x) => x.id), 1);
+      }
+      else d.league = newLeague(d.teams.map((x) => x.id), 2, next === 'leagueOnly');
+    });
   };
   const set = (fn: (l: NonNullable<Tournament['league']>) => void) => updateCurrent((d) => void (d.league && fn(d.league)));
   const unused = TIEBREAKERS.filter((k) => !league?.tiebreakers.includes(k));
@@ -300,21 +324,33 @@ function LeagueSettings({ t }: { t: Tournament }) {
     });
   return (
     <section className="card">
-      <h2 className="card-title">予選リーグ</h2>
-      <Switch label="予選リーグ（グループごとの総当たり）を行い、上位チームで本選トーナメントをする" checked={!!league} onChange={toggle} />
+      <h2 className="card-title">大会の形式</h2>
+      <div className="format-options" role="radiogroup" aria-label="大会の形式">
+        {FORMATS.map((f) => (
+          <label key={f.value} className={`format-option ${format === f.value ? 'selected' : ''}`}>
+            <input type="radio" name="format" checked={format === f.value} onChange={() => setFormat(f.value)} />
+            <span>
+              <span className="title-m">{f.label}</span>
+              <span className="muted body-s">{f.hint}</span>
+            </span>
+          </label>
+        ))}
+      </div>
       {league && (
         <>
           <div className="form-row">
-            <Field label="各グループから本選に進むチーム数">
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={league.advance}
-                onChange={(e) => set((l) => void (l.advance = Math.max(1, Number(e.target.value) || 1)))}
-              />
-            </Field>
-            <Field label="予選の試合">
+            {!league.only && (
+              <Field label="各グループから本選に進むチーム数">
+                <input
+                  className="input"
+                  type="number"
+                  min={1}
+                  value={league.advance}
+                  onChange={(e) => set((l) => void (l.advance = Math.max(1, Number(e.target.value) || 1)))}
+                />
+              </Field>
+            )}
+            <Field label={league.only ? 'リーグ戦の試合' : '予選の試合'}>
               <BestOfSelect value={league.bestOf} onChange={(v) => set((l) => void (l.bestOf = v))} />
             </Field>
           </div>
@@ -363,7 +399,7 @@ function LeagueSettings({ t }: { t: Tournament }) {
           <p className="muted body-s">
             既定はタイカイサポートの優先勝利条件（勝利試合数 → 勝利バトル数 → 負けバトル数の少なさ → 直接対決 → エントリー番号順）です。
             直接対決は、並んだチーム同士の試合だけで比べます。エントリー番号はチーム一覧の並び順です（これを入れると同順位は出ません）。
-            グループ分けは<a href="#/league">予選ページ</a>で編集できます。
+            グループ分けは<a href="#/league">{league.only ? 'リーグ戦' : '予選'}ページ</a>で編集できます。
           </p>
         </>
       )}

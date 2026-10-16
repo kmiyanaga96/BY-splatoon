@@ -90,6 +90,8 @@ export function decide(a: Side, b: Side, record: MatchRecord | null, bestOf: num
 }
 
 export function computeBracket(t: Tournament): MatchView[][] {
+  // 総当たりのみの大会には本選トーナメントがない (以前作った表が残っていても使わない)
+  if (t.league?.only) return [];
   const { bracket, rules } = t;
   const total = roundCount(bracket);
   const rounds: MatchView[][] = [];

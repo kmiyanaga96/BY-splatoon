@@ -132,8 +132,12 @@ export interface LeagueGroup {
   teamIds: string[];
 }
 
-/** 予選リーグ (グループごとの総当たり)。上位が本選トーナメントに進む */
+/**
+ * 予選リーグ (グループごとの総当たり)。上位が本選トーナメントに進む。
+ * only = true は「総当たりのみ」の大会: 本選トーナメントはなく、リーグ戦の順位がそのまま大会の成績になる
+ */
 export interface League {
+  only: boolean;
   groups: LeagueGroup[];
   /** 各グループから本選に進むチーム数 */
   advance: number;
@@ -150,7 +154,7 @@ export interface Tournament {
   description: string;
   rules: Rules;
   teams: Team[];
-  /** 予選リーグ。予選なしは null */
+  /** 予選リーグ (総当たりのみの大会ではリーグ戦そのもの)。なしは null */
   league: League | null;
   /** 本選トーナメント */
   bracket: Bracket;
