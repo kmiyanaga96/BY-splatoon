@@ -196,6 +196,11 @@ describe('総当たりのみの大会', () => {
     expect(allPlacements(t, []).get('t1')?.label).toBe('優勝');
   });
 
+  it('試合の見出しは対戦順の通し番号 (1 グループの総当たりのみはグループ名なし)', () => {
+    expect(computeLeague(only(4))[0].matches.map((m) => m.label)).toEqual(['第1試合', '第2試合', '第3試合', '第4試合', '第5試合', '第6試合']);
+    expect(computeLeague(setup(4, 2))[0].matches.map((m) => m.label)).toEqual(['Aグループ 第1試合']);
+  });
+
   it('以前の大会 (only のキーなし) は予選リーグとして読み込む', () => {
     const d = normalizeData({ tournaments: [{ id: 'x', teams: [{ id: 'a' }], league: { groups: [{ id: 'A', teamIds: ['a'] }], matches: {} } }] });
     expect(d.tournaments[0].league?.only).toBe(false);

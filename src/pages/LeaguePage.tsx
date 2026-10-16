@@ -96,7 +96,7 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
       {groups.length === 0 || groups.every((g) => g.group.teamIds.length === 0) ? (
         <Empty icon="groups">チームを登録してから、グループ分けを作ってください</Empty>
       ) : (
-        <div className="grid league-grid">
+        <div className={`grid league-grid ${groups.length === 1 ? 'single' : ''}`}>
           {groups.map((g) => (
             <GroupCard key={g.group.id} t={t} g={g} advance={cutoff} only={only} title={only && groups.length === 1 ? '順位表' : g.group.name} />
           ))}
@@ -176,29 +176,32 @@ function GroupCard(props: { t: Tournament; g: GroupView; advance: number; only: 
             : '進出ラインで同順位です。本選の枠は作成後に手で直してください。'}
         </p>
       )}
-      {g.rounds.map((round, r) => (
-        <div key={r} className="league-round">
-          <span className="overline">第{r + 1}節</span>
-          <ul className="list">
-            {round.map((m) => {
-              const a = team(m.a.kind === 'team' ? m.a.id : null);
-              const b = team(m.b.kind === 'team' ? m.b.id : null);
-              const winner = m.winner.kind === 'team' ? m.winner.id : null;
-              return (
-                <li key={m.key}>
-                  <button className={`list-item ${winner ? 'done' : ''}`} onClick={() => navigate('league', m.key)}>
-                    <span className="match-line">
-                      {a && <TeamName name={a.name} color={a.color} />}
-                      <span className="vs">{m.record?.override ? '不戦勝' : `${m.winsA} - ${m.winsB}`}</span>
-                      {b && <TeamName name={b.name} color={b.color} />}
+      {/* 対戦順に「第n試合」で並べる。チームを 1 行ずつ (スコアは右端) にして、長いチーム名でも横幅いっぱいに表示する */}
+      <ul className="list league-matches">
+        {g.matches.map((m) => {
+          const a = team(m.a.kind === 'team' ? m.a.id : null);
+          const b = team(m.b.kind === 'team' ? m.b.id : null);
+          const winner = m.winner.kind === 'team' ? m.winner.id : null;
+          return (
+            <li key={m.key}>
+              <button className={`list-item ${winner ? 'done' : ''}`} onClick={() => navigate('league', m.key)}>
+                <span className="overline">{m.label.replace(`${g.group.name} `, '')}</span>
+                <span className="league-match">
+                  {[
+                    { x: a, wins: m.winsA },
+                    { x: b, wins: m.winsB },
+                  ].map(({ x, wins }, i) => (
+                    <span key={i} className={`league-side ${winner && winner === x?.id ? 'won' : winner ? 'lost' : ''}`}>
+                      {x && <TeamName name={x.name} color={x.color} />}
+                      <span className="vs">{m.record?.override ? (winner === x?.id ? '不戦勝' : '') : wins}</span>
                     </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+                  ))}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
