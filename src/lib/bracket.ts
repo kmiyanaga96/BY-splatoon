@@ -10,7 +10,7 @@ export interface MatchView {
   key: string;
   /** 予選リーグの試合か本選トーナメントの試合か */
   stage: 'league' | 'bracket';
-  /** 表示用の見出し (例: 準決勝 第1試合 / Aグループ 第2節) */
+  /** 表示用の見出し (例: 準決勝 第1試合 / Aグループ 第2試合) */
   label: string;
   /** トーナメントは回戦、リーグは節 (0 始まり) */
   round: number;

@@ -18,7 +18,7 @@ export interface StandingRow {
 
 export interface GroupView {
   group: LeagueGroup;
-  /** 節ごとの試合 */
+  /** 節ごとの試合 (表示は試合ごとの通し番号。MatchView.label が「第n試合」) */
   rounds: MatchView[][];
   matches: MatchView[];
   /** 順位順 */
@@ -64,8 +64,12 @@ export function computeLeague(t: Tournament): GroupView[] {
   if (!league) return [];
   // エントリー番号 = チーム一覧の並び
   const entry = new Map(t.teams.map((x, i) => [x.id, i]));
+  // 総当たりのみで 1 グループなら、見出しにグループ名を付けない (「第3試合」)
+  const prefix = (group: LeagueGroup) => (league.only && league.groups.length === 1 ? '' : `${group.name} `);
   // グループ × 総当たりで数十試合程度なので、キャッシュせず毎回計算する
   return league.groups.map((group) => {
+    // 試合番号はグループ内の対戦順の通し番号 (第1試合, 第2試合, …)
+    let no = 0;
     const rounds = roundRobin(group.teamIds).map((pairs, r) =>
       pairs.map(([a, b], i): MatchView => {
         const key = leagueKey(group.id, a, b);
@@ -76,7 +80,7 @@ export function computeLeague(t: Tournament): GroupView[] {
         return {
           key,
           stage: 'league',
-          label: `${group.name} 第${r + 1}節`,
+          label: `${prefix(group)}第${++no}試合`,
           round: r,
           index: i,
           a: teamSide(a),
