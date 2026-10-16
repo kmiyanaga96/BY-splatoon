@@ -51,7 +51,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       {t.teams.length === 0 && <Empty icon="groups">まだチームがありません。右下の「チームを追加」から登録してください。</Empty>}
       <div className="grid team-grid">
         {t.teams.map((team, i) => {
-          const inBracket = t.bracket.slots.includes(team.id);
+          const inBracket = rounds.length > 0 && t.bracket.slots.includes(team.id);
           const alive = isAlive(rounds, team.id);
           const status = poolStatus(t, rounds, team.id);
           return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Empty, Field, Icon, TeamName } from '../components/ui';
 import { createSlots, type MatchView } from '../lib/bracket';
-import { TIEBREAKER_LABEL, computeLeague, seedsFromLeague, tieAtCutoff, type GroupView } from '../lib/league';
+import { TIEBREAKER_LABEL, championOf, computeLeague, seedsFromLeague, tieAtCutoff, type GroupView } from '../lib/league';
 import { makeGroups } from '../model';
 import { navigate, useRoute } from '../router';
 import { updateCurrent } from '../store';
@@ -46,7 +46,7 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
           <h1 className="headline">予選リーグ</h1>
         </div>
         <Empty icon="leaderboard">
-          この大会には予選リーグがありません。<a href="#/settings">設定</a>の「予選リーグ」から追加できます。
+          この大会には予選リーグがありません。<a href="#/settings">設定</a>の「大会の形式」から追加できます。
         </Empty>
       </div>
     );
@@ -56,11 +56,15 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
   const grouped = new Set(league.groups.flatMap((g) => g.teamIds));
   const ungrouped = t.teams.filter((x) => !grouped.has(x.id));
   const complete = groups.length > 0 && groups.every((g) => g.complete);
+  const only = league.only;
+  const champ = t.teams.find((x) => x.id === championOf(t, rounds));
+  // 総当たりのみは 1 位 (優勝) の行を強調し、1 位が並んだら警告する
+  const cutoff = only ? 1 : league.advance;
 
   return (
     <div className="page">
       <div className="page-header row">
-        <h1 className="headline">予選リーグ</h1>
+        <h1 className="headline">{only ? 'リーグ戦' : '予選リーグ'}</h1>
         <span className="spacer" />
         <button className={`btn ${editing ? 'filled' : 'tonal'}`} onClick={() => setEditing(!editing)}>
           <Icon name={editing ? 'check' : 'edit'} />
@@ -68,9 +72,18 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
         </button>
       </div>
       <p className="muted">
-        各グループで総当たり（BO{league.bestOf}）。上位 {league.advance} チームが本選トーナメントへ進みます。順位の決め方:{' '}
+        {only
+          ? `${groups.length > 1 ? '各グループで' : '全チームで'}総当たり（BO${league.bestOf}）。全試合が終わった時点の順位が大会の成績になります（1 位が優勝）。`
+          : `各グループで総当たり（BO${league.bestOf}）。上位 ${league.advance} チームが本選トーナメントへ進みます。`}
+        順位の決め方:{' '}
         {league.tiebreakers.map((k) => TIEBREAKER_LABEL[k]).join(' → ')}（<a href="#/settings">設定で変更</a>）
       </p>
+
+      {champ && (
+        <p className="champion">
+          <Icon name="emoji_events" filled /> 優勝 <TeamName name={champ.name} color={champ.color} big />
+        </p>
+      )}
 
       {ungrouped.length > 0 && (
         <div className="banner warn">
@@ -85,39 +98,42 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
       ) : (
         <div className="grid league-grid">
           {groups.map((g) => (
-            <GroupCard key={g.group.id} t={t} g={g} advance={league.advance} />
+            <GroupCard key={g.group.id} t={t} g={g} advance={cutoff} only={only} title={only && groups.length === 1 ? '順位表' : g.group.name} />
           ))}
         </div>
       )}
 
-      <section className="card">
-        <h2 className="card-title">本選トーナメント</h2>
-        <p className="muted body-s">
-          予選の順位から、別グループの 1 位と 2 位が当たるように 1 回戦の枠を作ります（たすき掛け）。作成後に枠を手で直すこともできます。
-          ブキの使用制限は予選と本選を通算します。
-        </p>
-        <div className="card-actions">
-          <button
-            className={`btn ${complete ? 'filled' : 'outlined'}`}
-            onClick={() => createBracketFromLeague(t) && navigate('bracket')}
-          >
-            <Icon name="account_tree" />
-            予選の順位から本選トーナメントを作成
-          </button>
-        </div>
-      </section>
+      {!only && (
+        <section className="card">
+          <h2 className="card-title">本選トーナメント</h2>
+          <p className="muted body-s">
+            予選の順位から、別グループの 1 位と 2 位が当たるように 1 回戦の枠を作ります（たすき掛け）。作成後に枠を手で直すこともできます。
+            ブキの使用制限は予選と本選を通算します。
+          </p>
+          <div className="card-actions">
+            <button
+              className={`btn ${complete ? 'filled' : 'outlined'}`}
+              onClick={() => createBracketFromLeague(t) && navigate('bracket')}
+            >
+              <Icon name="account_tree" />
+              予選の順位から本選トーナメントを作成
+            </button>
+          </div>
+        </section>
+      )}
 
       {open && <MatchEditor t={t} rounds={rounds} m={open} onClose={() => navigate('league')} />}
     </div>
   );
 }
 
-function GroupCard({ t, g, advance }: { t: Tournament; g: GroupView; advance: number }) {
+function GroupCard(props: { t: Tournament; g: GroupView; advance: number; only: boolean; title: string }) {
+  const { t, g, advance, only } = props;
   const team = (id: string | null) => t.teams.find((x) => x.id === id);
   return (
     <section className="card">
       <h2 className="card-title">
-        {g.group.name}
+        {props.title}
         {g.complete && <span className="badge ok">確定</span>}
       </h2>
       <div className="table-wrap">
@@ -137,7 +153,7 @@ function GroupCard({ t, g, advance }: { t: Tournament; g: GroupView; advance: nu
               const x = team(r.teamId);
               const diff = r.gamesWon - r.gamesLost;
               return (
-                <tr key={r.teamId} className={i < advance ? 'advance' : ''}>
+                <tr key={r.teamId} className={(only ? r.rank === 1 && g.complete : i < advance) ? 'advance' : ''}>
                   <td className="num">{r.rank}</td>
                   <th>{x && <TeamName name={x.name} color={x.color} />}</th>
                   <td className="num">{r.wins}</td>
@@ -152,9 +168,12 @@ function GroupCard({ t, g, advance }: { t: Tournament; g: GroupView; advance: nu
           </tbody>
         </table>
       </div>
-      {tieAtCutoff(g, advance) && (
+      {tieAtCutoff(g, advance) && (only ? g.complete : true) && (
         <p className="supporting warn-text">
-          <Icon name="warning" /> 進出ラインで同順位です。本選の枠は作成後に手で直してください。
+          <Icon name="warning" />{' '}
+          {only
+            ? '1 位が同順位です。優勝は運営が決めてください（順位の決め方に「エントリー番号順」を入れると同順位は出ません）。'
+            : '進出ラインで同順位です。本選の枠は作成後に手で直してください。'}
         </p>
       )}
       {g.rounds.map((round, r) => (
@@ -188,6 +207,7 @@ function GroupCard({ t, g, advance }: { t: Tournament; g: GroupView; advance: nu
 function GroupEditor({ t }: { t: Tournament }) {
   const league = t.league!;
   const [count, setCount] = useState(Math.max(1, league.groups.length));
+  const only = league.only;
   const hasRecords = Object.keys(league.matches).length > 0;
   const regroup = (random: boolean) => {
     if (hasRecords && !confirm('グループ分けを作り直しますか？\n対戦カードが変わった試合の記録は無効になります。')) return;
@@ -207,7 +227,7 @@ function GroupEditor({ t }: { t: Tournament }) {
     <section className="card">
       <h2 className="card-title">グループ分け</h2>
       <div className="form-row">
-        <Field label="グループの数">
+        <Field label="グループの数" hint={only ? '総当たりのみの大会は通常 1（全チームで総当たり）' : undefined}>
           <input
             className="input"
             type="number"

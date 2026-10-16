@@ -25,7 +25,7 @@ const KINDS: { id: Kind; label: string; icon: string }[] = [
   { id: 'team', label: 'チーム紹介（個別）', icon: 'groups' },
   { id: 'featured', label: '注目選手', icon: 'star' },
   { id: 'match', label: '対戦カード', icon: 'account_tree' },
-  { id: 'standings', label: '予選リーグ順位', icon: 'leaderboard' },
+  { id: 'standings', label: 'リーグ順位', icon: 'leaderboard' },
   { id: 'results', label: '試合結果', icon: 'emoji_events' },
   { id: 'weapons', label: 'ブキ使用状況', icon: 'table_view' },
 ];

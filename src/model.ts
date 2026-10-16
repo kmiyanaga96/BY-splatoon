@@ -58,8 +58,16 @@ export function makeGroups(teamIds: string[], count: number): LeagueGroup[] {
   return groups;
 }
 
-export function newLeague(teamIds: string[], groupCount = 2): League {
-  return { groups: makeGroups(teamIds, groupCount), advance: 2, bestOf: 3, tiebreakers: [...TAIKAI_SUPPORT_TIEBREAKERS], matches: {} };
+/** only = true で「総当たりのみ」(全チーム 1 グループ・本選なし) */
+export function newLeague(teamIds: string[], groupCount = 2, only = false): League {
+  return {
+    only,
+    groups: makeGroups(teamIds, only ? 1 : groupCount),
+    advance: 2,
+    bestOf: 3,
+    tiebreakers: [...TAIKAI_SUPPORT_TIEBREAKERS],
+    matches: {},
+  };
 }
 
 const TEAM_COLORS = ['#f2e14c', '#7b5cff', '#ff5c8a', '#3fd2c7', '#ff9b3d', '#5c9dff', '#9be15d', '#e66cff'];
@@ -224,6 +232,8 @@ function normalizeLeague(l: any, teamIds: Set<string>): League | null {
   }));
   const tiebreakers = strArr(l.tiebreakers).filter((x): x is Tiebreaker => (TIEBREAKERS as string[]).includes(x));
   return {
+    // 以前の大会 (キーなし) は予選リーグ
+    only: l.only === true,
     groups,
     advance: Math.max(1, num(l.advance) ?? 2),
     bestOf: Math.max(1, num(l.bestOf) ?? 3),

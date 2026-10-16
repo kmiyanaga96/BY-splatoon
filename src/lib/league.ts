@@ -3,7 +3,7 @@
 // 試合はトーナメントと同じ MatchView で表すので、試合記録画面・ブキ使用制限・記録の集計をそのまま使える。
 
 import type { LeagueGroup, Tiebreaker, Tournament } from '../types';
-import { createSlots, decide, placements, sideId, teamSide, type MatchView, type Placement } from './bracket';
+import { champion, createSlots, decide, placements, sideId, teamSide, type MatchView, type Placement } from './bracket';
 
 export interface StandingRow {
   teamId: string;
@@ -212,8 +212,37 @@ export function allMatches(t: Tournament, rounds: MatchView[][]): MatchView[] {
 
 export const LEAGUE_OUT: Placement = { rank: 999, label: '予選敗退' };
 
-/** 確定した成績。本選の成績に加えて、本選を作ったあとの予選敗退チーム */
+/** 総当たりのみの大会か (本選トーナメントなし。リーグ戦の順位が大会の成績) */
+export const isLeagueOnly = (t: Tournament) => !!t.league?.only;
+
+/** 総当たりのみの大会の成績。全試合が終わったグループだけ確定 (1 位 = 優勝、2 位 = 準優勝、以下 n 位) */
+function leaguePlacements(t: Tournament): Map<string, Placement> {
+  const result = new Map<string, Placement>();
+  const groups = computeLeague(t).filter((g) => g.group.teamIds.length > 0);
+  for (const g of groups) {
+    if (!g.complete) continue;
+    // 複数グループに分けた場合は「A グループ 1 位」のようにグループ名を付ける
+    const prefix = groups.length > 1 ? `${g.group.name} ` : '';
+    for (const r of g.standings) {
+      const label = groups.length > 1 ? `${r.rank}位` : r.rank === 1 ? '優勝' : r.rank === 2 ? '準優勝' : `${r.rank}位`;
+      result.set(r.teamId, { rank: r.rank, label: prefix + label });
+    }
+  }
+  return result;
+}
+
+/** 優勝チーム。総当たりのみの大会は、全試合が終わって 1 位が 1 チームに決まったとき */
+export function championOf(t: Tournament, rounds: MatchView[][]): string | null {
+  if (!isLeagueOnly(t)) return champion(rounds);
+  const groups = computeLeague(t).filter((g) => g.group.teamIds.length > 0);
+  if (groups.length !== 1 || !groups[0].complete) return null;
+  const top = groups[0].standings.filter((r) => r.rank === 1);
+  return top.length === 1 ? top[0].teamId : null;
+}
+
+/** 確定した成績。本選の成績に加えて、本選を作ったあとの予選敗退チーム。総当たりのみの大会はリーグ戦の順位 */
 export function allPlacements(t: Tournament, rounds: MatchView[][]): Map<string, Placement> {
+  if (isLeagueOnly(t)) return leaguePlacements(t);
   const result = placements(rounds);
   if (t.league && t.bracket.slots.length) {
     const inBracket = new Set(t.bracket.slots.filter(Boolean));

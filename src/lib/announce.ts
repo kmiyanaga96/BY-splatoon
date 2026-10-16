@@ -2,9 +2,9 @@
 
 import type { PlayerMap, Team, Tournament } from '../types';
 import { weaponName } from '../data/weapons';
-import { champion, isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
+import { isPlayable, roundName, sideId, winsNeeded, type MatchView } from './bracket';
 import { RANDOM_TIMING_LABEL, categoryNames, kindOf } from './kinds';
-import { computeLeague, tieAtCutoff } from './league';
+import { championOf, computeLeague, tieAtCutoff } from './league';
 import { allPicks, percent, usageBy } from './records';
 import { poolStatus, teamUses } from './usage';
 import { roster } from './roster';
@@ -38,7 +38,10 @@ function sideLabel(t: Tournament, m: MatchView, which: 'a' | 'b'): string {
 
 export function rulesText(t: Tournament): string {
   const r = t.rules;
-  const bestOf = `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`;
+  const league = t.league;
+  const bestOf = league?.only
+    ? `・総当たり（各試合 BO${league.bestOf}・${winsNeeded(league.bestOf)}勝先取）の順位で優勝を決定`
+    : `・各試合 BO${r.bestOf}（${winsNeeded(r.bestOf)}勝先取）、決勝は BO${r.finalBestOf}（${winsNeeded(r.finalBestOf)}勝先取）`;
   if (r.kind === 'category') {
     const cats = r.categories.length ? `${categoryNames(r.categories)} のブキのみ` : '（カテゴリ未指定）';
     return [`・1チーム ${r.teamSize} 人、使えるのは ${cats}（その中から各自自由に選択）`, bestOf].join('\n');
@@ -163,7 +166,7 @@ export function resultsText(t: Tournament, rounds: MatchView[][], withWeapons = 
   for (const g of computeLeague(t)) {
     const done = g.matches.filter((m) => m.winner.kind === 'team');
     if (!done.length) continue;
-    lines.push(`## 予選 ${g.group.name}`);
+    lines.push(t.league?.only ? `## リーグ戦${computeLeague(t).length > 1 ? ` ${g.group.name}` : ''}` : `## 予選 ${g.group.name}`);
     done.forEach(pushMatch);
   }
   rounds.forEach((round, r) => {
@@ -172,24 +175,28 @@ export function resultsText(t: Tournament, rounds: MatchView[][], withWeapons = 
     lines.push(`## ${roundName(r, rounds.length)}`);
     done.forEach(pushMatch);
   });
-  const champ = champion(rounds);
+  const champ = championOf(t, rounds);
   if (champ) lines.push(`\n🏆 **優勝: ${teamName(t, champ)}**`);
   if (lines.length === 1) lines.push('（まだ結果がありません）');
   return lines.join('\n');
 }
 
-/** 予選リーグの順位表 */
+/** 予選リーグ (総当たりのみの大会はリーグ戦) の順位表 */
 export function standingsText(t: Tournament): string {
   const league = t.league;
-  const lines = [`# ${t.name} 予選リーグ順位`];
+  const only = !!league?.only;
+  const lines = [`# ${t.name} ${only ? 'リーグ戦' : '予選リーグ'}順位`];
   if (!league) return [...lines, '（予選リーグはありません）'].join('\n');
-  for (const g of computeLeague(t)) {
-    lines.push(`## ${g.group.name}${g.complete ? '（確定）' : ''}`);
+  const groups = computeLeague(t);
+  for (const g of groups) {
+    if (!only || groups.length > 1) lines.push(`## ${g.group.name}${g.complete ? '（確定）' : ''}`);
+    else if (g.complete) lines.push('（確定）');
     for (const r of g.standings) {
-      const through = g.complete && r.rank <= league.advance ? ' → 本選' : '';
+      const through = !only && g.complete && r.rank <= league.advance ? ' → 本選' : '';
       lines.push(`${r.rank}位 **${teamName(t, r.teamId)}** ${r.wins}勝${r.losses}敗（ゲーム ${r.gamesWon}-${r.gamesLost}）${through}`);
     }
-    if (g.complete && tieAtCutoff(g, league.advance)) lines.push('※ 進出ラインで同順位のため、運営が決定します');
+    if (!only && g.complete && tieAtCutoff(g, league.advance)) lines.push('※ 進出ラインで同順位のため、運営が決定します');
+    if (only && g.complete && tieAtCutoff(g, 1)) lines.push('※ 1位が同順位のため、運営が決定します');
   }
   return lines.join('\n');
 }

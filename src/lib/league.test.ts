@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyScore, makeGroups, newGame, newLeague, newTournament, normalizeData } from '../model';
 import type { Game, Tournament } from '../types';
 import { computeBracket, createSlots } from './bracket';
-import { allPlacements, computeLeague, leagueKey, roundRobin, seedsFromLeague, tieAtCutoff } from './league';
+import { allPlacements, championOf, computeLeague, leagueKey, roundRobin, seedsFromLeague, tieAtCutoff } from './league';
 import { blockedWeapons } from './usage';
 
 const win = (winner: 'A' | 'B', weaponA = ''): Game => ({ ...newGame(), winner, weaponA });
@@ -139,6 +139,68 @@ describe('本選への進出', () => {
     const places = allPlacements(t, computeBracket(t));
     expect(places.get('t3')?.label).toBe('予選敗退');
     expect(places.has('t1')).toBe(false);
+  });
+});
+
+describe('総当たりのみの大会', () => {
+  function only(teamCount: number): Tournament {
+    const t = newTournament();
+    t.teams = setup(teamCount, 1).teams;
+    t.league = newLeague(
+      t.teams.map((x) => x.id),
+      2,
+      true,
+    );
+    return t;
+  }
+
+  it('全チーム 1 グループで、本選トーナメントは作らない (以前の表が残っていても使わない)', () => {
+    const t = only(4);
+    expect(t.league!.groups).toHaveLength(1);
+    expect(t.league!.groups[0].teamIds).toEqual(['t1', 't2', 't3', 't4']);
+    t.bracket.slots = createSlots(['t1', 't2', 't3', 't4']);
+    expect(computeBracket(t)).toEqual([]);
+  });
+
+  it('全試合が終わるまで成績・優勝は決まらない', () => {
+    const t = only(3);
+    play(t, 't1', 't2', 2, 0);
+    play(t, 't1', 't3', 2, 1);
+    expect(allPlacements(t, []).size).toBe(0);
+    expect(championOf(t, [])).toBeNull();
+  });
+
+  it('リーグ戦の順位がそのまま成績になる (1 位 = 優勝、2 位 = 準優勝、以下 n 位)', () => {
+    const t = only(4);
+    play(t, 't1', 't2', 2, 0);
+    play(t, 't1', 't3', 2, 0);
+    play(t, 't1', 't4', 2, 0);
+    play(t, 't2', 't3', 2, 1);
+    play(t, 't2', 't4', 2, 1);
+    play(t, 't3', 't4', 2, 0);
+    const places = allPlacements(t, computeBracket(t));
+    expect(places.get('t1')).toEqual({ rank: 1, label: '優勝' });
+    expect(places.get('t2')).toEqual({ rank: 2, label: '準優勝' });
+    expect(places.get('t3')).toEqual({ rank: 3, label: '3位' });
+    expect(places.get('t4')).toEqual({ rank: 4, label: '4位' });
+    expect(championOf(t, [])).toBe('t1');
+  });
+
+  it('1 位が並んだら優勝は決めない (運営が決める)', () => {
+    const t = only(3);
+    t.league!.tiebreakers = ['wins'];
+    play(t, 't1', 't2', 2, 0);
+    play(t, 't2', 't3', 2, 0);
+    play(t, 't3', 't1', 2, 0);
+    expect(championOf(t, [])).toBeNull();
+    expect(allPlacements(t, []).get('t1')?.label).toBe('優勝');
+  });
+
+  it('以前の大会 (only のキーなし) は予選リーグとして読み込む', () => {
+    const d = normalizeData({ tournaments: [{ id: 'x', teams: [{ id: 'a' }], league: { groups: [{ id: 'A', teamIds: ['a'] }], matches: {} } }] });
+    expect(d.tournaments[0].league?.only).toBe(false);
+    const e = normalizeData({ tournaments: [{ id: 'x', teams: [{ id: 'a' }], league: { only: true, groups: [{ id: 'A', teamIds: ['a'] }], matches: {} } }] });
+    expect(e.tournaments[0].league?.only).toBe(true);
   });
 });
 

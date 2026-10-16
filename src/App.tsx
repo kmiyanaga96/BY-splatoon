@@ -19,7 +19,14 @@ import { useRoute } from './router';
 import type { Tournament } from './types';
 import { createTournament, selectTournament, useApp, useCanEdit, useCurrent, useSaveError, useStorageStatus } from './store';
 
-type NavItem = { path: string; label: string; icon: string; show?: (k: KindInfo, t: Tournament) => boolean };
+type NavItem = {
+  path: string;
+  label: string;
+  icon: string;
+  show?: (k: KindInfo, t: Tournament) => boolean;
+  /** 大会によって変わる表示名 */
+  labelFor?: (t: Tournament) => string;
+};
 
 const NAV: NavItem[] = [
   { path: '', label: 'ホーム', icon: 'home' },
@@ -28,9 +35,9 @@ const NAV: NavItem[] = [
   // ブキ表は候補ブキを登録する大会 (ブキ統一杯)、記録は選手ごとのブキを入力する大会 (通常ルール) だけ
   { path: 'weapons', label: 'ブキ表', icon: 'table_view', show: (k) => k.hasPool },
   { path: 'records', label: '記録', icon: 'bar_chart', show: (k) => k.playerWeapons },
-  // 予選リーグは設定で追加した大会だけ
-  { path: 'league', label: '予選', icon: 'leaderboard', show: (_, t) => !!t.league },
-  { path: 'bracket', label: 'トーナメント', icon: 'account_tree' },
+  // 予選リーグは設定で追加した大会だけ。総当たりのみの大会では「リーグ戦」になり、トーナメントはない
+  { path: 'league', label: '予選', icon: 'leaderboard', show: (_, t) => !!t.league, labelFor: (t) => (t.league?.only ? 'リーグ戦' : '予選') },
+  { path: 'bracket', label: 'トーナメント', icon: 'account_tree', show: (_, t) => !t.league?.only },
   { path: 'announce', label: '告知', icon: 'campaign' },
   { path: 'award', label: '表彰', icon: 'emoji_events' },
   { path: 'settings', label: '設定', icon: 'settings' },
@@ -101,7 +108,7 @@ export function App() {
       content = <LeaguePage t={t} rounds={rounds} />;
       break;
     case 'bracket':
-      content = <BracketPage t={t} rounds={rounds} />;
+      content = t.league?.only ? <LeaguePage t={t} rounds={rounds} /> : <BracketPage t={t} rounds={rounds} />;
       break;
     case 'announce':
       content = <AnnouncePage t={t} rounds={rounds} />;
@@ -123,7 +130,7 @@ export function App() {
         <span className="nav-indicator">
           <Icon name={n.icon} filled={active} />
         </span>
-        <span className="nav-label">{n.label}</span>
+        <span className="nav-label">{t && n.labelFor ? n.labelFor(t) : n.label}</span>
       </a>
     );
   });
