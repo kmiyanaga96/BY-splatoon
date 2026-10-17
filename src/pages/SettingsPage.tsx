@@ -72,13 +72,13 @@ export function SettingsPage({ t }: { t: Tournament }) {
       <div className="cols-2">
       <section className="card">
         <h2 className="card-title">大会情報</h2>
-        <div className="form-row">
-          <Field label="大会名">
-            <input className="input" value={t.name} onChange={(e) => updateCurrent((d) => void (d.name = e.target.value))} />
-          </Field>
-          <Field label="日時" hint="押すとスクロールで選べます">
-            <DateTimeField value={t.date} onChange={(v) => updateCurrent((d) => void (d.date = v))} />
-          </Field>
+        <Field label="大会名">
+          <input className="input" value={t.name} onChange={(e) => updateCurrent((d) => void (d.name = e.target.value))} />
+        </Field>
+        <div className="field">
+          <span className="field-label">日時</span>
+          <DateTimeField value={t.date} onChange={(v) => updateCurrent((d) => void (d.date = v))} />
+          <span className="field-hint">開始時刻・終了時刻（任意）は数字の入力か ↑↓ キーで 5 分ずつ。日付を消すと日時ごと消えます</span>
         </div>
         <Field label="説明・告知文の冒頭">
           <textarea
