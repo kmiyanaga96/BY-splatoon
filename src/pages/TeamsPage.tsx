@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { TeamImportDialog } from '../components/TeamImportDialog';
 import { Avatar, Empty, Icon, IconButton, TeamName, WeaponIcon, WeaponTag, XBadge } from '../components/ui';
 import { weaponName } from '../data/weapons';
 import { isAlive, type MatchView } from '../lib/bracket';
@@ -6,11 +8,15 @@ import { drawWeapons } from '../lib/random';
 import { roster } from '../lib/roster';
 import { poolStatus } from '../lib/usage';
 import { navigate } from '../router';
-import { newTeam, updateCurrent, usePlayers } from '../store';
+import { newTeam, updateCurrent, useApp, useCanEdit, usePlayers } from '../store';
 import type { Tournament } from '../types';
 
 export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
   const players = usePlayers();
+  const canEdit = useCanEdit();
+  const [importing, setImporting] = useState(false);
+  // ほかにチームのある大会があれば、そこから取り込める
+  const canImport = useApp().tournaments.some((x) => x.id !== t.id && x.teams.length > 0);
   const addTeam = () => {
     const team = newTeam(t.teams.length);
     updateCurrent((d) => void d.teams.push(team));
@@ -41,6 +47,12 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           <p className="muted">並び順がトーナメント作成時のシード順（エントリー番号）になります。</p>
         </div>
         <span className="spacer" />
+        {canEdit && canImport && (
+          <button className="btn tonal" onClick={() => setImporting(true)}>
+            <Icon name="content_copy" />
+            他の大会から取り込む
+          </button>
+        )}
         {drawOnce && t.teams.length > 0 && (
           <button className="btn filled" onClick={() => draw(t.teams.map((x) => x.id))}>
             <Icon name="shuffle" />
@@ -48,7 +60,12 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           </button>
         )}
       </div>
-      {t.teams.length === 0 && <Empty icon="groups">まだチームがありません。右下の「チームを追加」から登録してください。</Empty>}
+      {t.teams.length === 0 && (
+        <Empty icon="groups">
+          まだチームがありません。右下の「チームを追加」から登録するか、
+          {canImport ? '「他の大会から取り込む」で前の大会のチームをコピーしてください。' : 'ほかの大会からコピーしてください。'}
+        </Empty>
+      )}
       <div className="grid team-grid">
         {t.teams.map((team, i) => {
           const inBracket = rounds.length > 0 && t.bracket.slots.includes(team.id);
@@ -121,6 +138,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           );
         })}
       </div>
+      {importing && <TeamImportDialog t={t} onClose={() => setImporting(false)} />}
       <button className="fab" onClick={addTeam}>
         <Icon name="add" />
         チームを追加
