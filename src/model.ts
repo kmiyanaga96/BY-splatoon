@@ -2,7 +2,7 @@
 // 保存先 (Firestore) から来たデータは、必ずここを通してから使う。
 
 import { CATEGORIES, unitKey } from './data/weapons';
-import type { AppData, Bracket, Game, League, LeagueGroup, Member, MatchRecord, Player, PoolUnit, Rules, Team, Tiebreaker, Tournament } from './types';
+import type { AppData, Bracket, Game, League, LeagueGroup, ManualTitle, MatchRecord, Member, Player, PoolUnit, Rules, Team, Tiebreaker, Tournament } from './types';
 
 export function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -85,7 +85,7 @@ export function newTeam(index: number): Team {
 }
 
 export function newPlayer(name = ''): Player {
-  return { id: newId(), name, discord: '', xp: null, avatar: '', mains: [], note: '' };
+  return { id: newId(), name, discord: '', xp: null, avatar: '', mains: [], note: '', titles: [] };
 }
 
 export function newMember(playerId: string): Member {
@@ -175,6 +175,12 @@ export function normalizePlayer(p: any): Player {
     avatar: isImageUrl(avatar) ? avatar : '',
     mains: strArr(p?.mains),
     note,
+    titles: arr(p?.titles, (x): ManualTitle => ({
+      id: str(x?.id) || newId(),
+      name: str(x?.name).slice(0, 100),
+      rank: x?.rank === 2 ? 2 : 1,
+      date: str(x?.date).slice(0, 30),
+    })).slice(0, 50),
   };
 }
 

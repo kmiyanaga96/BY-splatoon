@@ -61,6 +61,13 @@ describe('書き込み', () => {
     await assertSucceeds(deleteDoc(doc(db, 'players/p2')));
   });
 
+  it('選手に手で登録した戦績 (titles) を保存できる。51 件以上は不可', async () => {
+    const db = editor();
+    const title = (i: number) => ({ id: `x${i}`, name: '昔の大会', rank: 1, date: '' });
+    await assertSucceeds(setDoc(doc(db, 'players/p5'), { ...player('p5', { titles: [title(0)] }), ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'players/p6'), { ...player('p6', { titles: Array.from({ length: 51 }, (_, i) => title(i)) }), ...stamp(EDITOR) }));
+  });
+
   it('未ログイン・編集者以外は書き込めない', async () => {
     await assertFails(setDoc(doc(anon(), 'players/p3'), { ...player('p3'), ...stamp('') }));
     await assertFails(setDoc(doc(stranger(), 'players/p3'), { ...player('p3'), ...stamp('x@example.com') }));

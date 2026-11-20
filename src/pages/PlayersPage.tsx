@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import { PlayerProfileFields } from '../components/PlayerProfileFields';
+import { TitleStars } from '../components/TitleStars';
 import { Avatar, Empty, Icon, IconButton, Segmented, TeamName, WeaponIcon, XBadge } from '../components/ui';
 import { normalizeForSearch, weaponName } from '../data/weapons';
 import { bestPlacement, playerStats, type PlayerStats } from '../lib/stats';
+import { playerTitles } from '../lib/titles';
 import { navigate } from '../router';
-import { newPlayer, update, useApp } from '../store';
+import { newId, newPlayer, update, updatePlayer, useApp } from '../store';
 import type { AppData, Player } from '../types';
 
 type Sort = 'name' | 'xp' | 'entries';
@@ -115,7 +117,8 @@ function PlayerDetail({ playerId }: { playerId: string }) {
   const app = useApp();
   const p = app.players.find((x) => x.id === playerId);
   const stats = useMemo(() => (p ? playerStats(app, p.id) : null), [app, p]);
-  if (!p || !stats) {
+  const titles = useMemo(() => (p ? playerTitles(app, p) : null), [app, p]);
+  if (!p || !stats || !titles) {
     return (
       <Empty icon="person">
         選手が見つかりません。<a href="#/players">選手一覧へ戻る</a>
@@ -142,6 +145,7 @@ function PlayerDetail({ playerId }: { playerId: string }) {
           <Avatar name={p.name} src={p.avatar} color={color} size={44} />
           {p.name || '(名前未入力)'}
           <XBadge xp={p.xp} />
+          <TitleStars gold={titles.gold} silver={titles.silver} />
         </h1>
         <span className="spacer" />
         <button className="btn text danger" onClick={remove}>
@@ -157,6 +161,8 @@ function PlayerDetail({ playerId }: { playerId: string }) {
         </section>
 
         <div className="detail-side">
+          <TitlesCard player={p} titles={titles} />
+
           <section className="card">
             <h2 className="card-title">戦績</h2>
             <div className="stats">
@@ -218,6 +224,72 @@ function PlayerDetail({ playerId }: { playerId: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** 優勝・準優勝の戦績 (表彰画像の金星・銀星)。ツールの大会は自動、それ以外は手で登録する */
+function TitlesCard({ player: p, titles }: { player: Player; titles: ReturnType<typeof playerTitles> }) {
+  const [name, setName] = useState('');
+  const [rank, setRank] = useState<1 | 2>(1);
+  const [date, setDate] = useState('');
+  const add = () => {
+    if (!name.trim()) return;
+    updatePlayer(p.id, (x) => void x.titles.push({ id: newId(), name: name.trim(), rank, date: date.trim() }));
+    setName('');
+    setDate('');
+  };
+  const remove = (id: string) => updatePlayer(p.id, (x) => void (x.titles = x.titles.filter((t) => t.id !== id)));
+  const auto = titles.entries.filter((e) => e.source === 'auto');
+  return (
+    <section className="card">
+      <h2 className="card-title">
+        優勝・準優勝
+        <TitleStars gold={titles.gold} silver={titles.silver} />
+      </h2>
+      <p className="muted body-s">
+        表彰画像の金星（優勝）・銀星（準優勝）になります。このツールで記録した大会は自動で数えます。ツールを使う前の大会などは下で追加してください。
+      </p>
+      {auto.length + p.titles.length === 0 ? (
+        <Empty>まだ優勝・準優勝の記録はありません</Empty>
+      ) : (
+        <ul className="list">
+          {auto.map((e, i) => (
+            <li key={`a${i}`} className="list-row">
+              <TitleStars gold={e.rank === 1 ? 1 : 0} silver={e.rank === 2 ? 1 : 0} />
+              <span>
+                {e.name}
+                {e.date && <span className="muted body-s">（{e.date}）</span>}
+              </span>
+              <span className="spacer" />
+              <span className="badge">自動</span>
+            </li>
+          ))}
+          {p.titles.map((x) => (
+            <li key={x.id} className="list-row">
+              <TitleStars gold={x.rank === 1 ? 1 : 0} silver={x.rank === 2 ? 1 : 0} />
+              <span>
+                {x.name}
+                {x.date && <span className="muted body-s">（{x.date}）</span>}
+              </span>
+              <span className="spacer" />
+              <IconButton icon="delete" label="この記録を削除" onClick={() => remove(x.id)} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="title-add">
+        <input className="input" placeholder="大会名（例: 第1回 BYリーグ）" value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
+        <select className="input" value={rank} onChange={(e) => setRank(Number(e.target.value) === 2 ? 2 : 1)} aria-label="成績">
+          <option value={1}>優勝</option>
+          <option value={2}>準優勝</option>
+        </select>
+        <input className="input" placeholder="時期（任意）" value={date} maxLength={30} onChange={(e) => setDate(e.target.value)} />
+        <button className="btn tonal" onClick={add} disabled={!name.trim()}>
+          <Icon name="add" />
+          追加
+        </button>
+      </div>
+    </section>
   );
 }
 

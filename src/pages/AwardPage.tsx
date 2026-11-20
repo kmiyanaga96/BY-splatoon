@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent as ReactClipboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { AvatarInput } from '../components/AvatarInput';
 import { PrizeVideos } from '../components/PrizeVideos';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
 import { CATEGORIES, categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
-import { AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardData, type AwardTemplate } from '../lib/award';
+import { AWARD_BACKGROUNDS, AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardBackground, type AwardData, type AwardTemplate } from '../lib/award';
+import { DEFAULT_PHOTO, PHOTO_BANDS, drawPhotoAward, photoGeometry, type PhotoOptions } from '../lib/awardPhoto';
 import { type MatchView } from '../lib/bracket';
 import { allPlacements } from '../lib/league';
 import { BRANDS, brandOf } from '../lib/brand';
@@ -11,7 +12,8 @@ import { kindOf } from '../lib/kinds';
 import { allPicks, usageBy } from '../lib/records';
 import { roster } from '../lib/roster';
 import { teamUses } from '../lib/usage';
-import { updatePlayer, usePlayers } from '../store';
+import { playerTitles } from '../lib/titles';
+import { updatePlayer, useApp, usePlayers } from '../store';
 import type { Team, Tournament } from '../types';
 
 type WeaponSource = 'used' | 'pool';
@@ -31,6 +33,48 @@ function download(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** テンプレートに合わせて描き分ける (スクショは別の描画処理) */
+function render(canvas: HTMLCanvasElement, d: AwardData, template: AwardTemplate, photo: PhotoOptions, isCurrent?: () => boolean) {
+  return template === 'photo' ? drawPhotoAward(canvas, d, photo, isCurrent) : drawAward(canvas, d, template, isCurrent);
+}
+
+/** 画像ファイルを読み込む (スクリーンショットはブラウザの中だけで使い、保存しない) */
+function fileToImage(file: Blob): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('画像を読み込めませんでした'));
+    };
+    img.src = url;
+  });
+}
+
+const BG_KEY = 'by-splatoon:award-background';
+
+/** 表彰画像の背景色 (端末ごとに前回の選択を覚える) */
+function useStoredBackground(): [AwardBackground, (v: AwardBackground) => void] {
+  const [value, setValue] = useState<AwardBackground>(() => {
+    try {
+      const v = localStorage.getItem(BG_KEY);
+      return AWARD_BACKGROUNDS.some((b) => b.value === v) ? (v as AwardBackground) : 'default';
+    } catch {
+      return 'default';
+    }
+  });
+  const set = (v: AwardBackground) => {
+    setValue(v);
+    try {
+      localStorage.setItem(BG_KEY, v);
+    } catch {
+      /* 覚えられなくても選択はできる */
+    }
+  };
+  return [value, set];
+}
+
 /** 大会後の表彰画像を、テンプレートにチームの情報を流し込んで作る */
 export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] }) {
   const places = useMemo(() => allPlacements(t, rounds), [t, rounds]);
@@ -48,6 +92,13 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
   const [title, setTitle] = useState('');
   const [source, setSource] = useState<WeaponSource>('used');
   const [showXp, setShowXp] = useState(true);
+  const [background, setBackground] = useStoredBackground();
+  const [showTitles, setShowTitles] = useState(true);
+  const app = useApp();
+  const [photo, setPhoto] = useState<PhotoOptions>({ ...DEFAULT_PHOTO, image: null });
+  const photoFileRef = useRef<HTMLInputElement>(null);
+  const drag = useRef<{ x: number; y: number } | null>(null);
+  const isPhoto = template === 'photo';
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawId = useRef(0);
 
@@ -90,6 +141,8 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         xp: p.xp,
         leader: m.leader,
         weapon: topWeapon.get(p.id),
+        // 過去の戦績 (表示中の大会は数えない)
+        titles: showTitles ? playerTitles(app, p, t.id) : undefined,
       })),
       weaponCaption: useRecorded ? '使用ブキ' : '候補ブキ',
       weapons: ids.map((id) => ({
@@ -99,6 +152,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         icon: weaponIconUrl(id),
       })),
       showXp,
+      background,
       kind: {
         label: kindOf(t).label,
         motif: t.rules.kind,
@@ -112,8 +166,50 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
   useEffect(() => {
     if (!selected || !canvasRef.current) return;
     const id = ++drawId.current;
-    drawAward(canvasRef.current, buildData(selected.team, title), template, () => id === drawId.current);
+    render(canvasRef.current, buildData(selected.team, title), template, photo, () => id === drawId.current);
   });
+
+  const setShot = async (file: Blob) => {
+    try {
+      const image = await fileToImage(file);
+      setPhoto((p) => {
+        if (p.image) URL.revokeObjectURL(p.image.src);
+        return { ...p, image, zoom: 1, x: 0, y: 0 };
+      });
+    } catch (e) {
+      showSnackbar(e instanceof Error ? e.message : '画像を読み込めませんでした');
+    }
+  };
+  const pasteShot = (e: ReactClipboardEvent) => {
+    const file = [...e.clipboardData.files].find((f) => f.type.startsWith('image/'));
+    if (!file) return;
+    e.preventDefault();
+    setShot(file);
+  };
+
+  // スクショのプレビューをドラッグして位置を調整する
+  const onPointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (!isPhoto || !photo.image) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (!drag.current || !photo.image) return;
+    const ratio = e.currentTarget.width / e.currentTarget.clientWidth; // 画面上の 1px = キャンバスの何 px か
+    const dx = (e.clientX - drag.current.x) * ratio;
+    const dy = (e.clientY - drag.current.y) * ratio;
+    drag.current = { x: e.clientX, y: e.clientY };
+    const g = photoGeometry(photo.image, photo.zoom);
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+    setPhoto((p) => ({
+      ...p,
+      x: g.overflowX > 0 ? clamp(p.x - (2 * dx) / g.overflowX) : 0,
+      y: g.overflowY > 0 ? clamp(p.y - (2 * dy) / g.overflowY) : 0,
+    }));
+  };
+  const onPointerUp = () => {
+    drag.current = null;
+  };
 
   if (!selected) {
     return (
@@ -149,7 +245,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
   const saveAll = async () => {
     const canvas = document.createElement('canvas');
     for (const { team } of teams) {
-      await drawAward(canvas, buildData(team, ''), template);
+      await render(canvas, buildData(team, ''), template, photo);
       download(await canvasToBlob(canvas), fileName(team));
       await new Promise((r) => setTimeout(r, 300)); // 連続ダウンロードがブロックされないよう間隔をあける
     }
@@ -162,7 +258,10 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
     <div className="page">
       <div className="page-header">
         <h1 className="headline">表彰</h1>
-        <p className="muted">テンプレートにチーム名・メンバー・使用ブキ・アイコンを流し込んで、表彰画像（1600×900 PNG）を作ります。</p>
+        <p className="muted">
+          テンプレートにチーム名・メンバー・使用ブキ・アイコンを流し込んで、表彰画像（1600×900 PNG）を作ります。
+          「スクショ」では、任意のスクリーンショットに大会名やチームの帯を重ねた画像（1920×1080 PNG）を作れます。
+        </p>
       </div>
 
       <div className="award-layout">
@@ -189,7 +288,67 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
 
           <span className="label">テンプレート</span>
           <Segmented value={template} onChange={setTemplate} options={AWARD_TEMPLATES} />
-          {kindOf(t).hasPool && (
+          {isPhoto && (
+            <div className="photo-controls">
+              <input
+                ref={photoFileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (f) setShot(f);
+                }}
+              />
+              <div className="photo-drop" tabIndex={0} onPaste={pasteShot} onClick={() => photoFileRef.current?.click()} role="button">
+                <Icon name="add_photo_alternate" />
+                <span>
+                  {photo.image ? 'スクリーンショットを変更' : 'スクリーンショットを選ぶ'}
+                  <span className="muted body-s">クリックして選ぶか、ここを選択して Ctrl+V（⌘V）で貼り付け。画像は保存されません</span>
+                </span>
+              </div>
+              {photo.image && (
+                <label className="photo-zoom">
+                  <span className="label">拡大</span>
+                  <input
+                    type="range"
+                    min={1}
+                    max={2.5}
+                    step={0.05}
+                    value={photo.zoom}
+                    onChange={(e) => setPhoto((p) => ({ ...p, zoom: Number(e.target.value) }))}
+                  />
+                </label>
+              )}
+              {photo.image && <p className="muted body-s">プレビューをドラッグすると位置を調整できます。</p>}
+              <Switch label="上部の帯（大会名・見出し）" checked={photo.top} onChange={(v) => setPhoto((p) => ({ ...p, top: v }))} />
+              {photo.top && (
+                <>
+                  <span className="label">帯の色</span>
+                  <div className="bg-swatches" role="radiogroup" aria-label="帯の色">
+                    {PHOTO_BANDS.map((b) => (
+                      <button
+                        key={b.value}
+                        type="button"
+                        role="radio"
+                        aria-checked={photo.band === b.value}
+                        aria-label={b.label}
+                        title={b.label}
+                        className={`bg-swatch ${b.value === 'black' ? 'dark' : ''} ${photo.band === b.value ? 'selected' : ''}`}
+                        style={{ background: b.color ?? selected.team.color }}
+                        onClick={() => setPhoto((p) => ({ ...p, band: b.value }))}
+                      >
+                        {photo.band === b.value && <Icon name="check" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              <Switch label="下部のパネル（チーム名・メンバー）" checked={photo.bottom} onChange={(v) => setPhoto((p) => ({ ...p, bottom: v }))} />
+            </div>
+          )}
+          {!isPhoto && kindOf(t).hasPool && (
             <>
               <span className="label">ブキの表示</span>
               <Segmented
@@ -210,17 +369,50 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
-          <Switch label="Xパワーバッジを表示" checked={showXp} onChange={setShowXp} />
+          {!isPhoto && (
+            <>
+              <span className="label">背景色</span>
+              <div className="bg-swatches" role="radiogroup" aria-label="背景色">
+                {AWARD_BACKGROUNDS.map((b) => (
+                  <button
+                    key={b.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={background === b.value}
+                    aria-label={b.label}
+                    title={b.label}
+                    className={`bg-swatch ${b.color ? '' : 'auto'} ${b.dark ? 'dark' : ''} ${background === b.value ? 'selected' : ''}`}
+                    style={b.color ? { background: b.color } : undefined}
+                    onClick={() => setBackground(b.value)}
+                  >
+                    {background === b.value && <Icon name="check" />}
+                  </button>
+                ))}
+              </div>
+              <Switch label="Xパワーバッジを表示" checked={showXp} onChange={setShowXp} />
+            </>
+          )}
+          <Switch label="戦績の星を表示（過去の優勝・準優勝）" checked={showTitles} onChange={setShowTitles} />
         </section>
 
         <div className="award-main">
           <section className="card">
-            <canvas ref={canvasRef} className="award-canvas" />
+            <canvas
+              ref={canvasRef}
+              className={`award-canvas ${isPhoto && photo.image ? 'draggable' : ''}`}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+            />
             <div className="card-actions">
-              <button className="btn text" onClick={saveAll}>
-                <Icon name="download" />
-                全チーム分を保存
-              </button>
+              {/* スクショは 1 枚の写真に合わせて作るので、全チーム分の一括保存はしない */}
+              {!isPhoto && (
+                <button className="btn text" onClick={saveAll}>
+                  <Icon name="download" />
+                  全チーム分を保存
+                </button>
+              )}
               <span className="spacer" />
               <button className="btn tonal" onClick={copy}>
                 <Icon name="content_copy" />
@@ -270,9 +462,9 @@ const SAMPLE: Omit<AwardData, 'team'> = {
   title: '優勝',
   rank: 1,
   members: [
-    { name: 'イカスミ', avatar: '', xp: 3120, leader: false },
-    { name: 'タコワサ', avatar: '', xp: 2810, leader: true },
-    { name: 'ホタテ', avatar: '', xp: 2560, leader: false },
+    { name: 'イカスミ', avatar: '', xp: 3120, leader: false, titles: { gold: 3, silver: 1 } },
+    { name: 'タコワサ', avatar: '', xp: 2810, leader: true, titles: { gold: 1, silver: 0 } },
+    { name: 'ホタテ', avatar: '', xp: 2560, leader: false, titles: { gold: 0, silver: 2 } },
     { name: 'サザエ', avatar: '', xp: 2300, leader: false },
   ],
   weaponCaption: '使用ブキ',
@@ -295,6 +487,7 @@ const SAMPLE_TEAMS: Record<AwardTemplate, { name: string; color: string }> = {
   pop: { name: 'チームイカ', color: '#f2e14c' },
   team: { name: 'チームタコ', color: '#7b5cff' },
   simple: { name: 'チームクマ', color: '#ff5c8a' },
+  photo: { name: 'チームフグ', color: '#3fb7c9' },
 };
 
 /** 3 種類のテンプレートの見本。selected / onSelect を渡すと、クリックでそのテンプレートを選べる */
@@ -324,7 +517,8 @@ export function AwardTemplateGallery(props: { selected?: AwardTemplate; onSelect
 function TemplateSample(props: { template: AwardTemplate; label: string; selected: boolean; onClick?: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    if (ref.current) drawAward(ref.current, { ...SAMPLE, team: SAMPLE_TEAMS[props.template] }, props.template);
+    // スクショの見本は写真なし (「スクリーンショットを選んでください」の案内) で帯とパネルだけを見せる
+    if (ref.current) render(ref.current, { ...SAMPLE, team: SAMPLE_TEAMS[props.template] }, props.template, { ...DEFAULT_PHOTO, image: null });
   }, [props.template]);
   const body = (
     <>

@@ -31,7 +31,11 @@ export const firebaseAdapter: StorageAdapter = {
     if (!email) throw new Error('ログインしていないため保存できません');
     const stamp = { updatedAt: serverTimestamp(), updatedBy: email };
     const ops: ((b: ReturnType<typeof writeBatch>) => void)[] = [];
-    for (const p of changes.players.upserted) ops.push((b) => b.set(doc(db, 'players', p.id), { ...p, ...stamp }));
+    for (const p of changes.players.upserted) {
+      // 手で登録した戦績がない選手は titles を書かない (titles を許可するルールの反映前でも保存できるように)
+      const { titles, ...rest } = p;
+      ops.push((b) => b.set(doc(db, 'players', p.id), { ...(titles.length ? p : rest), ...stamp }));
+    }
     for (const id of changes.players.deleted) ops.push((b) => b.delete(doc(db, 'players', id)));
     for (const t of changes.tournaments.upserted) {
       // 予選がない大会は league を書かない (league を許可するルールの反映前でも保存できるように)
