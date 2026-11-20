@@ -3,12 +3,14 @@
 
 import { xBadgeUrl, xTier } from './xbadge';
 
-export type AwardTemplate = 'pop' | 'team' | 'simple';
+/** photo = 任意のスクリーンショットに帯とパネルを重ねる (描画は awardPhoto.ts) */
+export type AwardTemplate = 'pop' | 'team' | 'simple' | 'photo';
 
 export const AWARD_TEMPLATES: { value: AwardTemplate; label: string }[] = [
   { value: 'pop', label: 'ポップ' },
   { value: 'team', label: 'チーム色' },
   { value: 'simple', label: 'シンプル' },
+  { value: 'photo', label: 'スクショ' },
 ];
 
 export const AWARD_W = 1600;
@@ -21,6 +23,8 @@ export interface AwardMember {
   leader: boolean;
   /** 一番使ったブキのアイコン URL (選手ごとにブキを記録する大会だけ) */
   weapon?: string;
+  /** 過去の優勝 (金星)・準優勝 (銀星) の数。なければ星を描かない */
+  titles?: { gold: number; silver: number };
 }
 
 export interface AwardWeapon {
@@ -47,6 +51,8 @@ export interface AwardData {
   kind?: { label: string; motif: AwardMotif; colors?: string[] };
   /** 大会のロゴ画像 (右上に表示)。なければ右上は「BY スプラ大会ツール」の札 */
   logo?: string;
+  /** 背景色のプリセット。なければテンプレートの元の色 */
+  background?: AwardBackground;
 }
 
 /**
@@ -57,21 +63,55 @@ export type AwardMotif = 'unified' | 'free' | 'category' | 'random';
 
 const INK_COLORS = ['#e8e04a', '#5cc3f0', '#f25c8f', '#9be15d', '#c67cf2', '#f08a3c'];
 
-const DISPLAY = '"Dela Gothic One", "Noto Sans JP", sans-serif';
-const BODY = '"Noto Sans JP", sans-serif';
+export const DISPLAY = '"Dela Gothic One", "Noto Sans JP", sans-serif';
+export const BODY = '"Noto Sans JP", sans-serif';
 const INK = '#1c1a25';
 const SUB = '#5b5868';
 
-function rankColor(rank: number | null): string {
-  if (rank === 1) return '#d18f00';
-  if (rank === 2) return '#7a8496';
-  if (rank === 4) return '#b0662a';
-  return '#582eff';
+export function rankColor(rank: number | null, dark = false): string {
+  if (rank === 1) return dark ? '#e6b54a' : '#d18f00';
+  if (rank === 2) return dark ? '#b9c1cf' : '#7a8496';
+  if (rank === 4) return dark ? '#d99a62' : '#b0662a';
+  return dark ? '#b7a6ff' : '#582eff';
+}
+
+// ---- 背景色 ----
+
+/**
+ * 背景色のプリセット。目に優しいよう、蛍光色にならない淡い色と落ち着いた暗い色だけにする。
+ * default はテンプレートの元の色 (ポップ = 薄紫、チーム色 = 白いカード、シンプル = 白)
+ */
+export type AwardBackground = 'default' | 'white' | 'cream' | 'peach' | 'mint' | 'sky' | 'lavender' | 'charcoal' | 'navy';
+
+export const AWARD_BACKGROUNDS: { value: AwardBackground; label: string; color: string | null; dark: boolean }[] = [
+  { value: 'default', label: 'テンプレートの色', color: null, dark: false },
+  { value: 'white', label: 'ホワイト', color: '#ffffff', dark: false },
+  { value: 'cream', label: 'クリーム', color: '#f6f0e1', dark: false },
+  { value: 'peach', label: 'ピーチ', color: '#f6e4dc', dark: false },
+  { value: 'mint', label: 'ミント', color: '#e1efe6', dark: false },
+  { value: 'sky', label: 'スカイ', color: '#e0ebf4', dark: false },
+  { value: 'lavender', label: 'ラベンダー', color: '#ebe6f5', dark: false },
+  { value: 'charcoal', label: 'チャコール', color: '#25232b', dark: true },
+  { value: 'navy', label: 'ネイビー', color: '#1d2840', dark: true },
+];
+
+interface Theme {
+  dark: boolean;
+  /** 本文の色・リボンやリーダー札の地の色 */
+  ink: string;
+  sub: string;
+  /** ink の上に載せる文字の色 */
+  onInk: string;
+}
+
+function themeOf(bg: AwardBackground | undefined): Theme {
+  const dark = AWARD_BACKGROUNDS.find((b) => b.value === bg)?.dark ?? false;
+  return dark ? { dark, ink: '#f3f1f7', sub: '#c4bfd2', onInk: '#1c1a25' } : { dark, ink: INK, sub: SUB, onInk: '#ffffff' };
 }
 
 // ---- 小さなユーティリティ ----
 
-function hexToRgb(hex: string): [number, number, number] {
+export function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace('#', '');
   const full = h.length === 3 ? [...h].map((c) => c + c).join('') : h.padEnd(6, '0');
   const n = parseInt(full, 16);
@@ -79,7 +119,7 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 /** color を white 方向に t (0-1) だけ薄める */
-function tint(color: string, t: number): string {
+export function tint(color: string, t: number): string {
   const [r, g, b] = hexToRgb(color);
   const m = (c: number) => Math.round(c + (255 - c) * t);
   return `rgb(${m(r)}, ${m(g)}, ${m(b)})`;
@@ -97,7 +137,7 @@ function seeded(seedText: string) {
 }
 
 /** 指定幅に収まる最大のフォントサイズを設定する。最小でも収まらなければ末尾を省略した文字列を返す */
-function fit(ctx: CanvasRenderingContext2D, text: string, font: (size: number) => string, max: number, min: number, width: number): string {
+export function fit(ctx: CanvasRenderingContext2D, text: string, font: (size: number) => string, max: number, min: number, width: number): string {
   let size = max;
   ctx.font = font(size);
   while (size > min && ctx.measureText(text).width > width) {
@@ -110,7 +150,7 @@ function fit(ctx: CanvasRenderingContext2D, text: string, font: (size: number) =
   return cut + '…';
 }
 
-function loadImage(src: string): Promise<HTMLImageElement | null> {
+export function loadImage(src: string): Promise<HTMLImageElement | null> {
   if (!src) return Promise.resolve(null);
   return new Promise((resolve) => {
     const img = new Image();
@@ -120,7 +160,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   });
 }
 
-async function ensureFonts(text: string) {
+export async function ensureFonts(text: string) {
   try {
     await Promise.all([
       document.fonts.load(`400 40px "Dela Gothic One"`, text),
@@ -130,6 +170,62 @@ async function ensureFonts(text: string) {
   } catch {
     /* フォントが読めなくても代替フォントで描く */
   }
+}
+
+// ---- 戦績の星 ----
+
+export const STAR_GOLD = { fill: '#e2a92b', stroke: '#9a6b0c' };
+export const STAR_SILVER = { fill: '#c3cad6', stroke: '#6f7889' };
+
+/** 5 つ角の星 (中心 cx, cy、外側の半径 r) */
+export function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, c: { fill: string; stroke: string }) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (Math.PI * i) / 5;
+    const rr = i % 2 === 0 ? r : r * 0.46;
+    ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+  ctx.fillStyle = c.fill;
+  ctx.fill();
+  ctx.lineWidth = Math.max(1.5, r * 0.14);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = c.stroke;
+  ctx.stroke();
+}
+
+/**
+ * 金星・銀星を並べたときの部品。2 個までは並べ、3 個以上は「★×n」にまとめる。
+ * width で全体の幅を測り、draw(x, cy) で左端 x から描く
+ */
+export function starRow(ctx: CanvasRenderingContext2D, titles: { gold: number; silver: number }, r: number, font: string, textColor: string) {
+  const groups = [
+    { n: titles.gold, c: STAR_GOLD },
+    { n: titles.silver, c: STAR_SILVER },
+  ].filter((g) => g.n > 0);
+  const gap = r * 0.35;
+  ctx.font = font;
+  const items = groups.map((g) => {
+    const stars = g.n >= 3 ? 1 : g.n;
+    const label = g.n >= 3 ? `×${g.n}` : '';
+    const w = stars * r * 2 + (stars - 1) * gap + (label ? gap + ctx.measureText(label).width : 0);
+    return { ...g, stars, label, w };
+  });
+  const width = items.reduce((s, x) => s + x.w, 0) + Math.max(0, items.length - 1) * r * 0.9;
+  const draw = (x: number, cy: number) => {
+    for (const it of items) {
+      for (let i = 0; i < it.stars; i++) drawStar(ctx, x + r + i * (r * 2 + gap), cy, r, it.c);
+      if (it.label) {
+        ctx.font = font;
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(it.label, x + it.stars * r * 2 + gap, cy + 1);
+      }
+      x += it.w + r * 0.9;
+    }
+  };
+  return { width, draw };
 }
 
 /** インクが飛び散ったような形 */
@@ -181,12 +277,14 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   const H = AWARD_H;
   const color = d.team.color || '#582eff';
   const rand = seeded(d.team.name + d.title);
+  const th = themeOf(d.background);
+  const bgColor = AWARD_BACKGROUNDS.find((b) => b.value === d.background)?.color ?? null;
   let x0 = 96;
   let right = W - 96;
 
   // 背景
   if (template === 'pop') {
-    ctx.fillStyle = '#fcf8ff';
+    ctx.fillStyle = bgColor ?? '#fcf8ff';
     ctx.fillRect(0, 0, W, H);
     splat(ctx, 1460, 110, 230, color, rand);
     ctx.globalAlpha = 0.75;
@@ -198,16 +296,16 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   } else if (template === 'team') {
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = bgColor ?? '#ffffff';
     ctx.beginPath();
     ctx.roundRect(40, 40, W - 80, H - 80, 40);
     ctx.fill();
   } else {
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = bgColor ?? '#ffffff';
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 28, H);
-    ctx.strokeStyle = '#c9c4d6';
+    ctx.strokeStyle = th.dark ? '#3b3846' : '#c9c4d6';
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, W - 2, H - 2);
   }
@@ -271,7 +369,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     const label = d.kind.label;
     const w = ctx.measureText(label).width + 40;
     const ry = template === 'team' ? 50 : 36;
-    ctx.fillStyle = INK;
+    ctx.fillStyle = th.ink;
     ctx.beginPath();
     // 右端を矢羽根のように切り欠いたリボン
     ctx.moveTo(x0, ry);
@@ -281,14 +379,14 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     ctx.lineTo(x0, ry + 34);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = th.onInk;
     ctx.textBaseline = 'middle';
     ctx.fillText(label, x0 + 18, ry + 18);
     ctx.textBaseline = 'alphabetic';
   }
 
   // 大会名・日付
-  ctx.fillStyle = SUB;
+  ctx.fillStyle = th.sub;
   ctx.fillText(fit(ctx, d.tournament, (s) => `700 ${s}px ${BODY}`, 36, 22, right - x0), x0, 120);
   if (d.date) {
     ctx.font = `500 26px ${BODY}`;
@@ -296,11 +394,11 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   }
 
   // 見出し (優勝など)
-  ctx.fillStyle = rankColor(d.rank);
+  ctx.fillStyle = rankColor(d.rank, th.dark);
   ctx.fillText(fit(ctx, d.title, (s) => `400 ${s}px ${DISPLAY}`, 150, 60, right - x0), x0, 320);
 
   // チーム名 + 下線
-  ctx.fillStyle = INK;
+  ctx.fillStyle = th.ink;
   const teamText = fit(ctx, d.team.name, (s) => `400 ${s}px ${DISPLAY}`, 84, 40, right - x0);
   ctx.fillText(teamText, x0, 432);
   ctx.fillStyle = color;
@@ -326,6 +424,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     if (img) {
       ctx.drawImage(img, cx - D / 2, cy - D / 2, D, D);
     } else {
+      // 頭文字は薄いチーム色の円の上なので、背景色に関係なく濃い色
       ctx.fillStyle = INK;
       ctx.font = `400 ${Math.round(D * 0.45)}px ${DISPLAY}`;
       ctx.textAlign = 'center';
@@ -365,21 +464,36 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     if (m.leader) {
       ctx.font = `700 18px ${BODY}`;
       const w = ctx.measureText('リーダー').width + 24;
-      ctx.fillStyle = INK;
+      ctx.fillStyle = th.ink;
       ctx.beginPath();
       ctx.roundRect(cx - w / 2, cy + D / 2 - 16, w, 30, 15);
       ctx.fill();
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = th.onInk;
       ctx.fillText('リーダー', cx, cy + D / 2 + 6);
     }
     // 名前・XP
-    ctx.fillStyle = INK;
+    ctx.fillStyle = th.ink;
     ctx.fillText(fit(ctx, m.name || '(名前未入力)', (s) => `700 ${s}px ${BODY}`, 32, 18, colW - 16), cx, top + D + 56);
-    if (d.showXp && m.xp) {
+    // XP と戦績の星は同じ行に、まとめて中央にそろえる
+    const lineY = top + D + 90;
+    const xpText = d.showXp && m.xp ? `XP ${m.xp}` : '';
+    const stars = m.titles && m.titles.gold + m.titles.silver > 0 ? starRow(ctx, m.titles, 13, `700 20px ${BODY}`, th.ink) : null;
+    ctx.font = `700 22px ${BODY}`;
+    const xpW = xpText ? ctx.measureText(xpText).width : 0;
+    const total = (stars?.width ?? 0) + (stars && xpText ? 12 : 0) + xpW;
+    let lx = cx - total / 2;
+    if (stars) {
+      stars.draw(lx, lineY - 8);
+      lx += stars.width + (xpText ? 12 : 0);
+    }
+    if (xpText) {
       const tier = xTier(m.xp);
       ctx.font = `700 22px ${BODY}`;
-      ctx.fillStyle = tier ? tier.dark : SUB;
-      ctx.fillText(`XP ${m.xp}`, cx, top + D + 90);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      // 暗い背景では明るい方の色にする
+      ctx.fillStyle = tier ? (th.dark ? tier.light : tier.dark) : th.sub;
+      ctx.fillText(xpText, lx, lineY);
     }
   });
 
@@ -391,7 +505,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     const IS = 72; // アイコンの直径
     const iy = 758;
     ctx.font = `700 24px ${BODY}`;
-    ctx.fillStyle = SUB;
+    ctx.fillStyle = th.sub;
     ctx.fillText(d.weaponCaption, x0, iy + IS / 2);
     const slot = 150;
     let x = x0 + ctx.measureText(d.weaponCaption).width + 32;
@@ -411,18 +525,18 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       const icon = weaponIcons[i];
       if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
       if (w.count > 1) {
-        ctx.fillStyle = INK;
+        ctx.fillStyle = th.ink;
         ctx.beginPath();
         ctx.arc(cx + IS * 0.38, cy - IS * 0.36, 17, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = th.onInk;
         ctx.font = `700 18px ${BODY}`;
         ctx.textAlign = 'center';
         ctx.fillText(`×${w.count}`, cx + IS * 0.38, cy - IS * 0.36 + 1);
       }
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
-      ctx.fillStyle = INK;
+      ctx.fillStyle = th.ink;
       ctx.fillText(fit(ctx, w.name, (s) => `700 ${s}px ${BODY}`, 18, 12, slot - 8), cx, iy + IS + 22);
       ctx.textBaseline = 'middle';
       x += slot;
@@ -430,7 +544,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     if (shown.length < d.weapons.length) {
       ctx.textAlign = 'left';
       ctx.font = `700 26px ${BODY}`;
-      ctx.fillStyle = SUB;
+      ctx.fillStyle = th.sub;
       ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
     }
   }
@@ -452,7 +566,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   ctx.beginPath();
   ctx.roundRect(fx - fw, fy - 17, fw, 34, 17);
   ctx.fill();
-  ctx.fillStyle = SUB;
+  ctx.fillStyle = th.sub;
   ctx.fillText(label, fx - 14, fy + 1);
 }
 

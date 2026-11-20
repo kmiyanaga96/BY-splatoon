@@ -2048,9 +2048,86 @@ textarea.input {
   padding: 0 0.5rem;
   white-space: nowrap;
 }
+/* テンプレートが 4 つになり幅が足りないので、選択中のチェックは出さない (色で分かる) */
+.award-side .segment .icon {
+  display: none;
+}
 .award-side .nav-list-item {
   height: auto;
   min-height: 3rem;
+}
+.bg-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bg-swatch {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  color: #1c1a25;
+}
+/* テンプレートの色 (チーム色ほか) は斜線で表す */
+.bg-swatch.auto {
+  background: linear-gradient(135deg, #fcf8ff 45%, var(--md-sys-color-outline-variant) 45% 55%, #ffffff 55%);
+}
+.bg-swatch.dark {
+  color: #f3f1f7;
+}
+.bg-swatch.selected {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+.bg-swatch .icon {
+  font-size: 1.25rem;
+}
+.photo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.photo-drop {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 2px dashed var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface-container-low);
+  cursor: pointer;
+}
+.photo-drop:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+}
+.photo-drop > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-weight: 700;
+}
+.photo-drop > span .muted {
+  font-weight: 400;
+}
+.photo-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.photo-zoom input {
+  flex: 1;
+  accent-color: var(--md-sys-color-primary);
+}
+.award-canvas.draggable {
+  cursor: grab;
+  touch-action: none;
+}
+.award-canvas.draggable:active {
+  cursor: grabbing;
 }
 .award-main {
   display: flex;
@@ -2156,6 +2233,48 @@ textarea.input {
 @media (max-width: 1100px) {
   .award-layout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- 戦績の星 ---------- */
+
+.title-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  vertical-align: middle;
+}
+.title-star-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.0625rem;
+}
+.title-star {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+.title-star-count {
+  font-size: 0.85em;
+  font-weight: 700;
+  margin-left: 0.125rem;
+}
+.headline .title-stars {
+  font-size: 1rem;
+}
+.card-title .title-stars {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+}
+.title-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem 8rem auto;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+@media (max-width: 600px) {
+  .title-add {
+    grid-template-columns: minmax(0, 1fr) 7rem;
   }
 }
 

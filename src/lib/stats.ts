@@ -29,7 +29,8 @@ export interface PlayerStats {
 
 const roundsCache = new WeakMap<Tournament, MatchView[][]>();
 
-function roundsOf(t: Tournament): MatchView[][] {
+/** 大会の本選トーナメント (計算結果を大会ごとに覚えておく) */
+export function roundsOf(t: Tournament): MatchView[][] {
   let r = roundsCache.get(t);
   if (!r) {
     r = computeBracket(t);

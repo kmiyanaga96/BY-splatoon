@@ -7,7 +7,7 @@ export interface RosterEntry {
   player: Player;
 }
 
-const missing = (id: string): Player => ({ id, name: '(削除された選手)', discord: '', xp: null, avatar: '', mains: [], note: '' });
+const missing = (id: string): Player => ({ id, name: '(削除された選手)', discord: '', xp: null, avatar: '', mains: [], note: '', titles: [] });
 
 export function roster(team: Team, players: PlayerMap): RosterEntry[] {
   return team.members.map((member) => ({ member, player: players.get(member.playerId) ?? missing(member.playerId) }));

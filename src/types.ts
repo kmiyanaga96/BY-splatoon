@@ -14,6 +14,18 @@ export interface Player {
   mains: string[];
   /** ウデマエなど自由記述のメモ */
   note: string;
+  /** ツールの外 (ツールを使う前など) の大会の優勝・準優勝。ツールで記録した大会の分は自動で数えるので入れない */
+  titles: ManualTitle[];
+}
+
+export interface ManualTitle {
+  id: string;
+  /** 大会名 */
+  name: string;
+  /** 1 = 優勝、2 = 準優勝 */
+  rank: 1 | 2;
+  /** 日付 (自由記述。例: 2025/8) */
+  date: string;
 }
 
 /** チームへの所属。大会ごとの情報 (リーダー・注目選手・紹介文) はこちらに持つ */
