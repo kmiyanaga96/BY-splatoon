@@ -2266,6 +2266,30 @@ textarea.input {
   margin-left: 0.5rem;
   font-size: 1rem;
 }
+.title-row {
+  flex-wrap: wrap;
+}
+.title-star-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.title-star-toggle input {
+  accent-color: var(--md-sys-color-primary);
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.title-row-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* 星にしない戦績は薄く表示する */
+.title-row.unstarred .title-stars,
+.title-row.unstarred .title-row-name {
+  opacity: 0.5;
+}
 .title-add {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 7rem 8rem auto;

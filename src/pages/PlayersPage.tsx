@@ -4,7 +4,7 @@ import { TitleStars } from '../components/TitleStars';
 import { Avatar, Empty, Icon, IconButton, Segmented, TeamName, WeaponIcon, XBadge } from '../components/ui';
 import { normalizeForSearch, weaponName } from '../data/weapons';
 import { bestPlacement, playerStats, type PlayerStats } from '../lib/stats';
-import { playerTitles } from '../lib/titles';
+import { manualTitleKey, playerTitles } from '../lib/titles';
 import { navigate } from '../router';
 import { newId, newPlayer, update, updatePlayer, useApp } from '../store';
 import type { AppData, Player } from '../types';
@@ -234,12 +234,22 @@ function TitlesCard({ player: p, titles }: { player: Player; titles: ReturnType<
   const [date, setDate] = useState('');
   const add = () => {
     if (!name.trim()) return;
-    updatePlayer(p.id, (x) => void x.titles.push({ id: newId(), name: name.trim(), rank, date: date.trim() }));
+    const id = newId();
+    // 手で追加した戦績は、星にしたくて追加するものなので最初から星にする
+    updatePlayer(p.id, (x) => {
+      x.titles.push({ id, name: name.trim(), rank, date: date.trim() });
+      x.starTitles.push(manualTitleKey(id));
+    });
     setName('');
     setDate('');
   };
-  const remove = (id: string) => updatePlayer(p.id, (x) => void (x.titles = x.titles.filter((t) => t.id !== id)));
-  const auto = titles.entries.filter((e) => e.source === 'auto');
+  const remove = (id: string) =>
+    updatePlayer(p.id, (x) => {
+      x.titles = x.titles.filter((t) => t.id !== id);
+      x.starTitles = x.starTitles.filter((k) => k !== manualTitleKey(id));
+    });
+  const setStar = (key: string, on: boolean) =>
+    updatePlayer(p.id, (x) => void (x.starTitles = on ? [...new Set([...x.starTitles, key])] : x.starTitles.filter((k) => k !== key)));
   return (
     <section className="card">
       <h2 className="card-title">
@@ -247,32 +257,30 @@ function TitlesCard({ player: p, titles }: { player: Player; titles: ReturnType<
         <TitleStars gold={titles.gold} silver={titles.silver} />
       </h2>
       <p className="muted body-s">
-        表彰画像の金星（優勝）・銀星（準優勝）になります。このツールで記録した大会は自動で数えます。ツールを使う前の大会などは下で追加してください。
+        「星にする」にチェックした戦績が、表彰画像の金星（優勝）・銀星（準優勝）になります。このツールで記録した大会の優勝・準優勝は自動で一覧に出ます（星にするかは選んでください）。
+        ツールを使う前の大会などは下で追加できます。
       </p>
-      {auto.length + p.titles.length === 0 ? (
+      {titles.entries.length === 0 ? (
         <Empty>まだ優勝・準優勝の記録はありません</Empty>
       ) : (
         <ul className="list">
-          {auto.map((e, i) => (
-            <li key={`a${i}`} className="list-row">
-              <TitleStars gold={e.rank === 1 ? 1 : 0} silver={e.rank === 2 ? 1 : 0} />
-              <span>
+          {titles.entries.map((e) => (
+            <li key={e.key} className={`list-row title-row ${e.starred ? '' : 'unstarred'}`}>
+              <label className="title-star-toggle">
+                <input type="checkbox" checked={e.starred} onChange={(ev) => setStar(e.key, ev.target.checked)} />
+                <TitleStars gold={e.rank === 1 ? 1 : 0} silver={e.rank === 2 ? 1 : 0} />
+                <span className="body-s">星にする</span>
+              </label>
+              <span className="title-row-name">
                 {e.name}
                 {e.date && <span className="muted body-s">（{e.date}）</span>}
               </span>
               <span className="spacer" />
-              <span className="badge">自動</span>
-            </li>
-          ))}
-          {p.titles.map((x) => (
-            <li key={x.id} className="list-row">
-              <TitleStars gold={x.rank === 1 ? 1 : 0} silver={x.rank === 2 ? 1 : 0} />
-              <span>
-                {x.name}
-                {x.date && <span className="muted body-s">（{x.date}）</span>}
-              </span>
-              <span className="spacer" />
-              <IconButton icon="delete" label="この記録を削除" onClick={() => remove(x.id)} />
+              {e.source === 'auto' ? (
+                <span className="badge">ツールの大会</span>
+              ) : (
+                <IconButton icon="delete" label="この記録を削除" onClick={() => remove(e.manualId!)} />
+              )}
             </li>
           ))}
         </ul>

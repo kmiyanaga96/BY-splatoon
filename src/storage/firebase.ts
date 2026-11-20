@@ -32,9 +32,11 @@ export const firebaseAdapter: StorageAdapter = {
     const stamp = { updatedAt: serverTimestamp(), updatedBy: email };
     const ops: ((b: ReturnType<typeof writeBatch>) => void)[] = [];
     for (const p of changes.players.upserted) {
-      // 手で登録した戦績がない選手は titles を書かない (titles を許可するルールの反映前でも保存できるように)
-      const { titles, ...rest } = p;
-      ops.push((b) => b.set(doc(db, 'players', p.id), { ...(titles.length ? p : rest), ...stamp }));
+      // 手で登録した戦績・星にする戦績がない選手はキーを書かない (許可するルールの反映前でも保存できるように)
+      const { titles, starTitles, ...rest } = p;
+      // 手で登録した戦績があるときは、星がひとつもなくても starTitles を書く (書かないと以前のデータとして全部星に戻る)
+      const data = { ...rest, ...(titles.length ? { titles } : {}), ...(starTitles.length || titles.length ? { starTitles } : {}) };
+      ops.push((b) => b.set(doc(db, 'players', p.id), { ...data, ...stamp }));
     }
     for (const id of changes.players.deleted) ops.push((b) => b.delete(doc(db, 'players', id)));
     for (const t of changes.tournaments.upserted) {

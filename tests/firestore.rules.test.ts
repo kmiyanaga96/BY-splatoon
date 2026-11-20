@@ -68,6 +68,12 @@ describe('書き込み', () => {
     await assertFails(setDoc(doc(db, 'players/p6'), { ...player('p6', { titles: Array.from({ length: 51 }, (_, i) => title(i)) }), ...stamp(EDITOR) }));
   });
 
+  it('星にする戦績 (starTitles) を保存できる。101 件以上は不可', async () => {
+    const db = editor();
+    await assertSucceeds(setDoc(doc(db, 'players/p7'), { ...player('p7', { starTitles: ['t:x', 'm:y'] }), ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'players/p8'), { ...player('p8', { starTitles: Array.from({ length: 101 }, (_, i) => `t:${i}`) }), ...stamp(EDITOR) }));
+  });
+
   it('未ログイン・編集者以外は書き込めない', async () => {
     await assertFails(setDoc(doc(anon(), 'players/p3'), { ...player('p3'), ...stamp('') }));
     await assertFails(setDoc(doc(stranger(), 'players/p3'), { ...player('p3'), ...stamp('x@example.com') }));

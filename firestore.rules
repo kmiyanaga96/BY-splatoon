@@ -26,7 +26,7 @@ service cloud.firestore {
     }
 
     function validPlayer(d, id) {
-      return d.keys().hasOnly(['id', 'name', 'discord', 'xp', 'avatar', 'mains', 'note', 'titles', 'updatedAt', 'updatedBy'])
+      return d.keys().hasOnly(['id', 'name', 'discord', 'xp', 'avatar', 'mains', 'note', 'titles', 'starTitles', 'updatedAt', 'updatedBy'])
         && d.keys().hasAll(['id', 'name'])
         && d.id == id
         && isShortString(d.name, 100)
@@ -37,7 +37,9 @@ service cloud.firestore {
         && (!('mains' in d) || (d.mains is list && d.mains.size() <= 10))
         && (!('note' in d) || isShortString(d.note, 500))
         // ツールの外の大会の優勝・準優勝 (手で登録)
-        && (!('titles' in d) || (d.titles is list && d.titles.size() <= 50));
+        && (!('titles' in d) || (d.titles is list && d.titles.size() <= 50))
+        // 星にする戦績のキー
+        && (!('starTitles' in d) || (d.starTitles is list && d.starTitles.size() <= 100));
     }
 
     function validTournament(d, id) {

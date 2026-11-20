@@ -85,7 +85,7 @@ export function newTeam(index: number): Team {
 }
 
 export function newPlayer(name = ''): Player {
-  return { id: newId(), name, discord: '', xp: null, avatar: '', mains: [], note: '', titles: [] };
+  return { id: newId(), name, discord: '', xp: null, avatar: '', mains: [], note: '', titles: [], starTitles: [] };
 }
 
 export function newMember(playerId: string): Member {
@@ -167,6 +167,12 @@ export function normalizePlayer(p: any): Player {
   const note = str(p?.note) || str(p?.rank);
   const xp = num(p?.xp) ?? (p?.xp === null ? null : parseXp(note));
   const avatar = str(p?.avatar);
+  const titles = arr(p?.titles, (x): ManualTitle => ({
+    id: str(x?.id) || newId(),
+    name: str(x?.name).slice(0, 100),
+    rank: x?.rank === 2 ? 2 : 1,
+    date: str(x?.date).slice(0, 30),
+  })).slice(0, 50);
   return {
     id: str(p?.id) || newId(),
     name: str(p?.name),
@@ -175,12 +181,9 @@ export function normalizePlayer(p: any): Player {
     avatar: isImageUrl(avatar) ? avatar : '',
     mains: strArr(p?.mains),
     note,
-    titles: arr(p?.titles, (x): ManualTitle => ({
-      id: str(x?.id) || newId(),
-      name: str(x?.name).slice(0, 100),
-      rank: x?.rank === 2 ? 2 : 1,
-      date: str(x?.date).slice(0, 30),
-    })).slice(0, 50),
+    titles,
+    // 星にする戦績を選ぶ仕組みより前のデータは、手で登録した戦績を星にしていたのでそのまま星にする
+    starTitles: Array.isArray(p?.starTitles) ? strArr(p.starTitles).slice(0, 100) : titles.map((x) => `m:${x.id}`),
   };
 }
 
