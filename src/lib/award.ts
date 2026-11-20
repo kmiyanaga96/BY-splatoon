@@ -440,14 +440,35 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
 
     // Xバッジ (右上)
     const badge = badges[i];
-    if (badge) ctx.drawImage(badge, cx + D * 0.22, cy - D / 2 - 10, 54, 61);
+    if (badge) ctx.drawImage(badge, cx + D * 0.25, cy - D / 2 - 6, 46, 52);
 
-    // 一番使ったブキ (左上)
+    // 戦績の星 (左上)。写真の上でも見えるよう白い札に載せる
+    if (m.titles && m.titles.gold + m.titles.silver > 0) {
+      // 情報が多くなりすぎないよう控えめな大きさにする
+      const r = 11;
+      const row = starRow(ctx, m.titles, r, `700 16px ${BODY}`, INK);
+      const padX = 6;
+      const h = r * 2 + 8;
+      const bx = cx - D / 2 - 10;
+      const by = cy - D / 2 - 4;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 2;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(bx, by, row.width + padX * 2, h, h / 2);
+      ctx.fill();
+      ctx.restore();
+      row.draw(bx + padX, by + h / 2);
+    }
+
+    // 一番使ったブキ (右下。左上は戦績の星、右上は Xバッジ、下はリーダーの札があるため)
     const wicon = memberWeapons[i];
     if (wicon) {
-      const r = 30;
-      const wx = cx - D * 0.36;
-      const wy = cy - D * 0.36;
+      const r = 26;
+      const wx = cx + D * 0.47;
+      const wy = cy + D * 0.18;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(wx, wy, r, 0, Math.PI * 2);
@@ -474,26 +495,14 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     // 名前・XP
     ctx.fillStyle = th.ink;
     ctx.fillText(fit(ctx, m.name || '(名前未入力)', (s) => `700 ${s}px ${BODY}`, 32, 18, colW - 16), cx, top + D + 56);
-    // XP と戦績の星は同じ行に、まとめて中央にそろえる
-    const lineY = top + D + 90;
-    const xpText = d.showXp && m.xp ? `XP ${m.xp}` : '';
-    const stars = m.titles && m.titles.gold + m.titles.silver > 0 ? starRow(ctx, m.titles, 13, `700 20px ${BODY}`, th.ink) : null;
-    ctx.font = `700 22px ${BODY}`;
-    const xpW = xpText ? ctx.measureText(xpText).width : 0;
-    const total = (stars?.width ?? 0) + (stars && xpText ? 12 : 0) + xpW;
-    let lx = cx - total / 2;
-    if (stars) {
-      stars.draw(lx, lineY - 8);
-      lx += stars.width + (xpText ? 12 : 0);
-    }
-    if (xpText) {
+    if (d.showXp && m.xp) {
       const tier = xTier(m.xp);
       ctx.font = `700 22px ${BODY}`;
-      ctx.textAlign = 'left';
+      ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
       // 暗い背景では明るい方の色にする
       ctx.fillStyle = tier ? (th.dark ? tier.light : tier.dark) : th.sub;
-      ctx.fillText(xpText, lx, lineY);
+      ctx.fillText(`XP ${m.xp}`, cx, top + D + 90);
     }
   });
 
