@@ -444,12 +444,13 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
 
     // 戦績の星 (左上)。写真の上でも見えるよう白い札に載せる
     if (m.titles && m.titles.gold + m.titles.silver > 0) {
-      const r = 14;
-      const row = starRow(ctx, m.titles, r, `700 20px ${BODY}`, INK);
-      const padX = 8;
-      const h = r * 2 + 10;
-      const bx = cx - D / 2 - 14;
-      const by = cy - D / 2 - 8;
+      // 情報が多くなりすぎないよう控えめな大きさにする
+      const r = 11;
+      const row = starRow(ctx, m.titles, r, `700 16px ${BODY}`, INK);
+      const padX = 6;
+      const h = r * 2 + 8;
+      const bx = cx - D / 2 - 10;
+      const by = cy - D / 2 - 4;
       ctx.save();
       ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
       ctx.shadowBlur = 6;
