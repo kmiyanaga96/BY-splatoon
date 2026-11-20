@@ -16,6 +16,11 @@ export interface Player {
   note: string;
   /** ツールの外 (ツールを使う前など) の大会の優勝・準優勝。ツールで記録した大会の分は自動で数えるので入れない */
   titles: ManualTitle[];
+  /**
+   * 星 (表彰画像の金星・銀星) にする戦績。ツールの大会の成績は "t:<大会ID>"、手で登録した戦績は "m:<ManualTitle.id>"。
+   * 入っていない戦績は一覧には出るが星にはしない (運営が選手ごとに選ぶ)
+   */
+  starTitles: string[];
 }
 
 export interface ManualTitle {
