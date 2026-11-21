@@ -184,7 +184,7 @@ export async function drawPhotoAward(canvas: HTMLCanvasElement, d: AwardData, p:
     const members = d.members.map((m, i) => {
       const nm = m.name || '(名前未入力)';
       const nameW = Math.min(300, ctx.measureText(nm).width);
-      const stars = m.titles && m.titles.gold + m.titles.silver > 0 ? starRow(ctx, m.titles, 13, `700 22px ${BODY}`, '#ffffff') : null;
+      const stars = m.titles && m.titles.gold + m.titles.silver > 0 ? starRow(ctx, m.titles, 13) : null;
       ctx.font = nameFont;
       return { nm, nameW, stars, img: avatars[i], w: A + 12 + nameW + (stars ? 10 + stars.width : 0) };
     });

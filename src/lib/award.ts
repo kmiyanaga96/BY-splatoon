@@ -194,38 +194,49 @@ export function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.stroke();
 }
 
-/**
- * 金星・銀星を並べたときの部品。2 個までは並べ、3 個以上は「★×n」にまとめる。
- * width で全体の幅を測り、draw(x, cy) で左端 x から描く
- */
-export function starRow(ctx: CanvasRenderingContext2D, titles: { gold: number; silver: number }, r: number, font: string, textColor: string) {
-  const groups = [
-    { n: titles.gold, c: STAR_GOLD },
-    { n: titles.silver, c: STAR_SILVER },
-  ].filter((g) => g.n > 0);
-  const gap = r * 0.35;
-  ctx.font = font;
-  const items = groups.map((g) => {
-    const stars = g.n >= 3 ? 1 : g.n;
-    const label = g.n >= 3 ? `×${g.n}` : '';
-    const w = stars * r * 2 + (stars - 1) * gap + (label ? gap + ctx.measureText(label).width : 0);
-    return { ...g, stars, label, w };
-  });
-  const width = items.reduce((s, x) => s + x.w, 0) + Math.max(0, items.length - 1) * r * 0.9;
-  const draw = (x: number, cy: number) => {
-    for (const it of items) {
-      for (let i = 0; i < it.stars; i++) drawStar(ctx, x + r + i * (r * 2 + gap), cy, r, it.c);
-      if (it.label) {
-        ctx.font = font;
-        ctx.fillStyle = textColor;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(it.label, x + it.stars * r * 2 + gap, cy + 1);
-      }
-      x += it.w + r * 0.9;
-    }
-  };
+/** 金星 → 銀星の順に、星を 1 つずつ並べた色の列 */
+function starColors(titles: { gold: number; silver: number }) {
+  return [...Array<typeof STAR_GOLD>(titles.gold).fill(STAR_GOLD), ...Array<typeof STAR_SILVER>(titles.silver).fill(STAR_SILVER)];
+}
+
+/** 金星・銀星を 1 行に 1 つずつ並べる部品 (スクショのパネルの名前の横など)。width で幅を測り、draw(x, cy) で左端 x から描く */
+export function starRow(ctx: CanvasRenderingContext2D, titles: { gold: number; silver: number }, r: number) {
+  const stars = starColors(titles);
+  const gap = r * 0.3;
+  const width = stars.length * r * 2 + Math.max(0, stars.length - 1) * gap;
+  const draw = (x: number, cy: number) => stars.forEach((c, i) => drawStar(ctx, x + r + i * (r * 2 + gap), cy, r, c));
   return { width, draw };
+}
+
+/**
+ * 金星・銀星を白い札に載せて描く (表彰画像のアイコンの左上)。1 行 3 個までで、4 個目からは上に 1 行ずつ積み重ねる。
+ * 札の左端 x・下端 bottom を基準にする (行が増えると上に伸びる)
+ */
+export function drawStarStack(ctx: CanvasRenderingContext2D, titles: { gold: number; silver: number }, x: number, bottom: number, r: number) {
+  const stars = starColors(titles);
+  if (!stars.length) return;
+  const PER_ROW = 3;
+  const gap = r * 0.3;
+  const padX = 6;
+  const padY = 4;
+  const rows = Math.ceil(stars.length / PER_ROW);
+  const cols = Math.min(PER_ROW, stars.length);
+  const w = cols * r * 2 + (cols - 1) * gap + padX * 2;
+  const h = rows * r * 2 + (rows - 1) * gap + padY * 2;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.roundRect(x, bottom - h, w, h, Math.min(h / 2, r + padY));
+  ctx.fill();
+  ctx.restore();
+  stars.forEach((c, i) => {
+    const row = Math.floor(i / PER_ROW); // 0 = 一番下の行
+    const col = i % PER_ROW;
+    drawStar(ctx, x + padX + r + col * (r * 2 + gap), bottom - padY - r - row * (r * 2 + gap), r, c);
+  });
 }
 
 /** インクが飛び散ったような形 */
@@ -442,25 +453,11 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     const badge = badges[i];
     if (badge) ctx.drawImage(badge, cx + D * 0.25, cy - D / 2 - 6, 46, 52);
 
-    // 戦績の星 (左上)。写真の上でも見えるよう白い札に載せる
+    // 戦績の星 (左上)。写真の上でも見えるよう白い札に載せる。1 行 3 個までで、それ以上は上に積み重ねる
     if (m.titles && m.titles.gold + m.titles.silver > 0) {
       // 情報が多くなりすぎないよう控えめな大きさにする
       const r = 11;
-      const row = starRow(ctx, m.titles, r, `700 16px ${BODY}`, INK);
-      const padX = 6;
-      const h = r * 2 + 8;
-      const bx = cx - D / 2 - 10;
-      const by = cy - D / 2 - 4;
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetY = 2;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(bx, by, row.width + padX * 2, h, h / 2);
-      ctx.fill();
-      ctx.restore();
-      row.draw(bx + padX, by + h / 2);
+      drawStarStack(ctx, m.titles, cx - D / 2 - 10, cy - D / 2 - 4 + r * 2 + 8, r);
     }
 
     // 一番使ったブキ (右下。左上は戦績の星、右上は Xバッジ、下はリーダーの札があるため)
