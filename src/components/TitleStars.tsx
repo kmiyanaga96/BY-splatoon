@@ -1,4 +1,4 @@
-// 戦績の金星 (優勝)・銀星 (準優勝)。表彰画像と同じく、2 個までは並べ、3 個以上は「★×n」にまとめる。
+// 戦績の金星 (優勝)・銀星 (準優勝)。表彰画像と同じく、回数分の星を 1 つずつ並べる (×n にまとめない)。
 
 const COLORS = {
   gold: { fill: '#e2a92b', stroke: '#9a6b0c', label: '優勝' },
@@ -24,14 +24,9 @@ function Group({ kind, n }: { kind: 'gold' | 'silver'; n: number }) {
   if (n <= 0) return null;
   return (
     <span className="title-star-group" title={`${COLORS[kind].label} ${n} 回`}>
-      {n >= 3 ? (
-        <>
-          <Star kind={kind} />
-          <span className="title-star-count">×{n}</span>
-        </>
-      ) : (
-        Array.from({ length: n }, (_, i) => <Star key={i} kind={kind} />)
-      )}
+      {Array.from({ length: n }, (_, i) => (
+        <Star key={i} kind={kind} />
+      ))}
     </span>
   );
 }
