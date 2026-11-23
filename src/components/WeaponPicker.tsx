@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { CATEGORIES, MAINS, WEAPONS, mainMatchesQuery, matchesQuery, weaponKit } from '../data/weapons';
+import { CATEGORIES, MAINS, WEAPONS, hiddenByDefault, mainMatchesQuery, matchesQuery, weaponKit } from '../data/weapons';
 import type { PoolUnit } from '../types';
 import { FilterChip, Icon, Modal, Switch, WeaponIcon, WeaponTag } from './ui';
 
@@ -31,7 +31,7 @@ export function WeaponPicker(props: Props) {
         ? MAINS.filter((m) => (!cat || m.category === cat) && mainMatchesQuery(m, query))
         : WEAPONS.filter(
             (w) =>
-              (showReplica || !w.replica || selected.includes(w.id)) &&
+              (showReplica || !hiddenByDefault(w) || selected.includes(w.id)) &&
               (!cat || w.category === cat) &&
               matchesQuery(w, query),
           ),
@@ -75,7 +75,7 @@ export function WeaponPicker(props: Props) {
             autoFocus
           />
         </div>
-        {unit === 'weapon' && <Switch label="レプリカも表示" checked={showReplica} onChange={setShowReplica} />}
+        {unit === 'weapon' && <Switch label="ヒーロー・オクタのレプリカも表示" checked={showReplica} onChange={setShowReplica} />}
       </div>
       <div className="chips">
         <FilterChip label="すべて" selected={cat === null} onClick={() => setCat(null)} />

@@ -16,6 +16,20 @@ export const WEAPONS: Weapon[] = raw.weapons;
 
 const byId = new Map(WEAPONS.map((w) => [w.id, w]));
 
+/** オーダーブキ (サイド・オーダーのレプリカ。ID が _O で終わる)。見た目が違うだけで中身は元のブキと同じ */
+export const isOrderWeapon = (w: Weapon) => w.replica && w.id.endsWith('_O');
+
+/** ふだん選択肢に出さないブキ (ヒーロー・オクタのレプリカ)。オーダーブキは選択肢に出す */
+export const hiddenByDefault = (w: Weapon) => w.replica && !isOrderWeapon(w);
+
+/** レプリカ → サブ・スペシャルが同じ元のブキ (例: オーダーシューター レプリカ → スプラシューター) */
+const kitBase = new Map(
+  WEAPONS.filter((w) => w.replica).map((w) => [
+    w.id,
+    WEAPONS.find((x) => !x.replica && x.main === w.main && x.sub === w.sub && x.special === w.special)?.id ?? w.id,
+  ]),
+);
+
 export function getWeapon(id: string): Weapon | undefined {
   return byId.get(id);
 }
@@ -51,11 +65,12 @@ export function getMain(id: string): MainWeapon | undefined {
 
 /**
  * 候補・再使用の判定に使うキー。メイン単位のルールでは派生ブキをメインにまとめる。
+ * ブキ単位のルールでは、レプリカ (オーダーブキなど) は中身が同じ元のブキとして数える。
  * id はブキ ID でもメイン ID でもよい。
  */
 export function unitKey(unit: 'weapon' | 'main', id: string): string {
   if (unit === 'main') return byId.get(id)?.main ?? id;
-  return mainById.get(id)?.base.id ?? id;
+  return mainById.get(id)?.base.id ?? kitBase.get(id) ?? id;
 }
 
 /** ブキアイコン (public/weapons/ の静的ファイル)。scripts/fetch-weapon-icons.mjs で取得。メインは代表ブキのアイコン */

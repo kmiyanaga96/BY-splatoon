@@ -21,16 +21,16 @@ export interface AwardMember {
   avatar: string;
   xp: number | null;
   leader: boolean;
-  /** 一番使ったブキのアイコン URL (選手ごとにブキを記録する大会だけ) */
-  weapon?: string;
+  /** よく使ったブキのアイコン URL (使用率の高い順に 3 つまで。選手ごとにブキを記録する大会だけ) */
+  weapons?: string[];
   /** 過去の優勝 (金星)・準優勝 (銀星) の数。なければ星を描かない */
   titles?: { gold: number; silver: number };
 }
 
+/** 下に並べるブキ (アイコンだけを表示する) */
 export interface AwardWeapon {
-  name: string;
+  /** カテゴリの色 (アイコンの縁取り) */
   color: string;
-  count: number;
   /** ブキアイコンの URL */
   icon: string;
 }
@@ -44,7 +44,6 @@ export interface AwardData {
   rank: number | null;
   team: { name: string; color: string };
   members: AwardMember[];
-  weaponCaption: string;
   weapons: AwardWeapon[];
   showXp: boolean;
   /** 大会の種類 (リボンの文字と背景の柄)。なければ装飾なし。colors はカテゴリ縛りの柄に使う */
@@ -265,7 +264,7 @@ function splat(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number,
 
 /** isCurrent が false を返したら描画しない (プレビューの描き直しが重なったとき用) */
 export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, template: AwardTemplate, isCurrent = () => true) {
-  const allText = [d.tournament, d.date, d.title, d.team.name, d.weaponCaption, ...d.members.map((m) => m.name), ...d.weapons.map((w) => w.name), 'BYスプラ大会ツールリーダーXP0123456789×+…'].join('');
+  const allText = [d.tournament, d.date, d.title, d.team.name, ...d.members.map((m) => m.name), 'BYスプラ大会ツールリーダーXP0123456789×+…'].join('');
   const [, avatars, badges] = await Promise.all([
     ensureFonts(allText),
     Promise.all(d.members.map((m) => loadImage(m.avatar))),
@@ -276,7 +275,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   ]);
   const [weaponIcons, memberWeapons, logo] = await Promise.all([
     Promise.all(d.weapons.map((w) => loadImage(w.icon))),
-    Promise.all(d.members.map((m) => loadImage(m.weapon ?? ''))),
+    Promise.all(d.members.map((m) => Promise.all((m.weapons ?? []).slice(0, 3).map(loadImage)))),
     loadImage(d.logo ?? ''),
   ]);
 
@@ -419,7 +418,8 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   const n = Math.max(1, d.members.length);
   const colW = Math.min(300, (W - x0 * 2) / n);
   const D = Math.min(150, colW - 50);
-  const top = 488;
+  // 下に「よく使ったブキ」の行を入れるため、少し上から始める
+  const top = 476;
   d.members.forEach((m, i) => {
     const cx = x0 + colW * i + colW / 2;
     const cy = top + D / 2;
@@ -460,21 +460,6 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       drawStarStack(ctx, m.titles, cx - D / 2 - 10, cy - D / 2 - 4 + r * 2 + 8, r);
     }
 
-    // 一番使ったブキ (右下。左上は戦績の星、右上は Xバッジ、下はリーダーの札があるため)
-    const wicon = memberWeapons[i];
-    if (wicon) {
-      const r = 26;
-      const wx = cx + D * 0.47;
-      const wy = cy + D * 0.18;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(wx, wy, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = color;
-      ctx.stroke();
-      ctx.drawImage(wicon, wx - r * 0.8, wy - r * 0.8, r * 1.6, r * 1.6);
-    }
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
@@ -501,25 +486,41 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       ctx.fillStyle = tier ? (th.dark ? tier.light : tier.dark) : th.sub;
       ctx.fillText(`XP ${m.xp}`, cx, top + D + 90);
     }
+
+    // よく使ったブキ (XP の下に、使用率の高い順に 3 つまで)
+    const icons = memberWeapons[i].filter((x): x is HTMLImageElement => !!x);
+    if (icons.length) {
+      const r = 26;
+      const gap = 8;
+      const wy = top + D + 90 + 6 + r;
+      let wx = cx - (icons.length * r * 2 + (icons.length - 1) * gap) / 2 + r;
+      for (const icon of icons) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(wx, wy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.drawImage(icon, wx - r * 0.8, wy - r * 0.8, r * 1.6, r * 1.6);
+        wx += r * 2 + gap;
+      }
+    }
   });
 
   // 使用ブキ (アイコン + 名前)。ブキがなければ欄ごと描かない
   if (d.weapons.length) drawWeapons();
   function drawWeapons() {
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
+    // アイコンだけを並べる (見出し・ブキ名・回数は出さない)
     const IS = 72; // アイコンの直径
-    const iy = 758;
-    ctx.font = `700 24px ${BODY}`;
-    ctx.fillStyle = th.sub;
-    ctx.fillText(d.weaponCaption, x0, iy + IS / 2);
-    const slot = 150;
-    let x = x0 + ctx.measureText(d.weaponCaption).width + 32;
+    const iy = 786;
+    const slot = 92;
+    let x = x0;
     const limit = template === 'pop' ? W - 250 : W - x0;
     const maxSlots = Math.max(1, Math.floor((limit - x) / slot));
     const shown = d.weapons.length > maxSlots ? d.weapons.slice(0, maxSlots - 1) : d.weapons;
     shown.forEach((w, i) => {
-      const cx = x + slot / 2;
+      const cx = x + IS / 2;
       const cy = iy + IS / 2;
       ctx.fillStyle = tint(w.color, 0.7);
       ctx.beginPath();
@@ -530,30 +531,17 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
       ctx.stroke();
       const icon = weaponIcons[i];
       if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
-      if (w.count > 1) {
-        ctx.fillStyle = th.ink;
-        ctx.beginPath();
-        ctx.arc(cx + IS * 0.38, cy - IS * 0.36, 17, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = th.onInk;
-        ctx.font = `700 18px ${BODY}`;
-        ctx.textAlign = 'center';
-        ctx.fillText(`×${w.count}`, cx + IS * 0.38, cy - IS * 0.36 + 1);
-      }
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      ctx.fillStyle = th.ink;
-      ctx.fillText(fit(ctx, w.name, (s) => `700 ${s}px ${BODY}`, 18, 12, slot - 8), cx, iy + IS + 22);
-      ctx.textBaseline = 'middle';
       x += slot;
     });
     if (shown.length < d.weapons.length) {
       ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
       ctx.font = `700 26px ${BODY}`;
       ctx.fillStyle = th.sub;
-      ctx.fillText(`+${d.weapons.length - shown.length}`, x + 16, iy + IS / 2);
+      ctx.fillText(`+${d.weapons.length - shown.length}`, x + 4, iy + IS / 2);
     }
   }
+
 
   if (logo) {
     ctx.drawImage(logo, logoX, logoY, LOGO, LOGO);
