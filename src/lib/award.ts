@@ -27,7 +27,7 @@ export interface AwardMember {
   titles?: { gold: number; silver: number };
 }
 
-/** 下に並べるブキ (アイコンだけを表示する) */
+/** チームのブキ (ブキ統一杯の背景の柄に、先頭のブキのアイコンを使う) */
 export interface AwardWeapon {
   /** カテゴリの色 (アイコンの縁取り) */
   color: string;
@@ -418,8 +418,7 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
   const n = Math.max(1, d.members.length);
   const colW = Math.min(300, (W - x0 * 2) / n);
   const D = Math.min(150, colW - 50);
-  // 下に「よく使ったブキ」の行を入れるため、少し上から始める
-  const top = 476;
+  const top = 488;
   d.members.forEach((m, i) => {
     const cx = x0 + colW * i + colW / 2;
     const cy = top + D / 2;
@@ -508,39 +507,6 @@ export async function drawAward(canvas: HTMLCanvasElement, d: AwardData, templat
     }
   });
 
-  // 使用ブキ (アイコン + 名前)。ブキがなければ欄ごと描かない
-  if (d.weapons.length) drawWeapons();
-  function drawWeapons() {
-    // アイコンだけを並べる (見出し・ブキ名・回数は出さない)
-    const IS = 72; // アイコンの直径
-    const iy = 786;
-    const slot = 92;
-    let x = x0;
-    const limit = template === 'pop' ? W - 250 : W - x0;
-    const maxSlots = Math.max(1, Math.floor((limit - x) / slot));
-    const shown = d.weapons.length > maxSlots ? d.weapons.slice(0, maxSlots - 1) : d.weapons;
-    shown.forEach((w, i) => {
-      const cx = x + IS / 2;
-      const cy = iy + IS / 2;
-      ctx.fillStyle = tint(w.color, 0.7);
-      ctx.beginPath();
-      ctx.arc(cx, cy, IS / 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = w.color;
-      ctx.stroke();
-      const icon = weaponIcons[i];
-      if (icon) ctx.drawImage(icon, cx - IS * 0.42, cy - IS * 0.42, IS * 0.84, IS * 0.84);
-      x += slot;
-    });
-    if (shown.length < d.weapons.length) {
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.font = `700 26px ${BODY}`;
-      ctx.fillStyle = th.sub;
-      ctx.fillText(`+${d.weapons.length - shown.length}`, x + 4, iy + IS / 2);
-    }
-  }
 
 
   if (logo) {

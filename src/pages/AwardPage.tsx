@@ -16,7 +16,6 @@ import { playerTitles } from '../lib/titles';
 import { updatePlayer, useApp, usePlayers } from '../store';
 import type { Team, Tournament } from '../types';
 
-type WeaponSource = 'used' | 'pool';
 
 function safeName(s: string) {
   return s.replace(/[\\/:*?"<>|\s]+/g, '_') || 'award';
@@ -90,7 +89,6 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
   const [teamId, setTeamId] = useState(teams[0]?.team.id ?? '');
   const [template, setTemplate] = useState<AwardTemplate>('pop');
   const [title, setTitle] = useState('');
-  const [source, setSource] = useState<WeaponSource>('used');
   const [showXp, setShowXp] = useState(true);
   const [background, setBackground] = useStoredBackground();
   const [showTitles, setShowTitles] = useState(true);
@@ -114,8 +112,8 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
     } else {
       for (const u of teamUses(t, rounds, team.id)) counts.set(u.weaponId, (counts.get(u.weaponId) ?? 0) + 1);
     }
-    // 候補ブキのない大会 (通常ルール) は記録したブキだけ
-    const useRecorded = !kindOf(t).hasPool || (source === 'used' && counts.size > 0);
+    // 背景の柄 (ブキ統一杯) に使うブキ: 使ったブキがあればそれ、なければ候補ブキ
+    const useRecorded = !kindOf(t).hasPool || counts.size > 0;
     // 選手ごとの記録がある大会は、メンバーごとによく使ったブキ (使用率の高い順に 3 つ) を XP の下に並べる
     const topWeapons = new Map<string, string[]>();
     if (kindOf(t).playerWeapons) {
@@ -144,7 +142,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         // 過去の戦績 (表示中の大会は数えない)
         titles: showTitles ? playerTitles(app, p, t.id) : undefined,
       })),
-      // 記録したブキ (使用回数の多い順) か候補ブキを、アイコンだけ並べる
+      // チームのブキ (表示はしない。ブキ統一杯の背景の柄に先頭のアイコンを使う)
       weapons: ids.map((id) => ({
         color: categoryOf(id)?.color ?? '#888888',
         icon: weaponIconUrl(id),
@@ -345,19 +343,6 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
               )}
               <Switch label="下部のパネル（チーム名・メンバー）" checked={photo.bottom} onChange={(v) => setPhoto((p) => ({ ...p, bottom: v }))} />
             </div>
-          )}
-          {!isPhoto && kindOf(t).hasPool && (
-            <>
-              <span className="label">ブキの表示</span>
-              <Segmented
-                value={source}
-                onChange={setSource}
-                options={[
-                  { value: 'used', label: '使用ブキ' },
-                  { value: 'pool', label: '候補ブキ' },
-                ]}
-              />
-            </>
           )}
           <Field label="見出し" hint="空欄なら成績（優勝・準優勝・ベスト4 など）">
             <input
