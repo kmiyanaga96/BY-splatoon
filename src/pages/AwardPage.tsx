@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ClipboardEvent as ReactClipb
 import { AvatarInput } from '../components/AvatarInput';
 import { PrizeVideos } from '../components/PrizeVideos';
 import { Empty, Field, Icon, Segmented, Switch, TeamName, XBadge, showSnackbar } from '../components/ui';
-import { CATEGORIES, categoryOf, weaponIconUrl, weaponName } from '../data/weapons';
+import { CATEGORIES, categoryOf, weaponIconUrl } from '../data/weapons';
 import { AWARD_BACKGROUNDS, AWARD_TEMPLATES, canvasToBlob, drawAward, type AwardBackground, type AwardData, type AwardTemplate } from '../lib/award';
 import { DEFAULT_PHOTO, PHOTO_BANDS, drawPhotoAward, photoGeometry, type PhotoOptions } from '../lib/awardPhoto';
 import { type MatchView } from '../lib/bracket';
@@ -116,16 +116,16 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
     }
     // 候補ブキのない大会 (通常ルール) は記録したブキだけ
     const useRecorded = !kindOf(t).hasPool || (source === 'used' && counts.size > 0);
-    // 選手ごとの記録がある大会は、メンバーごとに一番使ったブキをアイコンに添える
-    const topWeapon = new Map<string, string>();
+    // 選手ごとの記録がある大会は、メンバーごとによく使ったブキ (使用率の高い順に 3 つ) を XP の下に並べる
+    const topWeapons = new Map<string, string[]>();
     if (kindOf(t).playerWeapons) {
       const mine = allPicks(t, rounds).filter((p) => p.teamId === team.id);
       for (const { player } of roster(team, players)) {
         const top = usageBy(
           mine.filter((p) => p.playerId === player.id),
           'weapon',
-        )[0];
-        if (top) topWeapon.set(player.id, weaponIconUrl(top.id));
+        ).slice(0, 3);
+        topWeapons.set(player.id, top.map((x) => weaponIconUrl(x.id)));
       }
     }
     const ids = useRecorded ? [...counts.keys()] : team.pool;
@@ -140,15 +140,13 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
         avatar: p.avatar,
         xp: p.xp,
         leader: m.leader,
-        weapon: topWeapon.get(p.id),
+        weapons: topWeapons.get(p.id),
         // 過去の戦績 (表示中の大会は数えない)
         titles: showTitles ? playerTitles(app, p, t.id) : undefined,
       })),
-      weaponCaption: useRecorded ? '使用ブキ' : '候補ブキ',
+      // 記録したブキ (使用回数の多い順) か候補ブキを、アイコンだけ並べる
       weapons: ids.map((id) => ({
-        name: weaponName(id),
         color: categoryOf(id)?.color ?? '#888888',
-        count: useRecorded ? (counts.get(id) ?? 0) : 0,
         icon: weaponIconUrl(id),
       })),
       showXp,
@@ -467,16 +465,9 @@ const SAMPLE: Omit<AwardData, 'team'> = {
     { name: 'ホタテ', avatar: '', xp: 2560, leader: false, titles: { gold: 0, silver: 2 } },
     { name: 'サザエ', avatar: '', xp: 2300, leader: false },
   ],
-  weaponCaption: '使用ブキ',
-  weapons: [
-    ['Shooter_Normal_00', 3],
-    ['Brush_Normal_00', 2],
-    ['Charger_Long_00', 1],
-  ].map(([id, count]) => ({
-    name: weaponName(id as string),
-    color: categoryOf(id as string)?.color ?? '#888888',
-    count: count as number,
-    icon: weaponIconUrl(id as string),
+  weapons: ['Shooter_Normal_00', 'Brush_Normal_00', 'Charger_Long_00'].map((id) => ({
+    color: categoryOf(id)?.color ?? '#888888',
+    icon: weaponIconUrl(id),
   })),
   showXp: true,
   kind: { label: 'ブキ統一杯', motif: 'unified' },

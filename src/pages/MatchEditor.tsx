@@ -1,5 +1,5 @@
 import { Avatar, CopyButton, Field, Icon, IconButton, Modal, TeamName, WeaponIcon, WeaponTag } from '../components/ui';
-import { CATEGORIES, WEAPONS, getMain, unitKey, weaponName, type Weapon } from '../data/weapons';
+import { CATEGORIES, WEAPONS, getMain, hiddenByDefault, unitKey, weaponName, type Weapon } from '../data/weapons';
 import stages from '../data/stages.json';
 import { matchCardText } from '../lib/announce';
 import { sideId, winsNeeded, type MatchView } from '../lib/bracket';
@@ -370,7 +370,7 @@ function PlayerWeapons(props: {
               <option value="">ブキ未入力</option>
               {CATEGORIES.map((c) => (
                 <optgroup key={c.id} label={c.name}>
-                  {props.weapons.filter((w) => w.category === c.id && (!w.replica || w.id === weaponId)).map((w) => (
+                  {props.weapons.filter((w) => w.category === c.id && (!hiddenByDefault(w) || w.id === weaponId)).map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.name}
                     </option>
@@ -430,7 +430,8 @@ function WeaponSelect(props: { team: Team; unit: PoolUnit; value: string; blocke
   const key = (id: string) => unitKey(unit, id);
   const pool = new Set(team.pool);
   const isBlocked = (id: string) => blocked.has(key(id)) && id !== value;
-  const visible = (w: { id: string; replica: boolean }) => !w.replica || w.id === value;
+  // オーダーブキは選択肢に出す (ヒーロー・オクタのレプリカは出さない)
+  const visible = (w: Weapon) => !hiddenByDefault(w) || w.id === value;
   const others = WEAPONS.filter((w) => !pool.has(key(w.id)) && visible(w));
   const invalid = !!value && blocked.has(key(value));
   const offPool = !!value && !pool.has(key(value));
