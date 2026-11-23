@@ -16,13 +16,11 @@ export const WEAPONS: Weapon[] = raw.weapons;
 
 const byId = new Map(WEAPONS.map((w) => [w.id, w]));
 
-/** オーダーブキ (サイド・オーダーのレプリカ。ID が _O で終わる)。見た目が違うだけで中身は元のブキと同じ */
-export const isOrderWeapon = (w: Weapon) => w.replica && w.id.endsWith('_O');
-
-/** ふだん選択肢に出さないブキ (ヒーロー・オクタのレプリカ)。オーダーブキは選択肢に出す */
-export const hiddenByDefault = (w: Weapon) => w.replica && !isOrderWeapon(w);
-
-/** レプリカ → サブ・スペシャルが同じ元のブキ (例: オーダーシューター レプリカ → スプラシューター) */
+/**
+ * レプリカ (ヒーロー・オクタ・オーダー・PET) → サブ・スペシャルが同じ元のブキ
+ * (例: オーダーシューター レプリカ → スプラシューター)。レプリカは見た目が違うだけで中身は元のブキと同じ。
+ * どのレプリカもブキの選択肢には出す
+ */
 const kitBase = new Map(
   WEAPONS.filter((w) => w.replica).map((w) => [
     w.id,
