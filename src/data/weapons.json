@@ -1,5 +1,5 @@
 {
- "version": "1120",
+ "version": "1200",
  "weapons": [
   {
    "id": "Shooter_Short_00",
@@ -159,6 +159,16 @@
    "sub": "キューバンボム",
    "special": "ウルトラショット",
    "sp": 200,
+   "replica": true
+  },
+  {
+   "id": "Shooter_Normal_S",
+   "name": "PETシューター レプリカ",
+   "category": "Shooter",
+   "main": "Shooter_Normal",
+   "sub": "スプラッシュボム",
+   "special": "トリプルトルネード",
+   "sp": 190,
    "replica": true
   },
   {
@@ -348,7 +358,7 @@
    "main": "Blaster_Middle",
    "sub": "ロボットボム",
    "special": "グレートバリア",
-   "sp": 190,
+   "sp": 200,
    "replica": false
   },
   {
@@ -1038,7 +1048,7 @@
    "main": "Slosher_Diffusion",
    "sub": "スプラッシュボム",
    "special": "スミナガシート",
-   "sp": 180,
+   "sp": 190,
    "replica": false
   },
   {
@@ -1208,7 +1218,7 @@
    "main": "Spinner_Hyper",
    "sub": "トラップ",
    "special": "スミナガシート",
-   "sp": 200,
+   "sp": 190,
    "replica": false
   },
   {
@@ -1498,7 +1508,7 @@
    "main": "Shelter_Wide",
    "sub": "ポイズンミスト",
    "special": "デコイチラシ",
-   "sp": 180,
+   "sp": 170,
    "replica": false
   },
   {
@@ -1568,7 +1578,7 @@
    "main": "Stringer_Normal",
    "sub": "スプリンクラー",
    "special": "デコイチラシ",
-   "sp": 190,
+   "sp": 200,
    "replica": false
   },
   {

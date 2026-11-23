@@ -1,6 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Empty, FilterChip, Icon, Segmented, Switch, TeamName, WeaponIcon } from '../components/ui';
-import { CATEGORIES, MAINS, WEAPONS, categoryOf, hiddenByDefault, mainMatchesQuery, matchesQuery, weaponKit, weaponName } from '../data/weapons';
+import { CATEGORIES, MAINS, WEAPONS, categoryOf, mainMatchesQuery, matchesQuery, weaponKit, weaponName } from '../data/weapons';
 import type { MatchView } from '../lib/bracket';
 import { usageCounts } from '../lib/usage';
 import type { Team, Tournament } from '../types';
@@ -21,14 +21,12 @@ interface Item {
   name: string;
   category: string;
   kit: string;
-  /** ふだん一覧に出さない (ヒーロー・オクタのレプリカ) */
-  hidden: boolean;
   matches: (query: string) => boolean;
 }
 
 const ITEMS: Record<Tournament['rules']['poolUnit'], Item[]> = {
-  weapon: WEAPONS.map((w) => ({ ...w, kit: weaponKit(w.id), hidden: hiddenByDefault(w), matches: (q: string) => matchesQuery(w, q) })),
-  main: MAINS.map((m) => ({ ...m, kit: weaponKit(m.id), hidden: false, matches: (q: string) => mainMatchesQuery(m, q) })),
+  weapon: WEAPONS.map((w) => ({ ...w, kit: weaponKit(w.id), matches: (q: string) => matchesQuery(w, q) })),
+  main: MAINS.map((m) => ({ ...m, kit: weaponKit(m.id), matches: (q: string) => mainMatchesQuery(m, q) })),
 };
 
 const catColor = (id: string) => categoryOf(id)?.color;
@@ -56,7 +54,7 @@ export function WeaponsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
   const rows = useMemo(() => {
     const relevant = (id: string) => t.teams.some((x) => x.pool.includes(id) || usage.get(x.id)?.has(id));
     return ITEMS[t.rules.poolUnit].filter(
-      (w) => (showAll ? !w.hidden || relevant(w.id) : relevant(w.id)) && (!cat || w.category === cat) && w.matches(query),
+      (w) => (showAll || relevant(w.id)) && (!cat || w.category === cat) && w.matches(query),
     )
       .map((w) => ({ w, count: t.teams.filter((x) => x.pool.includes(w.id)).length }))
       .sort((a, b) => b.count - a.count);

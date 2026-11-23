@@ -1,7 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react';
-import { CATEGORIES, MAINS, WEAPONS, hiddenByDefault, mainMatchesQuery, matchesQuery, weaponKit } from '../data/weapons';
+import { CATEGORIES, MAINS, WEAPONS, mainMatchesQuery, matchesQuery, weaponKit } from '../data/weapons';
 import type { PoolUnit } from '../types';
-import { FilterChip, Icon, Modal, Switch, WeaponIcon, WeaponTag } from './ui';
+import { FilterChip, Icon, Modal, WeaponIcon, WeaponTag } from './ui';
 
 interface Props {
   title: string;
@@ -23,19 +23,13 @@ export function WeaponPicker(props: Props) {
   const { selected, max = 0, unit = 'weapon' } = props;
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState<string | null>(null);
-  const [showReplica, setShowReplica] = useState(false);
 
   const list = useMemo(
     () =>
       unit === 'main'
         ? MAINS.filter((m) => (!cat || m.category === cat) && mainMatchesQuery(m, query))
-        : WEAPONS.filter(
-            (w) =>
-              (showReplica || !hiddenByDefault(w) || selected.includes(w.id)) &&
-              (!cat || w.category === cat) &&
-              matchesQuery(w, query),
-          ),
-    [unit, query, cat, showReplica, selected],
+        : WEAPONS.filter((w) => (!cat || w.category === cat) && matchesQuery(w, query)),
+    [unit, query, cat],
   );
 
   const full = max > 0 && selected.length >= max;
@@ -75,7 +69,6 @@ export function WeaponPicker(props: Props) {
             autoFocus
           />
         </div>
-        {unit === 'weapon' && <Switch label="ヒーロー・オクタのレプリカも表示" checked={showReplica} onChange={setShowReplica} />}
       </div>
       <div className="chips">
         <FilterChip label="すべて" selected={cat === null} onClick={() => setCat(null)} />

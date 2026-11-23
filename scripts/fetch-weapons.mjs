@@ -3,13 +3,13 @@
 // データ元: https://github.com/Leanny/splat3 (ゲームデータの解析結果)
 //
 // 使い方: npm run update-weapons -- [バージョン番号]
-//   例) npm run update-weapons -- 1120   (= Ver.11.2.0)
+//   例) npm run update-weapons -- 1200   (= Ver.12.0.0)
 // 新しいアップデートが来たら、上記リポジトリの data/mush/ にある最新の番号を指定する。
 
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const version = process.argv[2] ?? '1120';
+const version = process.argv[2] ?? '1200';
 const base = 'https://raw.githubusercontent.com/Leanny/splat3/main/data';
 
 async function getJson(url) {
@@ -43,8 +43,8 @@ const weapons = mains
       sub: subNames[gymlKey(w.SubWeapon)] ?? '',
       special: spNames[gymlKey(w.SpecialWeapon)] ?? '',
       sp: w.SpecialPoint,
-      // ヒーロー/オクタ/オーダー系のレプリカ(性能はオリジナルと同じ)
-      replica: /_(H|Oct|O)$/.test(id),
+      // ヒーロー/オクタ/オーダー/PET 系のレプリカ(性能はオリジナルと同じ)
+      replica: /_(H|Oct|O|S)$/.test(id),
     };
   });
 
