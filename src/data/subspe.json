@@ -1,0 +1,167 @@
+[
+ {
+  "id": "PoisonMist",
+  "name": "ポイズンミスト",
+  "kind": "sub"
+ },
+ {
+  "id": "LineMarker",
+  "name": "ラインマーカー",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Suction",
+  "name": "キューバンボム",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Splash",
+  "name": "スプラッシュボム",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Curling",
+  "name": "カーリングボム",
+  "kind": "sub"
+ },
+ {
+  "id": "Trap",
+  "name": "トラップ",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Torpedo",
+  "name": "トーピード",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Robot",
+  "name": "ロボットボム",
+  "kind": "sub"
+ },
+ {
+  "id": "PointSensor",
+  "name": "ポイントセンサー",
+  "kind": "sub"
+ },
+ {
+  "id": "Beacon",
+  "name": "ジャンプビーコン",
+  "kind": "sub"
+ },
+ {
+  "id": "Sprinkler",
+  "name": "スプリンクラー",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Quick",
+  "name": "クイックボム",
+  "kind": "sub"
+ },
+ {
+  "id": "Bomb_Fizzy",
+  "name": "タンサンボム",
+  "kind": "sub"
+ },
+ {
+  "id": "Shield",
+  "name": "スプラッシュシールド",
+  "kind": "sub"
+ },
+ {
+  "id": "SpBlower",
+  "name": "キューインキ",
+  "kind": "special"
+ },
+ {
+  "id": "SpMicroLaser",
+  "name": "メガホンレーザー5.1ch",
+  "kind": "special"
+ },
+ {
+  "id": "SpEnergyStand",
+  "name": "エナジースタンド",
+  "kind": "special"
+ },
+ {
+  "id": "SpUltraShot",
+  "name": "ウルトラショット",
+  "kind": "special"
+ },
+ {
+  "id": "SpFirework",
+  "name": "デコイチラシ",
+  "kind": "special"
+ },
+ {
+  "id": "SpTripleTornado",
+  "name": "トリプルトルネード",
+  "kind": "special"
+ },
+ {
+  "id": "SpJetpack",
+  "name": "ジェットパック",
+  "kind": "special"
+ },
+ {
+  "id": "SpShockSonar",
+  "name": "ホップソナー",
+  "kind": "special"
+ },
+ {
+  "id": "SpCastle",
+  "name": "テイオウイカ",
+  "kind": "special"
+ },
+ {
+  "id": "SpGreatBarrier",
+  "name": "グレートバリア",
+  "kind": "special"
+ },
+ {
+  "id": "SpPogo",
+  "name": "ウルトラチャクチ",
+  "kind": "special"
+ },
+ {
+  "id": "SpChariot",
+  "name": "カニタンク",
+  "kind": "special"
+ },
+ {
+  "id": "SpSkewer",
+  "name": "サメライド",
+  "kind": "special"
+ },
+ {
+  "id": "SpNiceBall",
+  "name": "ナイスダマ",
+  "kind": "special"
+ },
+ {
+  "id": "SpSuperHook",
+  "name": "ショクワンダー",
+  "kind": "special"
+ },
+ {
+  "id": "SpUltraStamp",
+  "name": "ウルトラハンコ",
+  "kind": "special"
+ },
+ {
+  "id": "SpMultiMissile",
+  "name": "マルチミサイル",
+  "kind": "special"
+ },
+ {
+  "id": "SpInkStorm",
+  "name": "アメフラシ",
+  "kind": "special"
+ },
+ {
+  "id": "SpChimney",
+  "name": "スミナガシート",
+  "kind": "special"
+ }
+]

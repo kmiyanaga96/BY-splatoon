@@ -114,3 +114,23 @@ describe('書き込み', () => {
     await assertFails(setDoc(doc(editor(), 'misc/x'), { a: 1 }));
   });
 });
+
+describe('作戦ボードのステージ画像', () => {
+  const map = (email: string, extra: object = {}) => ({ stage: 'スメーシーワールド', rule: 'エリア', image: 'data:image/jpeg;base64,AAAA', ...stamp(email), ...extra });
+
+  it('誰でも読める。登録・削除は編集者だけ', async () => {
+    await assertSucceeds(getDoc(doc(anon(), 'stageMaps/エリア:スメーシーワールド')));
+    await assertSucceeds(setDoc(doc(editor(), 'stageMaps/エリア:スメーシーワールド'), map(EDITOR)));
+    await assertFails(setDoc(doc(stranger(), 'stageMaps/エリア:スメーシーワールド'), map('x@example.com')));
+    await assertFails(setDoc(doc(anon(), 'stageMaps/エリア:スメーシーワールド'), map('')));
+    await assertFails(deleteDoc(doc(stranger(), 'stageMaps/エリア:スメーシーワールド')));
+    await assertSucceeds(deleteDoc(doc(editor(), 'stageMaps/エリア:スメーシーワールド')));
+  });
+
+  it('画像以外・大きすぎる画像・余計な項目は保存できない', async () => {
+    const db = editor();
+    await assertFails(setDoc(doc(db, 'stageMaps/a'), map(EDITOR, { image: 'https://example.com/x.png' })));
+    await assertFails(setDoc(doc(db, 'stageMaps/a'), map(EDITOR, { image: 'data:image/jpeg;base64,' + 'A'.repeat(1000000) })));
+    await assertFails(setDoc(doc(db, 'stageMaps/a'), map(EDITOR, { extra: 1 })));
+  });
+});

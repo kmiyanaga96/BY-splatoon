@@ -1,9 +1,10 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState } from 'react';
+import { UsageTable } from '../components/UsageTable';
 import { Avatar, Empty, Segmented, TeamName, WeaponIcon, WeaponTag } from '../components/ui';
-import { CATEGORIES, categoryOf, weaponName } from '../data/weapons';
+import { weaponName } from '../data/weapons';
 import { sideId, type MatchView } from '../lib/bracket';
 import { allMatches } from '../lib/league';
-import { allPicks, gamePicks, percent, usageBy, type PlayerPick } from '../lib/records';
+import { allPicks, gamePicks, usageBy, type PlayerPick } from '../lib/records';
 import { roster } from '../lib/roster';
 import { usePlayers } from '../store';
 import type { PlayerMap, Team, Tournament } from '../types';
@@ -20,7 +21,6 @@ export function RecordsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
   const [by, setBy] = useState<By>('weapon');
   const rows = useMemo(() => usageBy(picks, by), [picks, by]);
   const games = new Set(picks.map((p) => `${p.matchKey}:${p.gameIndex}`)).size;
-  const maxUses = rows[0]?.uses ?? 0;
 
   return (
     <div className="page">
@@ -47,45 +47,7 @@ export function RecordsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
         <>
           <section className="card">
             <h2 className="card-title">{by === 'weapon' ? 'ブキ' : 'カテゴリ'}別の使用率・勝率</h2>
-            <div className="table-wrap">
-              <table className="usage-table">
-                <thead>
-                  <tr>
-                    <th>{by === 'weapon' ? 'ブキ' : 'カテゴリ'}</th>
-                    <th className="num">使用</th>
-                    <th>使用率</th>
-                    <th className="num">勝率</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => {
-                    const color = by === 'weapon' ? categoryOf(r.id)?.color : CATEGORIES.find((c) => c.id === r.id)?.color;
-                    return (
-                      <tr key={r.id} style={{ '--c': color } as CSSProperties}>
-                        <th>
-                          <span className="usage-name">
-                            {by === 'weapon' ? <WeaponIcon id={r.id} size={32} /> : <span className="usage-dot" />}
-                            {by === 'weapon' ? weaponName(r.id) : CATEGORIES.find((c) => c.id === r.id)?.name}
-                          </span>
-                        </th>
-                        <td className="num">{r.uses}</td>
-                        <td>
-                          <span className="usage-rate">
-                            <span className="usage-bar">
-                              <span style={{ width: `${(r.uses / maxUses) * 100}%` }} />
-                            </span>
-                            <span className="usage-pct">{percent(r.uses, picks.length)}</span>
-                          </span>
-                        </td>
-                        <td className="num" title={`${r.wins}勝 / 勝敗入力済み ${r.decided}`}>
-                          {percent(r.wins, r.decided)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <UsageTable rows={rows} by={by} total={picks.length} />
           </section>
 
           <h2 className="section-title">選手別</h2>

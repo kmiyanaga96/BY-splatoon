@@ -3,13 +3,16 @@ import { PlayerProfileFields } from '../components/PlayerProfileFields';
 import { TitleStars } from '../components/TitleStars';
 import { Avatar, Empty, Icon, IconButton, Segmented, TeamName, WeaponIcon, XBadge } from '../components/ui';
 import { normalizeForSearch, weaponName } from '../data/weapons';
-import { bestPlacement, playerStats, type PlayerStats } from '../lib/stats';
+import { bestPlacement, playerStats, winRate, type PlayerStats } from '../lib/stats';
 import { manualTitleKey, playerTitles } from '../lib/titles';
 import { navigate } from '../router';
 import { newId, newPlayer, update, updatePlayer, useApp } from '../store';
 import type { AppData, Player } from '../types';
 
-type Sort = 'name' | 'xp' | 'entries';
+type Sort = 'name' | 'xp' | 'entries' | 'winrate';
+
+/** 勝率の表示 (「62%」。勝敗の記録がなければ「-」) */
+const rateText = (s: { wins: number; decided: number }) => (s.decided ? `${Math.round((s.wins / s.decided) * 100)}%` : '-');
 
 const PRIMARY = '#582eff';
 
@@ -30,6 +33,12 @@ function PlayerList() {
     list.sort((a, b) => {
       if (sort === 'xp') return (b.p.xp ?? 0) - (a.p.xp ?? 0);
       if (sort === 'entries') return b.stats.results.length - a.stats.results.length;
+      if (sort === 'winrate') {
+        // 勝敗の記録がない選手は最後。同じ勝率なら試合数の多い順
+        const ra = winRate(a.stats) ?? -1;
+        const rb = winRate(b.stats) ?? -1;
+        return rb - ra || b.stats.decided - a.stats.decided;
+      }
       return a.p.name.localeCompare(b.p.name, 'ja');
     });
     return list;
@@ -59,6 +68,7 @@ function PlayerList() {
             { value: 'name', label: '名前順' },
             { value: 'xp', label: 'XP順' },
             { value: 'entries', label: '出場数順' },
+            { value: 'winrate', label: '勝率順' },
           ]}
         />
       </div>
@@ -94,8 +104,8 @@ function PlayerCard({ p, stats }: { p: Player; stats: PlayerStats }) {
           <b>{stats.results.length}</b> 大会
         </span>
         <span>
-          <b>{stats.games ? Math.round((stats.wins / stats.games) * 100) : '-'}</b>
-          {stats.games ? '%' : ''} 勝率
+          <b>{stats.decided ? Math.round((stats.wins / stats.decided) * 100) : '-'}</b>
+          {stats.decided ? '%' : ''} 勝率{stats.decided > 0 && <small className="muted">（{stats.decided}戦）</small>}
         </span>
         {best && <span className="badge ok">最高 {best.label}</span>}
       </div>
@@ -173,14 +183,14 @@ function PlayerDetail({ playerId }: { playerId: string }) {
                 <b>{stats.games}</b>試合
               </div>
               <div className="stat">
-                <b>{stats.games ? Math.round((stats.wins / stats.games) * 100) : '-'}</b>
-                {stats.games ? '%' : ''} 勝率
+                <b>{stats.decided ? Math.round((stats.wins / stats.decided) * 100) : '-'}</b>
+                {stats.decided ? '%' : ''} 勝率
               </div>
             </div>
           </section>
 
           <section className="card">
-            <h2 className="card-title">よく使うブキ</h2>
+            <h2 className="card-title">ブキ別の勝率（よく使う順）</h2>
             {stats.weapons.length === 0 ? (
               <Empty>試合の記録がまだありません</Empty>
             ) : (
@@ -192,9 +202,34 @@ function PlayerDetail({ playerId }: { playerId: string }) {
                     <span className="muted">
                       {w.games}試合 {w.wins}勝
                     </span>
+                    <b className="weapon-usage-rate" title="勝敗を入力したゲームでの勝率">
+                      {rateText(w)}
+                    </b>
                     <span className="usage-bar" aria-hidden="true">
                       <span style={{ width: `${(w.games / stats.weapons[0].games) * 100}%` }} />
                     </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="card">
+            <h2 className="card-title">ルール別の勝率</h2>
+            {stats.modes.length === 0 ? (
+              <Empty>試合の記録がまだありません</Empty>
+            ) : (
+              <ul className="mode-stats">
+                {stats.modes.map((m) => (
+                  <li key={m.mode || 'none'}>
+                    <span className="mode-stats-name">{m.mode || 'ルール未入力'}</span>
+                    <span className="muted">
+                      {m.games}試合 {m.wins}勝
+                    </span>
+                    <span className="usage-bar" aria-hidden="true">
+                      <span style={{ width: `${(winRate(m) ?? 0) * 100}%` }} />
+                    </span>
+                    <b>{rateText(m)}</b>
                   </li>
                 ))}
               </ul>

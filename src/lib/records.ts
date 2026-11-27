@@ -2,7 +2,7 @@
 // 通常ルールの大会は選手ごとに入力したブキ (Game.picksA/B) を、ブキ統一杯はチームのブキを出場メンバー全員の使用として数える。
 
 import { categoryOf } from '../data/weapons';
-import type { Game, Team, Tournament } from '../types';
+import type { Game, GameMode, Team, Tournament } from '../types';
 import { sideId, type MatchView } from './bracket';
 import { allMatches } from './league';
 import { lineupIds } from './roster';
@@ -19,6 +19,9 @@ export interface PlayerPick {
   weaponId: string;
   /** 勝敗が未入力なら null */
   won: boolean | null;
+  /** ゲームのルール (未入力は '') */
+  mode: GameMode;
+  tournamentId: string;
 }
 
 /** そのゲームで各出場メンバーが使ったブキ (Player.id -> ブキ ID)。未入力の人は含めない */
@@ -55,6 +58,8 @@ export function allPicks(t: Tournament, rounds: MatchView[][]): PlayerPick[] {
             playerId,
             weaponId,
             won: g.winner ? g.winner === side : null,
+            mode: g.mode,
+            tournamentId: t.id,
           });
         }
       }
