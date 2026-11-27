@@ -12,6 +12,7 @@ import { LeaguePage } from './pages/LeaguePage';
 import { OverallStatsPage } from './pages/OverallStatsPage';
 import { PlayersPage } from './pages/PlayersPage';
 import { BoardPage } from './pages/BoardPage';
+import { CheckerPage } from './pages/CheckerPage';
 import { RecordsPage } from './pages/RecordsPage';
 import { RoulettePage } from './pages/RoulettePage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -50,6 +51,7 @@ const NAV: NavItem[] = [
 /** ツールモード (大会とは切り離した作戦ボード・ルーレット) のメニュー */
 const TOOL_NAV: NavItem[] = [
   { path: 'tools/board', label: '作戦ボード', icon: 'map' },
+  { path: 'tools/checker', label: '編成', icon: 'fact_check' },
   { path: 'tools/roulette', label: 'ルーレット', icon: 'casino' },
 ];
 
@@ -93,7 +95,7 @@ export function App() {
 
   let content;
   if (toolsMode) {
-    content = sub === 'roulette' ? <RoulettePage /> : <BoardPage />;
+    content = sub === 'roulette' ? <RoulettePage /> : sub === 'checker' ? <CheckerPage /> : <BoardPage />;
   } else if (!t) {
     // 大会がまだ 1 つもない (選手 DB と表彰テンプレートの見本だけは見られる)
     content =
@@ -143,7 +145,7 @@ export function App() {
   }
 
   const menu = toolsMode ? TOOL_NAV : NAV.filter((n) => !n.show || !t || n.show(kindOf(t), t));
-  const currentPath = toolsMode ? `tools/${sub === 'roulette' ? 'roulette' : 'board'}` : current;
+  const currentPath = toolsMode ? `tools/${sub === 'roulette' || sub === 'checker' ? sub : 'board'}` : current;
   const navItems = menu.map((n) => {
     const active = currentPath === n.path;
     return (

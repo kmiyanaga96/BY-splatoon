@@ -397,6 +397,7 @@
    "objClam": 3
   },
   "Charger_Pencil": {
+   "role": "後衛",
    "range": 5.7,
    "paintArea": 5,
    "paintBurst": 5,

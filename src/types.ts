@@ -21,6 +21,8 @@ export interface Player {
    * 入っていない戦績は一覧には出るが星にはしない (運営が選手ごとに選ぶ)
    */
   starTitles: string[];
+  /** 身内メンバー (編成チェッカーのプリセットに出す) のときの並び順。身内でなければなし */
+  crew?: number;
 }
 
 export interface ManualTitle {

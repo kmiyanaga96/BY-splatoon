@@ -3482,3 +3482,209 @@ button.template-sample:hover {
     font-size: 0.8125rem;
   }
 }
+
+/* ---------- ツール: 編成チェッカー ---------- */
+
+.checker-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.checker-page > .segmented {
+  align-self: flex-start;
+}
+.checker-crew {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.checker-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.checker-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.checker-slot.active {
+  border-color: var(--md-sys-color-primary);
+}
+.checker-slot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+}
+.checker-slot-no {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex: none;
+}
+.checker-slot-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.checker-weapon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 7.5rem;
+  padding: 0.5rem;
+  border: 1px dashed var(--md-sys-color-outline-variant);
+  border-radius: 0.75rem;
+  background: var(--md-sys-color-surface-container-low);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.checker-weapon > .icon {
+  font-size: 2rem;
+  color: var(--md-sys-color-outline);
+}
+.checker-weapon-name {
+  font-weight: 700;
+}
+.checker-mains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.checker-main {
+  padding: 0.125rem;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  background: var(--md-sys-color-surface-container-high);
+  cursor: pointer;
+}
+.checker-main.selected {
+  border-color: var(--md-sys-color-primary);
+}
+.checker-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.checker-gauges {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 2rem;
+}
+.checker-gauge {
+  display: grid;
+  grid-template-columns: 6rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.checker-gauge-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.checker-gauge-bar {
+  height: 0.625rem;
+  border-radius: 99px;
+  background: var(--md-sys-color-surface-container-high);
+  overflow: hidden;
+}
+.checker-gauge-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--md-sys-color-primary);
+}
+.checker-gauge-bar > span.low {
+  background: #e8833a;
+}
+.checker-gauge-bar > span.high {
+  background: #2fae6b;
+}
+.checker-gauge-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.checker-advice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.checker-advice li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--md-sys-color-surface-container-low);
+}
+.checker-advice li.warn .icon {
+  color: #e8833a;
+}
+.checker-advice li.good .icon {
+  color: #2fae6b;
+}
+.checker-advice li.role .icon {
+  color: var(--md-sys-color-primary);
+}
+.crew-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.crew-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--md-sys-color-surface-container-low);
+}
+.crew-name {
+  flex: none;
+  min-width: 6rem;
+  font-weight: 700;
+}
+.crew-mains {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+.crew-add {
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.crew-add > .input {
+  flex: 1;
+}
+@media (max-width: 900px) {
+  .checker-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .checker-gauges {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
