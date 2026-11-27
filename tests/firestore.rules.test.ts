@@ -74,6 +74,13 @@ describe('書き込み', () => {
     await assertFails(setDoc(doc(db, 'players/p8'), { ...player('p8', { starTitles: Array.from({ length: 101 }, (_, i) => `t:${i}`) }), ...stamp(EDITOR) }));
   });
 
+  it('身内メンバーの並び順 (crew) を保存できる。数値以外・負の数は不可', async () => {
+    const db = editor();
+    await assertSucceeds(setDoc(doc(db, 'players/p9'), { ...player('p9', { crew: 3 }), ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'players/p10'), { ...player('p10', { crew: 'a' }), ...stamp(EDITOR) }));
+    await assertFails(setDoc(doc(db, 'players/p11'), { ...player('p11', { crew: -1 }), ...stamp(EDITOR) }));
+  });
+
   it('未ログイン・編集者以外は書き込めない', async () => {
     await assertFails(setDoc(doc(anon(), 'players/p3'), { ...player('p3'), ...stamp('') }));
     await assertFails(setDoc(doc(stranger(), 'players/p3'), { ...player('p3'), ...stamp('x@example.com') }));

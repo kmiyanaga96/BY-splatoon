@@ -184,6 +184,7 @@ export function normalizePlayer(p: any): Player {
     titles,
     // 星にする戦績を選ぶ仕組みより前のデータは、手で登録した戦績を星にしていたのでそのまま星にする
     starTitles: Array.isArray(p?.starTitles) ? strArr(p.starTitles).slice(0, 100) : titles.map((x) => `m:${x.id}`),
+    ...(typeof p?.crew === 'number' && Number.isFinite(p.crew) ? { crew: p.crew } : {}),
   };
 }
 
