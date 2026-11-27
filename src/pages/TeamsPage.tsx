@@ -44,7 +44,7 @@ export function TeamsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
       <div className="page-header row">
         <div>
           <h1 className="headline">チーム（{t.teams.length}）</h1>
-          <p className="muted">並び順がトーナメント作成時のシード順（エントリー番号）になります。</p>
+          <p className="muted">並び順がシード順になります</p>
         </div>
         <span className="spacer" />
         {canEdit && canImport && (

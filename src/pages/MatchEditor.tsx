@@ -152,7 +152,6 @@ export function MatchEditor({ t, rounds, m, onClose }: Props) {
       {random === 'tournament' && (
         <p className="muted body-s">ブキは大会で 1 回抽選した結果を使います（チーム画面で抽選）。</p>
       )}
-      {random === 'game' && <p className="muted body-s">各ゲームの抽選ボタンで、そのゲームのブキを選手ごとに抽選します。</p>}
       <h3 className="title-m">ゲーム記録</h3>
       <div className="games">
         {games.map((g, i) => (

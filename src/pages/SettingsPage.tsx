@@ -89,7 +89,7 @@ export function SettingsPage({ t }: { t: Tournament }) {
           />
         </Field>
         <span className="label">ロゴ</span>
-        <p className="muted body-s">表彰画像の右上とホームに表示します。真剣勝負の大会は「BYリーグ」、エンジョイ大会は「InkParty」がおすすめです。</p>
+        <p className="muted body-s">真剣勝負は「BYリーグ」、エンジョイ大会は「InkParty」がおすすめ</p>
         <div className="brand-picker" role="radiogroup" aria-label="ロゴ">
           {BRAND_OPTIONS.map((b) => (
             <button
@@ -232,8 +232,6 @@ export function SettingsPage({ t }: { t: Tournament }) {
       <section className="card">
         <h2 className="card-title">大会の管理</h2>
         <p className="muted body-s">
-          大会・選手 DB は全員で共通です。ここでの作成・削除はほかの運営メンバーの画面にもすぐ反映されます。
-          <br />
           登録済み（{app.tournaments.length}）: {app.tournaments.map((x) => x.name).join(' / ')}
         </p>
         <div className="button-stack">
@@ -255,8 +253,7 @@ export function SettingsPage({ t }: { t: Tournament }) {
       <section className="card">
         <h2 className="card-title">データ</h2>
         <p className="muted body-s">
-          データはオンライン（Firebase）に 1 つだけあり、全員が同じものを見ています。変更は自動で保存され、ほかの画面にもすぐ反映されます。
-          万一に備えて、大会の前後にバックアップを保存しておくと安心です（復元が必要なときは開発者に依頼してください）。
+          大会の前後に保存しておくと安心です（復元は開発者に依頼）。
         </p>
         <div className="button-stack">
           <button className="btn outlined" onClick={() => download(`by-splatoon_backup_${today()}.json`, backupJson())}>

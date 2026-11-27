@@ -93,7 +93,6 @@ export function AnnouncePage({ t, rounds }: { t: Tournament; rounds: MatchView[]
     <div className="page">
       <div className="page-header">
         <h1 className="headline">告知文</h1>
-        <p className="muted">Discord にそのまま貼り付けられる文章を作ります。右の欄で手直ししてからコピーできます。</p>
       </div>
       <div className="announce-layout">
         <section className="card announce-side">

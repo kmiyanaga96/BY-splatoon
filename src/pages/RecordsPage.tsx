@@ -37,8 +37,7 @@ export function RecordsPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
         />
       </div>
       <p className="muted">
-        試合記録で入力した選手ごとの使用ブキを集計します（{games} ゲーム・のべ {picks.length} 人分）。
-        使用率は入力された使用ブキ全体に占める割合です。
+        {games} ゲーム・のべ {picks.length} 人分
       </p>
 
       {picks.length === 0 ? (

@@ -109,7 +109,7 @@ export function PrizeVideos({ t }: { t: Tournament }) {
     <section className="card prize-videos">
       <h2 className="card-title">優勝賞品の動画</h2>
       <p className="muted body-s">
-        ログインしなくても、誰でも再生・ダウンロードできます。アップロード・削除は編集者のアカウントでログインしているときだけできます。
+        アップロード・削除は編集者のみ
       </p>
 
       {auth.isEditor && (

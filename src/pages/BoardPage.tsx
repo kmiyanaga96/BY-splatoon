@@ -608,9 +608,7 @@ export function BoardPage() {
             />
             {mapData === null && (
               <p className="board-empty">
-                {ui.stage}（{ui.rule}）の画像はまだ登録されていません。
-                {auth.isEditor ? '右上の「ステージ画像を登録」から登録できます。' : '編集者のアカウントでログインすると登録できます。'}
-                画像がなくても方眼の上に描けます。
+                ステージ画像は未登録です{auth.isEditor ? '（右上から登録できます）' : ''}
               </p>
             )}
           </div>
@@ -658,9 +656,6 @@ export function BoardPage() {
               </button>
             ))}
           </div>
-          <p className="muted body-s">
-            <Icon name="touch_app" /> ドラッグ、または選んでマップをタップ
-          </p>
         </section>
       </div>
 

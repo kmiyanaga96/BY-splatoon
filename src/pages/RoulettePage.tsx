@@ -73,7 +73,6 @@ export function RoulettePage() {
     <div className="page">
       <div className="page-header">
         <h1 className="headline">ブキルーレット</h1>
-        <p className="muted">人数分のブキをランダムに選びます。大会の記録とは関係なく、その場で使えます（設定はこの端末に保存されます）。</p>
       </div>
 
       <div className="roulette-layout">

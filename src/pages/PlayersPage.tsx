@@ -54,7 +54,6 @@ function PlayerList() {
     <div className="page">
       <div className="page-header">
         <h1 className="headline">選手（{app.players.length}）</h1>
-        <p className="muted">大会をまたいで使う選手 DB です。アイコン・Xパワー・得意ブキは一度登録すれば全大会で共通になります。</p>
       </div>
       <div className="toolbar">
         <div className="search">
@@ -292,8 +291,7 @@ function TitlesCard({ player: p, titles }: { player: Player; titles: ReturnType<
         <TitleStars gold={titles.gold} silver={titles.silver} />
       </h2>
       <p className="muted body-s">
-        「星にする」にチェックした戦績が、表彰画像の金星（優勝）・銀星（準優勝）になります。このツールで記録した大会の優勝・準優勝は自動で一覧に出ます（星にするかは選んでください）。
-        ツールを使う前の大会などは下で追加できます。
+        「星にする」を選んだ戦績が表彰画像の金星・銀星になります。ツール外の大会は下で追加できます。
       </p>
       {titles.entries.length === 0 ? (
         <Empty>まだ優勝・準優勝の記録はありません</Empty>

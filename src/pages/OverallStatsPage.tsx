@@ -38,8 +38,7 @@ export function OverallStatsPage() {
         />
       </div>
       <p className="muted">
-        すべての大会の試合記録から、ブキの使用率と勝率を集計します（{tournaments} 大会・{games} ゲーム・のべ {picks.length} 人分）。
-        ブキ統一杯はチームのブキを出場メンバー全員の使用として数えます。勝率は勝敗を入力したゲームだけで計算します。
+        {tournaments} 大会・{games} ゲーム・のべ {picks.length} 人分（ブキ統一杯はチームのブキを出場メンバー全員分として集計）
       </p>
       <div className="chips">
         <FilterChip label="すべてのルール" selected={mode === 'all'} onClick={() => setMode('all')} />
