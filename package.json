@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/tactics.mjs check && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "update-weapons": "node scripts/fetch-weapons.mjs",
     "update-weapon-icons": "node scripts/fetch-weapon-icons.mjs",
+    "tactics:sync": "node scripts/tactics.mjs sync",
+    "tactics:check": "node scripts/tactics.mjs check",
     "test:rules": "firebase emulators:exec --only firestore,storage \"vitest run --config vitest.rules.config.ts\"",
     "emulators": "firebase emulators:start --only firestore,auth,storage",
     "deploy:rules": "firebase deploy --only firestore:rules,storage"

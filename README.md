@@ -202,6 +202,11 @@ npm run update-weapon-icons
 
 作戦ボードのサブ・スペシャルの一覧（`src/data/subspe.json`）とアイコン（`public/subspe/<ID>.png`）も、ブキと同じコマンドで更新されます。
 
+### 戦術データ（編成チェッカー用）
+
+ブキごとの戦術パラメータ（ポジション・有効射程・塗り・キル・ルール別のオブジェクト関与・打開力など）は、運営が `data/tactics/*.csv` に入力します。
+入力の決まりと手順は [data/tactics/README.md](data/tactics/README.md) を参照。`npm run tactics:check` で検証して `src/data/tactics.json` に変換します（ビルド時にも自動で検証）。
+
 ### ブキ・ステージデータの更新
 
 `src/data/weapons.json` / `stages.json` は [Leanny/splat3](https://github.com/Leanny/splat3) のゲームデータから生成しています。
