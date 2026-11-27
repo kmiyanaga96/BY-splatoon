@@ -107,8 +107,7 @@ export function LeaguePage({ t, rounds }: { t: Tournament; rounds: MatchView[][]
         <section className="card">
           <h2 className="card-title">本選トーナメント</h2>
           <p className="muted body-s">
-            予選の順位から、別グループの 1 位と 2 位が当たるように 1 回戦の枠を作ります（たすき掛け）。作成後に枠を手で直すこともできます。
-            ブキの使用制限は予選と本選を通算します。
+            別グループの 1 位と 2 位が当たる枠を作ります。ブキの使用制限は予選と本選を通算します。
           </p>
           <div className="card-actions">
             <button
@@ -251,9 +250,6 @@ function GroupEditor({ t }: { t: Tournament }) {
           チーム一覧の順（シード順）で振り分け
         </button>
       </div>
-      <p className="muted body-s">
-        シード順ではジグザグに配るので、上位チームが同じグループに偏りません。下の一覧で 1 チームずつ移動もできます。
-      </p>
       <div className="slot-grid">
         {t.teams.map((x) => (
           <label key={x.id} className="slot-pair">

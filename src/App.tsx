@@ -9,8 +9,11 @@ import { AwardPage, AwardTemplateGallery } from './pages/AwardPage';
 import { BracketPage } from './pages/BracketPage';
 import { HomePage } from './pages/HomePage';
 import { LeaguePage } from './pages/LeaguePage';
+import { OverallStatsPage } from './pages/OverallStatsPage';
 import { PlayersPage } from './pages/PlayersPage';
+import { BoardPage } from './pages/BoardPage';
 import { RecordsPage } from './pages/RecordsPage';
+import { RoulettePage } from './pages/RoulettePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamDetailPage } from './pages/TeamDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -32,6 +35,7 @@ const NAV: NavItem[] = [
   { path: '', label: 'ホーム', icon: 'home' },
   { path: 'teams', label: 'チーム', icon: 'groups' },
   { path: 'players', label: '選手', icon: 'person' },
+  { path: 'stats', label: '通算', icon: 'insights' },
   // ブキ表は候補ブキを登録する大会 (ブキ統一杯)、記録は選手ごとのブキを入力する大会 (通常ルール) だけ
   { path: 'weapons', label: 'ブキ表', icon: 'table_view', show: (k) => k.hasPool },
   { path: 'records', label: '記録', icon: 'bar_chart', show: (k) => k.playerWeapons },
@@ -41,6 +45,12 @@ const NAV: NavItem[] = [
   { path: 'announce', label: '告知', icon: 'campaign' },
   { path: 'award', label: '表彰', icon: 'emoji_events' },
   { path: 'settings', label: '設定', icon: 'settings' },
+];
+
+/** ツールモード (大会とは切り離した作戦ボード・ルーレット) のメニュー */
+const TOOL_NAV: NavItem[] = [
+  { path: 'tools/board', label: '作戦ボード', icon: 'map' },
+  { path: 'tools/roulette', label: 'ルーレット', icon: 'casino' },
 ];
 
 const NEW = '__new__';
@@ -78,13 +88,19 @@ export function App() {
   const rounds = useMemo(() => (t ? computeBracket(t) : []), [t]);
   const [page, sub] = route;
   const current = page ?? '';
+  // ツールモードは大会の有無に関係なく使える
+  const toolsMode = page === 'tools';
 
   let content;
-  if (!t) {
+  if (toolsMode) {
+    content = sub === 'roulette' ? <RoulettePage /> : <BoardPage />;
+  } else if (!t) {
     // 大会がまだ 1 つもない (選手 DB と表彰テンプレートの見本だけは見られる)
     content =
       page === 'players' ? (
         <PlayersPage playerId={sub} />
+      ) : page === 'stats' ? (
+        <OverallStatsPage />
       ) : (
         <div className="page">
           <NoTournament />
@@ -97,6 +113,9 @@ export function App() {
       break;
     case 'players':
       content = <PlayersPage playerId={sub} />;
+      break;
+    case 'stats':
+      content = <OverallStatsPage />;
       break;
     case 'weapons':
       content = kindOf(t).hasPool ? <WeaponsPage t={t} rounds={rounds} /> : <HomePage t={t} rounds={rounds} />;
@@ -123,8 +142,10 @@ export function App() {
       content = <HomePage t={t} rounds={rounds} />;
   }
 
-  const navItems = NAV.filter((n) => !n.show || !t || n.show(kindOf(t), t)).map((n) => {
-    const active = current === n.path;
+  const menu = toolsMode ? TOOL_NAV : NAV.filter((n) => !n.show || !t || n.show(kindOf(t), t));
+  const currentPath = toolsMode ? `tools/${sub === 'roulette' ? 'roulette' : 'board'}` : current;
+  const navItems = menu.map((n) => {
+    const active = currentPath === n.path;
     return (
       <a key={n.path} href={`#/${n.path}`} className={`nav-item ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined}>
         <span className="nav-indicator">
@@ -149,8 +170,18 @@ export function App() {
             <img className="app-title-mark" src={BRAND_ICON} alt="BY" width={36} height={36} />
             <span className="app-title-text">スプラ大会ツール</span>
           </span>
+          <nav className="mode-switch" aria-label="モード">
+            <a href="#/" className={toolsMode ? '' : 'active'} aria-current={toolsMode ? undefined : 'page'}>
+              <Icon name="emoji_events" />
+              <span>大会</span>
+            </a>
+            <a href="#/tools/board" className={toolsMode ? 'active' : ''} aria-current={toolsMode ? 'page' : undefined}>
+              <Icon name="map" />
+              <span>ツール</span>
+            </a>
+          </nav>
           <span className="spacer" />
-          {t && (
+          {t && !toolsMode && (
             <div className="select-wrap">
               <select
                 className="input tournament-select"
@@ -176,7 +207,7 @@ export function App() {
           />
           <AccountButton />
         </header>
-        {authView.status !== 'loading' && !authView.isEditor && (
+        {!toolsMode && authView.status !== 'loading' && !authView.isEditor && (
           <div className="banner info">
             <Icon name="visibility" />
             {authView.status === 'signedIn'
@@ -191,7 +222,7 @@ export function App() {
           </div>
         )}
         <main className="main">
-          {storageStatus === 'loading' ? (
+          {storageStatus === 'loading' && !toolsMode ? (
             <div className="loading" role="status">
               <span className="spinner" />
               データを読み込んでいます…

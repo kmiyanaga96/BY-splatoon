@@ -183,7 +183,7 @@ export function TeamDetailPage({ t, teamId, rounds }: { t: Tournament; teamId: s
             </button>
           </div>
           <p className="muted body-s">
-            アイコン・名前・Xパワー・得意ブキは選手 DB に保存され、他の大会でも共通です。注目選手・リーダー・紹介文はこの大会だけの設定です。
+            注目選手・リーダー・紹介文はこの大会だけの設定です（ほかは全大会共通）。
           </p>
           {team.members.length === 0 && <Empty icon="person_add">「選手を追加」から選手 DB の選手を選ぶか、新しく登録してください</Empty>}
           <div className="players">

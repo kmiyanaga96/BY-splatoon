@@ -1,5 +1,5 @@
 // スプラトゥーン3のバトル用ブキ一覧とステージ名を取得して
-// src/data/weapons.json と src/data/stages.json を生成する。
+// src/data/weapons.json と src/data/stages.json、src/data/subspe.json (サブ・スペシャル) を生成する。
 // データ元: https://github.com/Leanny/splat3 (ゲームデータの解析結果)
 //
 // 使い方: npm run update-weapons -- [バージョン番号]
@@ -48,6 +48,12 @@ const weapons = mains
     };
   });
 
+// サブ・スペシャルの一覧 (作戦ボードのアイコン用)。バトル用ブキが持っているものだけ
+const versus = mains.filter((w) => w.Type === 'Versus');
+const kitList = (field, names, kind) =>
+  [...new Set(versus.map((w) => gymlKey(w[field])).filter(Boolean))].map((id) => ({ id, name: names[id] ?? id, kind }));
+const subspe = [...kitList('SubWeapon', subNames, 'sub'), ...kitList('SpecialWeapon', spNames, 'special')];
+
 const missing = weapons.filter((w) => !w.name);
 if (missing.length) throw new Error(`名前が見つからないブキ: ${missing.map((w) => w.id).join(', ')}`);
 
@@ -60,4 +66,5 @@ const stages = Object.entries(lang['CommonMsg/VS/VSStageName'])
 const out = (file) => fileURLToPath(new URL(`../src/data/${file}`, import.meta.url));
 await writeFile(out('weapons.json'), JSON.stringify({ version, weapons }, null, 1) + '\n');
 await writeFile(out('stages.json'), JSON.stringify(stages, null, 1) + '\n');
+await writeFile(out('subspe.json'), JSON.stringify(subspe, null, 1) + '\n');
 console.log(`${weapons.length} weapons, ${stages.length} stages (data version ${version})`);

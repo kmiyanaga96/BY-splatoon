@@ -73,6 +73,18 @@ service cloud.firestore {
       allow delete: if isEditor();
     }
 
+    // 作戦ボードのステージ画像 (ツールモード)。ID は "ルール:ステージ"、画像は縮小した data URL (1MB 未満)
+    match /stageMaps/{mapId} {
+      allow read: if true;
+      allow create, update: if isEditor() && stamped(request.resource.data)
+        && request.resource.data.keys().hasOnly(['stage', 'rule', 'image', 'updatedAt', 'updatedBy'])
+        && isShortString(request.resource.data.stage, 50)
+        && isShortString(request.resource.data.rule, 10)
+        && isShortString(request.resource.data.image, 1000000)
+        && request.resource.data.image.matches('^data:image/(jpeg|png|webp);base64,.*');
+      allow delete: if isEditor();
+    }
+
     // それ以外は全部拒否
     match /{document=**} {
       allow read, write: if false;

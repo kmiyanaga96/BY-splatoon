@@ -152,7 +152,7 @@ export function BracketPage({ t, rounds }: { t: Tournament; rounds: MatchView[][
           ))}
         </div>
       </div>
-      <p className="muted body-s">試合をクリックするとゲーム結果・使用ブキを記録できます。</p>
+      <p className="muted body-s">試合をクリックして結果を記録</p>
 
       {open && <MatchEditor t={t} rounds={rounds} m={open} onClose={() => navigate('bracket')} />}
     </div>
@@ -204,7 +204,7 @@ function SlotEditor({ t }: { t: Tournament }) {
     <section className="card">
       <h2 className="card-title">1回戦の枠</h2>
       <p className="muted body-s">
-        既に配置されているチームを選ぶと位置を入れ替えます。「空き」は相手の不戦勝になります。枠を変えると、対戦カードが変わった試合の記録は無効になります。
+        「空き」は相手の不戦勝。枠を変えると、対戦カードが変わった試合の記録は無効になります。
       </p>
       <div className="slot-grid">
         {Array.from({ length: slots.length / 2 }, (_, i) => (

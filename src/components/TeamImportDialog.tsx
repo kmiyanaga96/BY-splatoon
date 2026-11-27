@@ -79,8 +79,7 @@ export function TeamImportDialog({ t, onClose }: { t: Tournament; onClose: () =>
       ) : (
         <div className="team-import">
           <p className="muted body-s">
-            チーム名・カラー・紹介文・メンバー（リーダー・注目選手を含む）をコピーして、この大会の末尾に追加します。
-            元の大会は変わりません。選手は全大会で共通なので、アイコンや Xパワーもそのまま使えます。
+            この大会の末尾にコピーします（元の大会は変わりません）。
           </p>
           <Field label="取り込み元の大会">
             <select className="input" value={sourceId} onChange={(e) => changeSource(e.target.value)}>

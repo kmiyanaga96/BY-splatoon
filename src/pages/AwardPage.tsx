@@ -254,10 +254,6 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
     <div className="page">
       <div className="page-header">
         <h1 className="headline">表彰</h1>
-        <p className="muted">
-          テンプレートにチーム名・メンバー・使用ブキ・アイコンを流し込んで、表彰画像（1600×900 PNG）を作ります。
-          「スクショ」では、任意のスクリーンショットに大会名やチームの帯を重ねた画像（1920×1080 PNG）を作れます。
-        </p>
       </div>
 
       <div className="award-layout">
@@ -317,7 +313,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
                   />
                 </label>
               )}
-              {photo.image && <p className="muted body-s">プレビューをドラッグすると位置を調整できます。</p>}
+              {photo.image && <p className="muted body-s">プレビューをドラッグで位置調整</p>}
               <Switch label="上部の帯（大会名・見出し）" checked={photo.top} onChange={(v) => setPhoto((p) => ({ ...p, top: v }))} />
               {photo.top && (
                 <>
@@ -411,8 +407,7 @@ export function AwardPage({ t, rounds }: { t: Tournament; rounds: MatchView[][] 
           <section className="card">
             <h2 className="card-title">メンバーのアイコン</h2>
             <p className="muted body-s">
-              アイコンをクリックして画像を選ぶか、枠を選択して Ctrl+V（⌘V）で貼り付けます。Discord では
-              プロフィールのアイコンを開き「画像をコピー」すると貼り付けられます。未設定のメンバーは名前の頭文字で表示します。
+              クリックで画像を選ぶか、枠を選んで Ctrl+V（⌘V）で貼り付け
             </p>
             <div className="avatar-grid">
               {roster(selected.team, players).map(({ player: p }) => (
@@ -472,8 +467,7 @@ export function AwardTemplateGallery(props: { selected?: AwardTemplate; onSelect
     <section className="card">
       <h2 className="card-title">テンプレート見本</h2>
       <p className="muted body-s">
-        名前・ブキは例です。実際の画像には、選んだチームのメンバー・アイコン・Xパワー・使用ブキが入ります。
-        {props.onSelect && '見本をクリックすると、そのテンプレートに切り替わります。'}
+        名前・ブキは例です。
       </p>
       <div className="template-gallery">
         {AWARD_TEMPLATES.map(({ value, label }) => (

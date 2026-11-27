@@ -72,7 +72,7 @@ describe('選手ごとのブキ記録', () => {
   it('選手ページの集計も選手ごとの記録を使う', () => {
     const t = setup();
     const stats = playerStats({ version: 2, currentId: t.id, players: [], tournaments: [t] }, 't1-p2');
-    expect(stats.weapons).toEqual([{ weaponId: 'Charger_Normal_00', games: 1, wins: 1 }]);
+    expect(stats.weapons).toEqual([{ weaponId: 'Charger_Normal_00', games: 1, wins: 1, decided: 1 }]);
     expect(stats.games).toBe(2);
   });
 
