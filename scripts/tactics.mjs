@@ -201,9 +201,11 @@ function check() {
         if (Object.keys(clean).length) out.kits[id] = clean;
         if (spec.entry !== undefined) done++;
       } else {
-        const cat = oneOf(r['分類'], at('分類'), SPECIAL_CATEGORIES);
-        if (cat) {
-          out.specials[id] = cat;
+        // 複数の分類を持てる (「/」区切り)
+        const cats = r['分類'] ? r['分類'].split(/[\/／、,]/).map((x) => x.trim()).filter(Boolean) : [];
+        const ok = cats.filter((c) => oneOf(c, at('分類'), SPECIAL_CATEGORIES));
+        if (ok.length) {
+          out.specials[id] = ok;
           done++;
         }
       }

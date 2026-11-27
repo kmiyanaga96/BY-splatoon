@@ -4,7 +4,7 @@ vi.mock('../data/tactics.json', () => ({
   default: {
     mains: { Shooter_Normal: { role: '前衛', range: 2.5, paintArea: 3, kill: 3 } },
     kits: { Shooter_Normal_00: { entry: 3, tags: ['ボム持ち'], short: 'スシ' } },
-    specials: { SpUltraShot: 'エリア確保' },
+    specials: { SpUltraShot: ['打開・起点', 'エリア確保'] },
     kitSpecial: { Shooter_Normal_00: 'SpUltraShot', Shooter_Normal_01: 'SpTripleTornado' },
   },
 }));
@@ -22,7 +22,7 @@ describe('戦術データ', () => {
       entry: 3,
       tags: ['ボム持ち'],
       short: 'スシ',
-      specialCategory: 'エリア確保',
+      specialCategories: ['打開・起点', 'エリア確保'],
     });
   });
 
@@ -30,7 +30,7 @@ describe('戦術データ', () => {
     const t = weaponTactics('Shooter_Normal_01');
     expect(t.range).toBe(2.5);
     expect(t.entry).toBeUndefined();
-    expect(t.specialCategory).toBeUndefined();
+    expect(t.specialCategories).toEqual([]);
   });
 
   it('レプリカは元のブキの値を使う', () => {

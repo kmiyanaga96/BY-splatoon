@@ -1,7 +1,1459 @@
 {
- "mains": {},
- "kits": {},
- "specials": {},
+ "mains": {
+  "Shooter_Short": {
+   "role": "前衛",
+   "range": 1.2,
+   "paintArea": 3,
+   "paintBurst": 2,
+   "kill": 3,
+   "objArea": 3,
+   "objTower": 2,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Shooter_First": {
+   "role": "中衛",
+   "range": 2,
+   "paintArea": 5,
+   "paintBurst": 2,
+   "kill": 1,
+   "objArea": 4,
+   "objTower": 4,
+   "objRainmaker": 2,
+   "objClam": 3
+  },
+  "Shooter_Precision": {
+   "role": "前衛",
+   "range": 2,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shooter_Blaze": {
+   "role": "中衛",
+   "range": 2,
+   "paintArea": 5,
+   "paintBurst": 2,
+   "kill": 1,
+   "objArea": 4,
+   "objTower": 2,
+   "objRainmaker": 2,
+   "objClam": 2
+  },
+  "Shooter_Normal": {
+   "role": "前衛",
+   "range": 2.4,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 3,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shooter_Gravity": {
+   "role": "前衛",
+   "range": 2.5,
+   "paintArea": 3,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 4,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Shooter_QuickMiddle": {
+   "role": "前衛",
+   "range": 2.2,
+   "paintArea": 3,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Shooter_Expert": {
+   "role": "中衛",
+   "range": 3,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 4,
+   "objRainmaker": 3,
+   "objClam": 4
+  },
+  "Shooter_Heavy": {
+   "role": "中衛",
+   "range": 3.1,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 4,
+   "objRainmaker": 5,
+   "objClam": 4
+  },
+  "Shooter_Long": {
+   "role": "後衛",
+   "range": 4.1,
+   "paintArea": 2,
+   "paintBurst": 2,
+   "kill": 2,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Shooter_QuickLong": {
+   "role": "中衛",
+   "range": 3,
+   "paintArea": 4,
+   "paintBurst": 2,
+   "kill": 1,
+   "objArea": 4,
+   "objTower": 2,
+   "objRainmaker": 2,
+   "objClam": 2
+  },
+  "Blaster_Short": {
+   "role": "前衛",
+   "range": 1.9,
+   "paintArea": 1,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Blaster_Middle": {
+   "role": "前衛",
+   "range": 2,
+   "paintArea": 1,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Blaster_Long": {
+   "role": "中衛",
+   "range": 2.7,
+   "paintArea": 1,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 1,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Blaster_LightShort": {
+   "role": "前衛",
+   "range": 1.9,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 5,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Blaster_Light": {
+   "role": "中衛",
+   "range": 3.1,
+   "paintArea": 1,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Blaster_LightLong": {
+   "role": "中衛",
+   "range": 3.5,
+   "paintArea": 1,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Blaster_Precision": {
+   "role": "中衛",
+   "range": 3,
+   "paintArea": 1,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 5,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Shooter_TripleQuick": {
+   "role": "前衛",
+   "range": 2.7,
+   "paintArea": 5,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shooter_TripleMiddle": {
+   "role": "中衛",
+   "range": 3,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shooter_Flash": {
+   "role": "中衛",
+   "range": 3.4,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Roller_Compact": {
+   "role": "前衛",
+   "range": 0.9,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Roller_Normal": {
+   "role": "前衛",
+   "range": 1.5,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 4,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Roller_Heavy": {
+   "role": "中衛",
+   "range": 2.2,
+   "paintArea": 3,
+   "paintBurst": 5,
+   "kill": 5,
+   "objArea": 5,
+   "objTower": 4,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Roller_Hunter": {
+   "role": "中衛",
+   "range": 1.4,
+   "paintArea": 4,
+   "paintBurst": 3,
+   "kill": 3,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Roller_Wide": {
+   "role": "中衛",
+   "range": 0.9,
+   "paintArea": 5,
+   "paintBurst": 3,
+   "kill": 2,
+   "objArea": 5,
+   "objTower": 2,
+   "objRainmaker": 5,
+   "objClam": 3
+  },
+  "Brush_Mini": {
+   "role": "前衛",
+   "range": 1.2,
+   "paintArea": 2,
+   "paintBurst": 2,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 1,
+   "objRainmaker": 3,
+   "objClam": 5
+  },
+  "Brush_Normal": {
+   "role": "前衛",
+   "range": 1.5,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 2,
+   "objRainmaker": 3,
+   "objClam": 4
+  },
+  "Brush_Heavy": {
+   "role": "中衛",
+   "range": 2.5,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 4,
+   "objTower": 2,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_Quick": {
+   "role": "前衛",
+   "range": 3.7,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 4
+  },
+  "Charger_Normal": {
+   "role": "後衛",
+   "range": 5.2,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_NormalScope": {
+   "role": "後衛",
+   "range": 5.5,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_Long": {
+   "role": "後衛",
+   "range": 6.2,
+   "paintArea": 2,
+   "paintBurst": 5,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_LongScope": {
+   "role": "後衛",
+   "range": 6.5,
+   "paintArea": 2,
+   "paintBurst": 5,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_Light": {
+   "role": "中衛",
+   "range": 4,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_Keeper": {
+   "role": "中衛",
+   "range": 4.2,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 3,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Charger_Pencil": {
+   "range": 5.7,
+   "paintArea": 5,
+   "paintBurst": 5,
+   "kill": 4,
+   "objArea": 5,
+   "objTower": 4,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Slosher_Strong": {
+   "role": "中衛",
+   "range": 2.7,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Slosher_Diffusion": {
+   "role": "前衛",
+   "range": 2.2,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Slosher_Launcher": {
+   "role": "前衛",
+   "range": 2.9,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Slosher_Bathtub": {
+   "role": "中衛",
+   "range": 5,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 3,
+   "objTower": 2,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Slosher_Washtub": {
+   "role": "後衛",
+   "range": 4.1,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 5,
+   "objTower": 2,
+   "objRainmaker": 2,
+   "objClam": 3
+  },
+  "Slosher_Double": {
+   "role": "中衛",
+   "range": 3.1,
+   "paintArea": 5,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_Quick": {
+   "role": "前衛",
+   "range": 2.7,
+   "paintArea": 5,
+   "paintBurst": 5,
+   "kill": 3,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_Standard": {
+   "role": "後衛",
+   "range": 3.8,
+   "paintArea": 5,
+   "paintBurst": 5,
+   "kill": 3,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_Hyper": {
+   "role": "後衛",
+   "range": 4,
+   "paintArea": 3,
+   "paintBurst": 5,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_Downpour": {
+   "role": "後衛",
+   "range": 4,
+   "paintArea": 5,
+   "paintBurst": 5,
+   "kill": 4,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_Serein": {
+   "role": "中衛",
+   "range": 3.1,
+   "paintArea": 3,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Spinner_HyperShort": {
+   "role": "中衛",
+   "range": 3.3,
+   "paintArea": 3,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Short": {
+   "role": "前衛",
+   "range": 1.5,
+   "paintArea": 4,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Normal": {
+   "role": "前衛",
+   "range": 2.4,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Gallon": {
+   "role": "中衛",
+   "range": 2.5,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 2,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Dual": {
+   "role": "中衛",
+   "range": 3,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 4,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Stepper": {
+   "role": "前衛",
+   "range": 2.4,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Maneuver_Long": {
+   "role": "後衛",
+   "range": 3.7,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 2,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shelter_Normal": {
+   "role": "前衛",
+   "range": 2,
+   "paintArea": 2,
+   "paintBurst": 3,
+   "kill": 2,
+   "objArea": 3,
+   "objTower": 3,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shelter_Wide": {
+   "role": "前衛",
+   "range": 2.1,
+   "paintArea": 2,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 2,
+   "objTower": 2,
+   "objRainmaker": 5,
+   "objClam": 4
+  },
+  "Shelter_Compact": {
+   "role": "前衛",
+   "range": 2.3,
+   "paintArea": 3,
+   "paintBurst": 3,
+   "kill": 2,
+   "objArea": 3,
+   "objTower": 2,
+   "objRainmaker": 3,
+   "objClam": 3
+  },
+  "Shelter_Focus": {
+   "role": "前衛",
+   "range": 2.5,
+   "paintArea": 2,
+   "paintBurst": 2,
+   "kill": 4,
+   "objArea": 2,
+   "objTower": 4,
+   "objRainmaker": 3,
+   "objClam": 4
+  },
+  "Stringer_Normal": {
+   "role": "後衛",
+   "range": 5.1,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 3,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 4,
+   "objClam": 3
+  },
+  "Stringer_Short": {
+   "role": "中衛",
+   "range": 3.5,
+   "paintArea": 5,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 5,
+   "objTower": 3,
+   "objRainmaker": 4,
+   "objClam": 4
+  },
+  "Stringer_Explosion": {
+   "role": "中衛",
+   "range": 4.8,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 4,
+   "objArea": 4,
+   "objTower": 3,
+   "objRainmaker": 5,
+   "objClam": 4
+  },
+  "Saber_Normal": {
+   "role": "中衛",
+   "range": 4.5,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 4,
+   "objRainmaker": 5,
+   "objClam": 4
+  },
+  "Saber_Lite": {
+   "role": "前衛",
+   "range": 3.5,
+   "paintArea": 4,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 4,
+   "objTower": 4,
+   "objRainmaker": 5,
+   "objClam": 4
+  },
+  "Saber_Heavy": {
+   "role": "前衛",
+   "range": 3.3,
+   "paintArea": 3,
+   "paintBurst": 4,
+   "kill": 5,
+   "objArea": 3,
+   "objTower": 4,
+   "objRainmaker": 5,
+   "objClam": 4
+  }
+ },
+ "kits": {
+  "Shooter_Short_00": {
+   "entry": 3,
+   "short": "ボールド"
+  },
+  "Shooter_Short_01": {
+   "entry": 1,
+   "short": "ボルネオ"
+  },
+  "Shooter_First_00": {
+   "entry": 3,
+   "short": "わかば"
+  },
+  "Shooter_First_01": {
+   "entry": 2,
+   "short": "もみじ"
+  },
+  "Shooter_Precision_00": {
+   "entry": 4,
+   "short": "シャプマ"
+  },
+  "Shooter_Precision_01": {
+   "entry": 4,
+   "short": "シマネ"
+  },
+  "Shooter_Precision_02": {
+   "entry": 3,
+   "short": "シャプマGECK"
+  },
+  "Shooter_Blaze_00": {
+   "entry": 3,
+   "short": "銀モデ"
+  },
+  "Shooter_Blaze_01": {
+   "entry": 3,
+   "short": "金モデ"
+  },
+  "Shooter_Blaze_02": {
+   "entry": 3,
+   "short": "虹モデ"
+  },
+  "Shooter_Normal_00": {
+   "entry": 4,
+   "short": "スシ"
+  },
+  "Shooter_Normal_01": {
+   "entry": 4,
+   "short": "スシコラ"
+  },
+  "Shooter_Normal_02": {
+   "entry": 3,
+   "short": "スシ煌"
+  },
+  "Shooter_Gravity_00": {
+   "entry": 5,
+   "short": "52"
+  },
+  "Shooter_Gravity_01": {
+   "entry": 4,
+   "short": "52デコ"
+  },
+  "Shooter_QuickMiddle_00": {
+   "entry": 4,
+   "short": "黒ZAP"
+  },
+  "Shooter_QuickMiddle_01": {
+   "entry": 3,
+   "short": "赤ZAP"
+  },
+  "Shooter_Expert_00": {
+   "entry": 4,
+   "short": "プライム"
+  },
+  "Shooter_Expert_01": {
+   "entry": 4,
+   "short": "プラコラ"
+  },
+  "Shooter_Expert_02": {
+   "entry": 4,
+   "short": "プライムFRZN"
+  },
+  "Shooter_Heavy_00": {
+   "entry": 4,
+   "short": "96"
+  },
+  "Shooter_Heavy_01": {
+   "entry": 3,
+   "short": "96デコ"
+  },
+  "Shooter_Heavy_02": {
+   "entry": 4,
+   "short": "96爪"
+  },
+  "Shooter_Long_00": {
+   "entry": 3,
+   "short": "ジェット"
+  },
+  "Shooter_Long_01": {
+   "entry": 2,
+   "short": "ジェッカス"
+  },
+  "Shooter_Long_02": {
+   "entry": 3,
+   "short": "ジェットCOBR"
+  },
+  "Shooter_QuickLong_00": {
+   "entry": 1,
+   "short": "スペシュ"
+  },
+  "Shooter_QuickLong_01": {
+   "entry": 2,
+   "short": "スペコラ"
+  },
+  "Blaster_Short_00": {
+   "entry": 3,
+   "short": "ノヴァ"
+  },
+  "Blaster_Short_01": {
+   "entry": 4,
+   "short": "ノヴァネオ"
+  },
+  "Blaster_Middle_00": {
+   "entry": 5,
+   "short": "ホット"
+  },
+  "Blaster_Middle_01": {
+   "entry": 5,
+   "short": "ホッカス"
+  },
+  "Blaster_Middle_02": {
+   "entry": 3,
+   "short": "ホット艶"
+  },
+  "Blaster_Long_00": {
+   "entry": 5,
+   "short": "ロング"
+  },
+  "Blaster_Long_01": {
+   "entry": 3,
+   "short": "ロンタム"
+  },
+  "Blaster_LightShort_00": {
+   "entry": 3,
+   "short": "クラブラ"
+  },
+  "Blaster_LightShort_01": {
+   "entry": 2,
+   "short": "クラブラネオ"
+  },
+  "Blaster_Light_00": {
+   "entry": 3,
+   "short": "ラピ"
+  },
+  "Blaster_Light_01": {
+   "entry": 4,
+   "short": "ラピデコ"
+  },
+  "Blaster_LightLong_00": {
+   "entry": 3,
+   "short": "ラピエリ"
+  },
+  "Blaster_LightLong_01": {
+   "entry": 5,
+   "short": "エリデコ"
+  },
+  "Blaster_LightLong_02": {
+   "entry": 4,
+   "short": "ラピエリWNTR"
+  },
+  "Blaster_Precision_00": {
+   "entry": 3,
+   "short": "エスブラ"
+  },
+  "Blaster_Precision_01": {
+   "entry": 4,
+   "short": "エスブラ"
+  },
+  "Shooter_TripleQuick_00": {
+   "entry": 3,
+   "short": "L3"
+  },
+  "Shooter_TripleQuick_01": {
+   "entry": 3,
+   "short": "L3D"
+  },
+  "Shooter_TripleQuick_02": {
+   "entry": 4,
+   "short": "L3箔"
+  },
+  "Shooter_TripleMiddle_00": {
+   "entry": 3,
+   "short": "H3"
+  },
+  "Shooter_TripleMiddle_01": {
+   "entry": 2,
+   "short": "H3D"
+  },
+  "Shooter_TripleMiddle_02": {
+   "entry": 3,
+   "short": "H3SNAK"
+  },
+  "Shooter_Flash_00": {
+   "entry": 4,
+   "short": "ボトル"
+  },
+  "Shooter_Flash_01": {
+   "entry": 3,
+   "short": "ボトルフォイル"
+  },
+  "Roller_Compact_00": {
+   "entry": 2,
+   "short": "カーボン"
+  },
+  "Roller_Compact_01": {
+   "entry": 4,
+   "short": "カロデコ"
+  },
+  "Roller_Compact_02": {
+   "entry": 1,
+   "short": "カーボンANGL"
+  },
+  "Roller_Normal_00": {
+   "entry": 4,
+   "short": "ロラ"
+  },
+  "Roller_Normal_01": {
+   "entry": 3,
+   "short": "ロラコラ"
+  },
+  "Roller_Heavy_00": {
+   "entry": 5,
+   "short": "ダイナモ"
+  },
+  "Roller_Heavy_01": {
+   "entry": 2,
+   "short": "ダイナモテスラ"
+  },
+  "Roller_Heavy_02": {
+   "entry": 3,
+   "short": "ダイナモ冥"
+  },
+  "Roller_Hunter_00": {
+   "entry": 3,
+   "short": "ヴァリ"
+  },
+  "Roller_Hunter_01": {
+   "entry": 3,
+   "short": "ヴァリフォイル"
+  },
+  "Roller_Wide_00": {
+   "entry": 3,
+   "short": "ワイロ"
+  },
+  "Roller_Wide_01": {
+   "entry": 3,
+   "short": "ワイロコラボ"
+  },
+  "Roller_Wide_02": {
+   "entry": 3,
+   "short": "ワイロ惑"
+  },
+  "Brush_Mini_00": {
+   "entry": 4,
+   "short": "パブロ"
+  },
+  "Brush_Mini_01": {
+   "entry": 3,
+   "short": "パブロヒュー"
+  },
+  "Brush_Normal_00": {
+   "entry": 3,
+   "short": "ホクサイ"
+  },
+  "Brush_Normal_01": {
+   "entry": 2,
+   "short": "ホクサイヒュー"
+  },
+  "Brush_Normal_02": {
+   "entry": 3,
+   "short": "ホクサイ彗"
+  },
+  "Brush_Heavy_00": {
+   "entry": 2,
+   "short": "フィン"
+  },
+  "Brush_Heavy_01": {
+   "entry": 3,
+   "short": "フィンヒュー"
+  },
+  "Brush_Heavy_02": {
+   "entry": 3,
+   "short": "銅フィン"
+  },
+  "Charger_Quick_00": {
+   "entry": 4,
+   "short": "スクイク"
+  },
+  "Charger_Quick_01": {
+   "entry": 2,
+   "short": "スクイク"
+  },
+  "Charger_Normal_00": {
+   "entry": 3,
+   "short": "チャー"
+  },
+  "Charger_Normal_01": {
+   "entry": 3,
+   "short": "チャーコラ"
+  },
+  "Charger_Normal_02": {
+   "entry": 3,
+   "short": "チャーFRST"
+  },
+  "Charger_NormalScope_00": {
+   "entry": 3,
+   "short": "チャー"
+  },
+  "Charger_NormalScope_01": {
+   "entry": 3,
+   "short": "チャーコラ"
+  },
+  "Charger_NormalScope_02": {
+   "entry": 3,
+   "short": "チャーFRST"
+  },
+  "Charger_Long_00": {
+   "entry": 4,
+   "short": "リッター"
+  },
+  "Charger_Long_01": {
+   "entry": 3,
+   "short": "リッカス"
+  },
+  "Charger_LongScope_00": {
+   "entry": 4,
+   "short": "リッター"
+  },
+  "Charger_LongScope_01": {
+   "entry": 3,
+   "short": "リッカス"
+  },
+  "Charger_Light_00": {
+   "entry": 3,
+   "short": "竹甲"
+  },
+  "Charger_Light_01": {
+   "entry": 1,
+   "short": "竹乙"
+  },
+  "Charger_Keeper_00": {
+   "entry": 2,
+   "short": "ソイチュ"
+  },
+  "Charger_Keeper_01": {
+   "entry": 2,
+   "short": "ソイチュカスタム"
+  },
+  "Charger_Pencil_00": {
+   "entry": 5,
+   "short": "青ペン"
+  },
+  "Charger_Pencil_01": {
+   "entry": 3,
+   "short": "赤ペン"
+  },
+  "Slosher_Strong_00": {
+   "entry": 5,
+   "short": "バケ"
+  },
+  "Slosher_Strong_01": {
+   "entry": 3,
+   "short": "バケデコ"
+  },
+  "Slosher_Diffusion_00": {
+   "entry": 3,
+   "short": "ヒッセン"
+  },
+  "Slosher_Diffusion_01": {
+   "entry": 4,
+   "short": "ヒッセンヒュー"
+  },
+  "Slosher_Diffusion_02": {
+   "entry": 3,
+   "short": "ヒッセンASH"
+  },
+  "Slosher_Launcher_00": {
+   "entry": 3,
+   "short": "スクスロ"
+  },
+  "Slosher_Launcher_01": {
+   "entry": 3,
+   "short": "スクスロネオ"
+  },
+  "Slosher_Bathtub_00": {
+   "entry": 2,
+   "short": "お風呂"
+  },
+  "Slosher_Bathtub_01": {
+   "entry": 3,
+   "short": "お風呂デコ"
+  },
+  "Slosher_Washtub_00": {
+   "entry": 2,
+   "short": "エクス"
+  },
+  "Slosher_Washtub_01": {
+   "entry": 4,
+   "short": "エクスカスタム"
+  },
+  "Slosher_Double_00": {
+   "entry": 4,
+   "short": "モプ"
+  },
+  "Slosher_Double_01": {
+   "entry": 4,
+   "short": "モプD"
+  },
+  "Slosher_Double_02": {
+   "entry": 4,
+   "short": "モプ角"
+  },
+  "Spinner_Quick_00": {
+   "entry": 4,
+   "short": "スプスピ"
+  },
+  "Spinner_Quick_01": {
+   "entry": 4,
+   "short": "スピコラ"
+  },
+  "Spinner_Quick_02": {
+   "entry": 4,
+   "short": "スプスピPYTN"
+  },
+  "Spinner_Standard_00": {
+   "entry": 3,
+   "short": "バレル"
+  },
+  "Spinner_Standard_01": {
+   "entry": 3,
+   "short": "バレデコ"
+  },
+  "Spinner_Hyper_00": {
+   "entry": 2,
+   "short": "ハイドラ"
+  },
+  "Spinner_Hyper_01": {
+   "entry": 3,
+   "short": "ハイカス"
+  },
+  "Spinner_Hyper_02": {
+   "entry": 3,
+   "short": "ハイドラ圧"
+  },
+  "Spinner_Downpour_00": {
+   "entry": 4,
+   "short": "クゲ"
+  },
+  "Spinner_Downpour_01": {
+   "entry": 3,
+   "short": "クゲヒュー"
+  },
+  "Spinner_Serein_00": {
+   "entry": 4,
+   "short": "銀ノーチ"
+  },
+  "Spinner_Serein_01": {
+   "entry": 4,
+   "short": "金ノーチ"
+  },
+  "Spinner_HyperShort_00": {
+   "entry": 4,
+   "short": "ザミナー"
+  },
+  "Spinner_HyperShort_01": {
+   "entry": 3,
+   "short": "ザミナーヒュー"
+  },
+  "Maneuver_Short_00": {
+   "entry": 4,
+   "short": "赤スパ"
+  },
+  "Maneuver_Short_01": {
+   "entry": 4,
+   "short": "青スパ"
+  },
+  "Maneuver_Short_02": {
+   "entry": 3,
+   "short": "茶スパ"
+  },
+  "Maneuver_Normal_00": {
+   "entry": 5,
+   "short": "マニュ"
+  },
+  "Maneuver_Normal_01": {
+   "entry": 4,
+   "short": "マニュコラ"
+  },
+  "Maneuver_Normal_02": {
+   "entry": 4,
+   "short": "マニュ耀"
+  },
+  "Maneuver_Gallon_00": {
+   "entry": 3,
+   "short": "ケルビン"
+  },
+  "Maneuver_Gallon_01": {
+   "entry": 3,
+   "short": "ケルデコ"
+  },
+  "Maneuver_Dual_00": {
+   "entry": 3,
+   "short": "デュアル"
+  },
+  "Maneuver_Dual_01": {
+   "entry": 3,
+   "short": "デュアルカスタム"
+  },
+  "Maneuver_Dual_02": {
+   "entry": 2,
+   "short": "青デュアル"
+  },
+  "Maneuver_Stepper_00": {
+   "entry": 5,
+   "short": "クアッド"
+  },
+  "Maneuver_Stepper_01": {
+   "entry": 4,
+   "short": "クアッドホワイト"
+  },
+  "Maneuver_Long_00": {
+   "entry": 1,
+   "short": "ガエン"
+  },
+  "Maneuver_Long_01": {
+   "entry": 3,
+   "short": "ガエンカスタム"
+  },
+  "Shelter_Normal_00": {
+   "entry": 3,
+   "short": "傘"
+  },
+  "Shelter_Normal_01": {
+   "entry": 4,
+   "short": "傘ソレーラ"
+  },
+  "Shelter_Wide_00": {
+   "entry": 3,
+   "short": "キャンプ"
+  },
+  "Shelter_Wide_01": {
+   "entry": 4,
+   "short": "キャンプソレーラ"
+  },
+  "Shelter_Wide_02": {
+   "entry": 1,
+   "short": "キャンプCREM"
+  },
+  "Shelter_Compact_00": {
+   "entry": 3,
+   "short": "スパガ"
+  },
+  "Shelter_Compact_01": {
+   "entry": 1,
+   "short": "スパガソレーラ"
+  },
+  "Shelter_Compact_02": {
+   "entry": 1,
+   "short": "スパガ繚"
+  },
+  "Shelter_Focus_00": {
+   "entry": 4,
+   "short": "和傘"
+  },
+  "Shelter_Focus_01": {
+   "entry": 3,
+   "short": "和傘乙"
+  },
+  "Stringer_Normal_00": {
+   "entry": 4,
+   "short": "トラスト"
+  },
+  "Stringer_Normal_01": {
+   "entry": 3,
+   "short": "トラストコラボ"
+  },
+  "Stringer_Normal_02": {
+   "entry": 4,
+   "short": "トラスト燈"
+  },
+  "Stringer_Short_00": {
+   "entry": 5,
+   "short": "ラクト"
+  },
+  "Stringer_Short_01": {
+   "entry": 3,
+   "short": "ラクトデコ"
+  },
+  "Stringer_Short_02": {
+   "entry": 4,
+   "short": "ラクトMILK"
+  },
+  "Stringer_Explosion_00": {
+   "entry": 4,
+   "short": "フルイド"
+  },
+  "Stringer_Explosion_01": {
+   "entry": 3,
+   "short": "フルイドカスタム"
+  },
+  "Saber_Normal_00": {
+   "entry": 4,
+   "short": "ジム"
+  },
+  "Saber_Normal_01": {
+   "entry": 3,
+   "short": "ジムヒュー"
+  },
+  "Saber_Normal_02": {
+   "entry": 4,
+   "short": "ジム封"
+  },
+  "Saber_Lite_00": {
+   "entry": 5,
+   "short": "ドライブ"
+  },
+  "Saber_Lite_01": {
+   "entry": 4,
+   "short": "ドライブデコ"
+  },
+  "Saber_Lite_02": {
+   "entry": 4,
+   "short": "ドライブRUST"
+  },
+  "Saber_Heavy_00": {
+   "entry": 4,
+   "short": "デンタル"
+  },
+  "Saber_Heavy_01": {
+   "entry": 4,
+   "short": "デンタルスミ"
+  }
+ },
+ "specials": {
+  "SpBlower": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpMicroLaser": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpEnergyStand": [
+   "打開・起点",
+   "抑え・遅延"
+  ],
+  "SpUltraShot": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpFirework": [
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ],
+  "SpTripleTornado": [
+   "打開・起点",
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ],
+  "SpJetpack": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpShockSonar": [
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpCastle": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpGreatBarrier": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpPogo": [
+   "打開・起点",
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ],
+  "SpChariot": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpSkewer": [
+   "打開・起点",
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ],
+  "SpNiceBall": [
+   "打開・起点",
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ],
+  "SpSuperHook": [
+   "抑え・遅延"
+  ],
+  "SpUltraStamp": [
+   "打開・起点",
+   "抑え・遅延"
+  ],
+  "SpMultiMissile": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpInkStorm": [
+   "打開・起点",
+   "抑え・遅延",
+   "敵を動かす"
+  ],
+  "SpChimney": [
+   "打開・起点",
+   "抑え・遅延",
+   "エリア確保",
+   "敵を動かす"
+  ]
+ },
  "kitSpecial": {
   "Shooter_Short_00": "SpUltraStamp",
   "Shooter_Short_01": "SpMicroLaser",

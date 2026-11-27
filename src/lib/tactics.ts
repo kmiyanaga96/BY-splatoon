@@ -36,13 +36,14 @@ export interface KitSpec {
 /** 1 つのブキの戦術データをまとめたもの */
 export interface WeaponTactics extends MainSpec, KitSpec {
   weaponId: string;
-  specialCategory?: SpecialCategory;
+  /** スペシャルの分類 (複数あり。未入力は空) */
+  specialCategories: SpecialCategory[];
 }
 
 interface TacticsData {
   mains: Record<string, MainSpec>;
   kits: Record<string, KitSpec>;
-  specials: Record<string, SpecialCategory>;
+  specials: Record<string, SpecialCategory[]>;
   kitSpecial: Record<string, string>;
 }
 
@@ -56,7 +57,7 @@ export function weaponTactics(weaponId: string): WeaponTactics {
     weaponId,
     ...data.mains[main],
     ...data.kits[base],
-    specialCategory: data.specials[data.kitSpecial[base] ?? ''],
+    specialCategories: data.specials[data.kitSpecial[base] ?? ''] ?? [],
   };
 }
 
